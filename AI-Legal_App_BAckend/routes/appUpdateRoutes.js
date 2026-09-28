@@ -66,7 +66,7 @@ const DEFAULT_SETTINGS = {
     updatePolicy: 'optional',
     title: 'AI LEGAL™ Update Available',
     message: 'A new version of AI LEGAL™ is available with improvements and bug fixes.',
-    storeUrl: 'https://play.google.com/store/apps/details?id=com.uwo.ailegal',
+    storeUrl: 'https://play.google.com/store/apps/details?id=com.uwo24.ailegal',
     enabled: true,
   },
   ios: {

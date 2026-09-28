@@ -37,6 +37,49 @@ export const cleanAiOutputBrackets = (text) => {
         return match.replace(/[*#`_~]/g, '');
     });
 
+    // Auto-heal raw JSON / array responses if LLM verbatim copied a JSON document
+    const trimmed = cleaned.trim();
+    if (trimmed.startsWith('[') || trimmed.startsWith('{')) {
+        try {
+            const jsonCandidate = trimmed.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim();
+            if (jsonCandidate.startsWith('[') || jsonCandidate.startsWith('{')) {
+                const parsed = JSON.parse(jsonCandidate);
+                const items = Array.isArray(parsed) ? parsed : [parsed];
+                if (items.length > 0 && typeof items[0] === 'object' && items[0] !== null) {
+                    const hasLegalOrKnowledgeKey = items.some(item => 
+                        item.direct_answer || item.topic || item.id || item.answer || item.question || item.content || item.summary
+                    );
+                    if (hasLegalOrKnowledgeKey) {
+                        let formattedText = '';
+                        for (const item of items) {
+                            if (item.topic) formattedText += `### ${item.topic}\n\n`;
+                            if (item.question) formattedText += `**Question:** ${item.question}\n\n`;
+                            if (item.direct_answer) formattedText += `${item.direct_answer}\n\n`;
+                            else if (item.answer) formattedText += `${item.answer}\n\n`;
+                            else if (item.content) formattedText += `${item.content}\n\n`;
+                            else if (item.summary) formattedText += `${item.summary}\n\n`;
+
+                            for (const [key, val] of Object.entries(item)) {
+                                if (['id', 'topic', 'direct_answer', 'answer', 'question', 'content', 'summary', '_id', '__v'].includes(key)) continue;
+                                const cleanKey = key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                                if (typeof val === 'string' || typeof val === 'number') {
+                                    formattedText += `**${cleanKey}:**\n${val}\n\n`;
+                                } else if (Array.isArray(val)) {
+                                    formattedText += `**${cleanKey}:**\n` + val.map(v => `- ${typeof v === 'object' ? JSON.stringify(v) : v}`).join('\n') + '\n\n';
+                                }
+                            }
+                        }
+                        if (formattedText.trim()) {
+                            cleaned = formattedText.trim();
+                        }
+                    }
+                }
+            }
+        } catch (_) {
+            // Not valid JSON, keep original cleaned text
+        }
+    }
+
     return cleaned
         .replace(/\n{3,}/g, '\n\n')
         .trim();

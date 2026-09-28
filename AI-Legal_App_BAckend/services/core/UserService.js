@@ -69,11 +69,15 @@ export class UserService extends BaseService {
     }
 
     // Self-healing Avatar logic
-    if (isGeneratedAvatar(user.avatar)) {
+    if (!user.avatar || user.avatar === '/User.jpeg' || user.avatar.startsWith('/')) {
+      const freshAvatar = await getSmartAvatar(user.email, user.name);
+      user.avatar = (freshAvatar && !freshAvatar.startsWith('/')) ? freshAvatar : '';
+      await user.save().catch(err => LoggerService.warn(`[UserService] Avatar save warning: ${err.message}`));
+    } else if (isGeneratedAvatar(user.avatar)) {
       const freshAvatar = await getSmartAvatar(user.email, user.name);
       if (freshAvatar && !isGeneratedAvatar(freshAvatar)) {
         user.avatar = freshAvatar;
-        await user.save();
+        await user.save().catch(err => LoggerService.warn(`[UserService] Avatar save warning: ${err.message}`));
       }
     }
 

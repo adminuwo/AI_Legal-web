@@ -371,6 +371,33 @@ const handleSocialUser = async (profile, req, res, isRedirect = true) => {
   }
 
   try {
+    // Helper to safely persist social avatar if missing or default
+    const syncSocialAvatar = async (targetUser) => {
+      if (!picture) return;
+      const needsAvatar = !targetUser.avatar || 
+                          targetUser.avatar === '/User.jpeg' || 
+                          targetUser.avatar.startsWith('/') || 
+                          isGeneratedAvatar(targetUser.avatar);
+      if (needsAvatar) {
+        if (picture.includes('googleusercontent.com') || picture.includes('fbcdn.net') || picture.includes('twimg.com') || picture.includes('microsoft.com')) {
+          try {
+            const avatarRes = await axios.get(picture, { responseType: 'arraybuffer', timeout: 5000 });
+            const buffer = Buffer.from(avatarRes.data);
+            const gcsRes = await uploadToGCS(buffer, {
+              folder: 'user_avatars',
+              filename: gcsFilename(`avatar_social_${targetUser.email.split('@')[0]}`),
+              mimeType: avatarRes.headers['content-type'] || 'image/jpeg',
+            });
+            targetUser.avatar = gcsRes.publicUrl;
+          } catch (e) {
+            targetUser.avatar = picture;
+          }
+        } else {
+          targetUser.avatar = picture;
+        }
+      }
+    };
+
     // 1. Check if user already has this specific social account linked
     let user = await UserModel.findOne({
       $or: [
@@ -379,30 +406,17 @@ const handleSocialUser = async (profile, req, res, isRedirect = true) => {
       ]
     });
 
-    if (!user) {
+    if (user) {
+      // Existing user: check if avatar needs updating from Google/Social provider
+      await syncSocialAvatar(user);
+      await user.save();
+    } else {
       // 2. Check if a user exists with the same email (Account Linking)
       user = await UserModel.findOne({ email });
 
       if (user) {
         // Always check for picture updates if current is generated
-        if (isGeneratedAvatar(user.avatar) && picture) {
-          if (picture.includes('googleusercontent.com') || picture.includes('fbcdn.net') || picture.includes('twimg.com') || picture.includes('microsoft.com')) {
-            try {
-              const avatarRes = await axios.get(picture, { responseType: 'arraybuffer', timeout: 5000 });
-              const buffer = Buffer.from(avatarRes.data);
-              const gcsRes = await uploadToGCS(buffer, {
-                folder: 'user_avatars',
-                filename: gcsFilename(`avatar_social_${user.email.split('@')[0]}`),
-                mimeType: avatarRes.headers['content-type'] || 'image/jpeg',
-              });
-              user.avatar = gcsRes.publicUrl;
-            } catch (e) {
-              user.avatar = picture;
-            }
-          } else {
-            user.avatar = picture;
-          }
-        }
+        await syncSocialAvatar(user);
 
         if (user.provider !== provider.toLowerCase()) {
           console.log(`[Social Auth] Linking ${provider.toUpperCase()} account to existing user: ${email}`);
@@ -521,6 +535,7 @@ const handleSocialUser = async (profile, req, res, isRedirect = true) => {
         id: user._id,
         name: user.name,
         email: user.email,
+        avatar: user.avatar,
         message: "Social Login Successfully",
         token: token.toString(),
         refreshToken: token.refreshToken || null,
@@ -946,9 +961,9 @@ router.post("/google", async (req, res) => {
 
         if (payload) {
           googleId = payload.sub;
-          if (!email) email = payload.email;
-          if (!name) name = payload.name;
-          if (!picture) picture = payload.picture;
+          if (!email) email = payload.email || bodyEmail;
+          if (!name) name = payload.name || bodyName;
+          picture = payload.picture || picture || bodyPicture;
         } else {
           throw new Error("Unable to parse Google ID Token payload");
         }

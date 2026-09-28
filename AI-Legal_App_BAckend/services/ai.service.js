@@ -591,6 +591,7 @@ STRICT MANDATE FOR THIS TURN:
 1. FIRST-PRIORITY GROUNDING: The context above contains excerpts fetched directly from the user's uploaded RAG files and platform knowledge base. If the user's question relates to these documents or topics, you MUST FIRST check and prioritize this retrieved information to form your answer.
 2. NATURAL INTEGRATION: When referencing facts from the uploaded documents, integrate references naturally in plain text or bold (e.g. "According to the uploaded document..." or "**Source:** Case Records").
 🚨 ABSOLUTE PROHIBITION: NEVER output square-bracketed citations or tags like "[cite: ...]", "[RAG]", "[Document]", "[Ref: ...]", or "[Sources: ...]" anywhere in your response. The response must be clean, readable markdown without bracketed artifacts.
+🚨 ABSOLUTE NO RAW JSON RULE: Even if the retrieved source documents or knowledge base excerpts above are in JSON format, JSON array '[...]', or contain key-value pairs (such as "id":, "topic":, "direct_answer":, "contractual_remedies":), you MUST NEVER output raw JSON, JSON brackets, or JSON keys in your response. You MUST read and synthesize the facts into natural, fluent human Markdown text with clear headings, paragraphs, and bullet points. Never dump raw JSON.
 3. PROPER STRUCTURE & FORMAT:
    - Provide a clean, well-structured response using GitHub-style Markdown formatting.
    - Use headings (##, ###) to logically separate sections.
