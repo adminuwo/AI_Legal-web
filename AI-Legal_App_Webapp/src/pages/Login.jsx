@@ -297,13 +297,27 @@ const Login = () => {
       });
 
       toast.success('Logged in with Google!');
-      setUserData(res.data);
-      setUserRecoil({ user: res.data });
-      localStorage.setItem("userId", res.data.id);
+      const freshData = setUserData(res.data);
+      setUserRecoil({ user: freshData });
+      localStorage.setItem("userId", res.data.id || res.data._id);
       localStorage.setItem("token", res.data.token);
       autoAcceptCookies();
 
       applySelectedWorkspace();
+
+      // Ensure full profile sync from DB immediately
+      try {
+        const profileRes = await axios.get(apis.user, {
+          headers: { Authorization: `Bearer ${res.data.token}` }
+        });
+        if (profileRes?.data) {
+          const syncedUser = setUserData(profileRes.data);
+          setUserRecoil({ user: syncedUser });
+        }
+      } catch (syncErr) {
+        console.warn('[Google Login] Profile sync notice:', syncErr);
+      }
+
 
       const from = location.state?.from || AppRoute.DASHBOARD;
       navigate(from, { replace: true });

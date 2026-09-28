@@ -371,14 +371,21 @@ const handleSocialUser = async (profile, req, res, isRedirect = true) => {
   }
 
   try {
-    // Helper to safely persist social avatar if missing or default
+    // Helper to safely persist social avatar if missing, default, or unsplash/broken
     const syncSocialAvatar = async (targetUser) => {
       if (!picture) return;
-      const needsAvatar = !targetUser.avatar || 
-                          targetUser.avatar === '/User.jpeg' || 
-                          targetUser.avatar.startsWith('/') || 
-                          isGeneratedAvatar(targetUser.avatar);
-      if (needsAvatar) {
+      const isCustomUploaded = targetUser.avatar && (
+        targetUser.avatar.includes('/user_avatars/') ||
+        (targetUser.avatar.includes('res.cloudinary.com') && !targetUser.avatar.includes('sample'))
+      );
+      const isBrokenOrGenerated = !targetUser.avatar || 
+                                  targetUser.avatar === '/User.jpeg' || 
+                                  targetUser.avatar.startsWith('/') || 
+                                  targetUser.avatar.includes('images.unsplash.com') ||
+                                  isGeneratedAvatar(targetUser.avatar);
+
+      // Always sync fresh Google/social picture unless user uploaded a verified custom photo
+      if (isBrokenOrGenerated || !isCustomUploaded) {
         if (picture.includes('googleusercontent.com') || picture.includes('fbcdn.net') || picture.includes('twimg.com') || picture.includes('microsoft.com')) {
           try {
             const avatarRes = await axios.get(picture, { responseType: 'arraybuffer', timeout: 5000 });
@@ -398,6 +405,26 @@ const handleSocialUser = async (profile, req, res, isRedirect = true) => {
       }
     };
 
+    // Helper to sync user name from Google/Social provider if missing or placeholder
+    const syncSocialName = (targetUser) => {
+      if (name) {
+        const isPlaceholder = !targetUser.name || 
+                              targetUser.name === 'Nia' || 
+                              targetUser.name === 'Demo User' || 
+                              targetUser.name === 'User' || 
+                              targetUser.name === 'Advocate' || 
+                              targetUser.name.toLowerCase() === targetUser.email.split('@')[0].toLowerCase();
+        if (isPlaceholder || !targetUser.fullName || targetUser.fullName === 'Nia') {
+          targetUser.name = name;
+          if (!targetUser.fullName || targetUser.fullName === 'Nia') {
+            targetUser.fullName = name;
+          }
+        }
+      } else if (targetUser.fullName && (!targetUser.name || targetUser.name === 'Nia')) {
+        targetUser.name = targetUser.fullName;
+      }
+    };
+
     // 1. Check if user already has this specific social account linked
     let user = await UserModel.findOne({
       $or: [
@@ -407,7 +434,8 @@ const handleSocialUser = async (profile, req, res, isRedirect = true) => {
     });
 
     if (user) {
-      // Existing user: check if avatar needs updating from Google/Social provider
+      // Existing user: check if avatar or name needs updating from Google/Social provider
+      syncSocialName(user);
       await syncSocialAvatar(user);
       await user.save();
     } else {
@@ -415,7 +443,8 @@ const handleSocialUser = async (profile, req, res, isRedirect = true) => {
       user = await UserModel.findOne({ email });
 
       if (user) {
-        // Always check for picture updates if current is generated
+        // Always check for picture and name updates
+        syncSocialName(user);
         await syncSocialAvatar(user);
 
         if (user.provider !== provider.toLowerCase()) {
@@ -533,15 +562,24 @@ const handleSocialUser = async (profile, req, res, isRedirect = true) => {
     } else {
       return res.status(200).json({
         id: user._id,
-        name: user.name,
+        _id: user._id,
+        name: user.name || user.fullName,
+        fullName: user.fullName || user.name,
         email: user.email,
         avatar: user.avatar,
+        phone: user.phone || user.phoneNumber || "",
+        country: user.country || "",
+        countryCode: user.countryCode || "",
+        state: user.state || "",
+        legalJurisdiction: user.legalJurisdiction || {},
+        personalizations: user.personalizations || {},
         message: "Social Login Successfully",
         token: token.toString(),
         refreshToken: token.refreshToken || null,
         role: user.role,
-        plan: user.plan,
-        notifications: user.notificationsInbox,
+        plan: user.plan || user.subscription?.plan || "FREE",
+        credits: user.credits ?? 500,
+        notifications: user.notificationsInbox || [],
         provider: user.provider
       });
     }

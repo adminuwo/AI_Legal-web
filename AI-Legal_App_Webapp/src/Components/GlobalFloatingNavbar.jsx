@@ -127,10 +127,10 @@ const GlobalFloatingNavbar = () => {
                 onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
                 className="w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center bg-white rounded-xl border border-[#E5E7EB] text-[#111827] overflow-hidden shadow-sm"
               >
-                {user?.avatar ? (
-                  <img src={user.avatar} alt="Profile" className="w-full h-full object-cover" onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = '/account.png'; }} />
+                {user?.avatar && !user.avatar.includes('images.unsplash.com') ? (
+                  <img src={user.avatar} alt="Profile" referrerPolicy="no-referrer" className="w-full h-full object-cover" onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = '/account.png'; }} />
                 ) : (
-                  <span className="font-bold text-sm uppercase">{user?.name?.charAt(0) || 'U'}</span>
+                  <span className="font-bold text-sm uppercase">{(user?.fullName || user?.name || 'U').charAt(0)}</span>
                 )}
               </motion.button>
             </div>

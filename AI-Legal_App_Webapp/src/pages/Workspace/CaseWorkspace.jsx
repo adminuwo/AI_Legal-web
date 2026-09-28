@@ -684,6 +684,97 @@ export const CaseWorkspace = ({
   const [quickAssigningWebId, setQuickAssigningWebId] = useState(null);
   const [removingMemberWebId, setRemovingMemberWebId] = useState(null);
 
+  // Edit Case Details Modal State
+  const [isEditCaseModalOpen, setIsEditCaseModalOpen] = useState(false);
+  const [isSavingCaseDetails, setIsSavingCaseDetails] = useState(false);
+  const [editCaseForm, setEditCaseForm] = useState({
+    name: '',
+    caseNumber: '',
+    caseType: 'Civil',
+    practiceArea: '',
+    status: 'Active',
+    priority: 'High',
+    courtName: '',
+    stage: 'Pre-litigation',
+    clientName: '',
+    clientRole: 'Plaintiff',
+    opponentName: '',
+    opponentRole: 'Defendant',
+    summary: '',
+  });
+
+  const handleOpenEditCaseModal = () => {
+    setEditCaseForm({
+      name: caseData.name || caseData.title || '',
+      caseNumber: caseData.caseNumber || caseData.number || '',
+      caseType: caseData.caseType || caseData.category || 'Civil',
+      practiceArea: caseData.practiceArea || caseData.subCategory || '',
+      status: caseData.status || 'Active',
+      priority: caseData.priority || 'High',
+      courtName: caseData.courtName || '',
+      stage: caseData.stage || caseData.courtStage || caseData.currentStage || 'Pre-litigation',
+      clientName: caseData.clientName || '',
+      clientRole: caseData.clientRole || 'Plaintiff',
+      opponentName: caseData.opponentName || caseData.accused || '',
+      opponentRole: caseData.opponentRole || 'Defendant',
+      summary: caseData.summary || caseData.description || caseData.caseSummary || '',
+    });
+    setIsEditCaseModalOpen(true);
+  };
+
+  const handleSaveCaseDetails = async (e) => {
+    e?.preventDefault();
+    const targetId = caseData._id || caseData.id || caseId;
+    if (!targetId) {
+      toast.error('Case ID not found');
+      return;
+    }
+
+    if (!editCaseForm.name?.trim()) {
+      toast.error('Case Title is required');
+      return;
+    }
+
+    setIsSavingCaseDetails(true);
+    const tid = toast.loading('Saving case changes...');
+    try {
+      const payload = {
+        name: editCaseForm.name.trim(),
+        caseNumber: editCaseForm.caseNumber?.trim() || '',
+        caseType: editCaseForm.caseType,
+        practiceArea: editCaseForm.practiceArea?.trim() || '',
+        status: editCaseForm.status,
+        priority: editCaseForm.priority,
+        courtName: editCaseForm.courtName?.trim() || '',
+        stage: editCaseForm.stage?.trim() || '',
+        courtStage: editCaseForm.stage?.trim() || '',
+        clientName: editCaseForm.clientName?.trim() || '',
+        clientRole: editCaseForm.clientRole?.trim() || '',
+        opponentName: editCaseForm.opponentName?.trim() || '',
+        opponentRole: editCaseForm.opponentRole?.trim() || '',
+        summary: editCaseForm.summary?.trim() || '',
+        description: editCaseForm.summary?.trim() || ''
+      };
+
+      const res = await apiService.updateProject(targetId, payload);
+      const updatedCaseData = res?._id ? res : (res?.data || res?.project || res?.case || {});
+      const merged = { ...caseData, ...payload, ...updatedCaseData };
+
+      setCaseData(merged);
+      if (onUpdateCase) {
+        onUpdateCase(merged);
+      }
+
+      toast.success('Case updated successfully!', { id: tid });
+      setIsEditCaseModalOpen(false);
+    } catch (err) {
+      console.error('Failed to update case:', err);
+      toast.error(err?.response?.data?.error || err.message || 'Failed to update case', { id: tid });
+    } finally {
+      setIsSavingCaseDetails(false);
+    }
+  };
+
   // Tab configuration matching mobile & web parity (Up to Enterprise AI Quick Actions)
   const tabs = [
     { id: 'overview', name: 'Case Info', icon: LayoutDashboard },
@@ -1591,64 +1682,124 @@ export const CaseWorkspace = ({
     const todayCount = tasksList.filter(t => (t.dueDate || '').substring(0, 10) === todayStr && t.status !== 'Completed').length;
     const overdueCount = tasksList.filter(t => (t.dueDate || '') < todayStr && t.status !== 'Completed').length;
 
-    // Calculate REAL Team Members dynamically from caseData, user session, and task assignees
+    // Helper to match assignee string with a member object
+    const isMemberMatch = (assigneeStr, adv) => {
+      if (!assigneeStr || !adv) return false;
+      const a = String(assigneeStr).replace(/^(adv\.|advocate)\s+/i, '').trim().toLowerCase();
+      const s = String(adv.shortName || adv.name || '').replace(/^(adv\.|advocate)\s+/i, '').trim().toLowerCase();
+      const f = String(adv.fullName || adv.name || '').replace(/^(adv\.|advocate)\s+/i, '').trim().toLowerCase();
+      if (a === s || a === f) return true;
+      if (s && a && (s.includes(a) || a.includes(s))) return true;
+      if (f && a && (f.includes(a) || a.includes(f))) return true;
+      const aFirst = a.split(' ')[0];
+      const sFirst = s.split(' ')[0];
+      if (aFirst && sFirst && aFirst === sFirst && aFirst.length >= 3) return true;
+      return false;
+    };
+
+    // Calculate REAL Team Members - ONLY members explicitly added/assigned to this case (no fake defaults)
     const getRealTeamMembers = () => {
-      const userObj = JSON.parse(localStorage.getItem('user') || '{}');
-      const currentUserName = userObj.fullName || userObj.name || caseData?.advocateName || caseData?.advocate || 'Adv. Aditi Lakhera';
-      const currentUserRole = userObj.role || 'Lead Advocate / Firm Owner';
+      const userObj = (() => {
+        try { return JSON.parse(localStorage.getItem('user') || '{}'); } catch { return {}; }
+      })();
+      const userEmailPrefix = (userObj.email || '').split('@')[0].toLowerCase();
+      const userFullName = (userObj.fullName || userObj.name || '').trim();
+      const leadAdvocateName = (caseData?.leadAdvocate || caseData?.ownerName || '').trim();
 
-      const teamMap = new Map();
+      const memberMap = new Map();
 
-      // 1. Logged in user (Primary)
-      const primaryName = currentUserName.startsWith('Adv.') ? currentUserName : `Adv. ${currentUserName}`;
-      teamMap.set(primaryName.toLowerCase(), {
-        name: primaryName,
-        shortName: primaryName.replace(/^Adv\.\s*/i, ''),
-        role: currentUserRole,
-        isOwner: true
+      const registerMember = (rawMember, defaultRole = 'Associate Advocate', isLead = false) => {
+        if (!rawMember) return;
+        let rawName = typeof rawMember === 'string' ? rawMember.trim() : (rawMember.fullName || rawMember.name || '').trim();
+        if (!rawName) return;
+
+        const rawRole = typeof rawMember === 'object' ? (rawMember.role || rawMember.caseRole || rawMember.designation || defaultRole) : defaultRole;
+        const cleanName = rawName.replace(/^(adv\.|advocate)\s+/i, '').trim();
+        const cleanLower = cleanName.toLowerCase();
+
+        // Check if this member matches logged-in user profile (e.g. 'aditi' matches 'Aditi Lakhera' or email prefix 'aditi')
+        const isSelf = (
+          (userEmailPrefix && (cleanLower === userEmailPrefix || userEmailPrefix.includes(cleanLower))) ||
+          (userFullName && (cleanLower === userFullName.toLowerCase() || userFullName.toLowerCase().includes(cleanLower)))
+        );
+
+        // Prefer full proper name for display
+        const displayName = (isSelf && userFullName) ? userFullName : cleanName;
+        const normalizedKey = displayName.toLowerCase();
+
+        // Deduplicate fuzzy matches (e.g. "aditi" vs "aditi lakhera")
+        let matchedKey = null;
+        for (const k of memberMap.keys()) {
+          const kFirst = k.split(' ')[0];
+          const newFirst = normalizedKey.split(' ')[0];
+          if (k === normalizedKey || k.includes(normalizedKey) || normalizedKey.includes(k) || (kFirst && newFirst && kFirst === newFirst && kFirst.length >= 3)) {
+            matchedKey = k;
+            break;
+          }
+        }
+
+        const resolvedRole = (isLead || rawRole === 'Lead Advocate') ? 'Lead Advocate' : (rawRole === 'SUPER_ADMIN' ? 'Lead Advocate' : rawRole);
+
+        if (matchedKey) {
+          const existing = memberMap.get(matchedKey);
+          if (displayName.length > existing.shortName.length) {
+            existing.name = displayName.startsWith('Adv.') ? displayName : `Adv. ${displayName}`;
+            existing.shortName = displayName;
+            existing.fullName = displayName;
+          }
+          if (isLead || resolvedRole === 'Lead Advocate') {
+            existing.role = 'Lead Advocate';
+            existing.isLead = true;
+          }
+        } else {
+          const newObj = {
+            id: typeof rawMember === 'object' ? (rawMember.userId || rawMember.id || normalizedKey) : normalizedKey,
+            name: displayName.startsWith('Adv.') ? displayName : `Adv. ${displayName}`,
+            shortName: displayName,
+            fullName: displayName,
+            role: resolvedRole,
+            isLead: isLead || resolvedRole === 'Lead Advocate',
+            isOwner: isLead
+          };
+          memberMap.set(normalizedKey, newObj);
+        }
+      };
+
+      // 1. Genuine team members explicitly assigned to this case
+      const caseTeam = Array.isArray(caseData?.teamMembers) ? caseData.teamMembers : [];
+      if (caseTeam.length > 0) {
+        caseTeam.forEach((m, idx) => {
+          const isLead = (typeof m === 'object' && m.isLead) || idx === 0;
+          registerMember(m, isLead ? 'Lead Advocate' : 'Associate Advocate', isLead);
+        });
+      }
+
+      // 2. Case assignments if present
+      const caseAssignments = Array.isArray(caseData?.caseAssignments) ? caseData.caseAssignments : [];
+      caseAssignments.forEach(ca => {
+        registerMember(ca, ca.caseRole || 'Assigned Advocate', ca.caseRole === 'Lead Advocate');
       });
 
-      // 2. Add team members from caseData (if provided in workspace/case details)
-      const caseTeam = caseData?.teamMembers || caseData?.team || caseData?.advocates || caseData?.assignedAdvocates || caseData?.members || [];
-      if (Array.isArray(caseTeam)) {
-        caseTeam.forEach(m => {
-          const rawName = typeof m === 'string' ? m : (m.name || m.fullName || m.userName);
-          const role = typeof m === 'object' ? (m.role || m.designation || 'Associate Advocate') : 'Associate Advocate';
-          if (rawName && rawName.trim()) {
-            const formattedName = rawName.startsWith('Adv.') ? rawName.trim() : `Adv. ${rawName.trim()}`;
-            const key = formattedName.toLowerCase();
-            if (!teamMap.has(key)) {
-              teamMap.set(key, {
-                name: formattedName,
-                shortName: formattedName.replace(/^Adv\.\s*/i, ''),
-                role,
-                isOwner: false
-              });
-            }
+      // 3. Fallback: If no members are assigned to this case yet, show only the Lead Advocate
+      if (memberMap.size === 0) {
+        const fallbackName = leadAdvocateName || userFullName || 'Aditi Lakhera';
+        registerMember(fallbackName, 'Lead Advocate', true);
+      } else if (leadAdvocateName) {
+        let leadFound = false;
+        for (const m of memberMap.values()) {
+          if (isMemberMatch(leadAdvocateName, m)) {
+            leadFound = true;
+            m.role = 'Lead Advocate';
+            m.isLead = true;
+            break;
           }
-        });
+        }
+        if (!leadFound && caseTeam.length === 0) {
+          registerMember(leadAdvocateName, 'Lead Advocate', true);
+        }
       }
 
-      // 3. Add assignees present in tasksList (if any)
-      if (Array.isArray(tasksList)) {
-        tasksList.forEach(t => {
-          if (t.assignee && typeof t.assignee === 'string' && t.assignee.trim()) {
-            const rawName = t.assignee.trim();
-            const formattedName = rawName.startsWith('Adv.') ? rawName : `Adv. ${rawName}`;
-            const key = formattedName.toLowerCase();
-            if (!teamMap.has(key)) {
-              teamMap.set(key, {
-                name: formattedName,
-                shortName: formattedName.replace(/^Adv\.\s*/i, ''),
-                role: 'Team Advocate',
-                isOwner: false
-              });
-            }
-          }
-        });
-      }
-
-      return Array.from(teamMap.values());
+      return Array.from(memberMap.values());
     };
 
     const realTeamMembers = getRealTeamMembers();
@@ -1662,11 +1813,11 @@ export const CaseWorkspace = ({
         (t.relatedModule && t.relatedModule.toLowerCase().includes(taskSearchQuery.toLowerCase()));
 
       let matchTab = true;
-      const primaryUserShortName = realTeamMembers[0]?.shortName?.toLowerCase() || 'aditi';
+      const primaryMember = realTeamMembers[0];
       if (taskFilterTab === 'My Tasks') {
-        matchTab = (t.assignee || '').toLowerCase().includes(primaryUserShortName);
+        matchTab = isMemberMatch(t.assignee, primaryMember);
       } else if (taskFilterTab === 'Assigned') {
-        matchTab = !(t.assignee || '').toLowerCase().includes(primaryUserShortName);
+        matchTab = !!(t.assignee && t.assignee.trim());
       }
 
       let matchPriority = true;
@@ -1957,12 +2108,7 @@ export const CaseWorkspace = ({
 
             <div className="space-y-3">
               {realTeamMembers.map(member => {
-                const activeCount = tasksList.filter(t => {
-                  const a = (t.assignee || '').toLowerCase();
-                  const mName = member.shortName.toLowerCase();
-                  return a.includes(mName) && t.status !== 'Completed';
-                }).length;
-
+                const activeCount = tasksList.filter(t => isMemberMatch(t.assignee, member) && t.status !== 'Completed').length;
                 const statusLabel = activeCount === 0 ? 'Optimal' : activeCount > 3 ? 'Overloaded' : 'Balanced';
 
                 return (
@@ -2173,18 +2319,14 @@ export const CaseWorkspace = ({
                   </label>
                   <div className="grid grid-cols-2 gap-2.5">
                     {realTeamMembers.map(adv => {
-                      const activeCount = tasksList.filter(t => {
-                        const a = (t.assignee || '').toLowerCase();
-                        return a.includes(adv.shortName.toLowerCase()) && t.status !== 'Completed';
-                      }).length;
-
-                      const isSelected = (taskFormState.assignee || '').toLowerCase().includes(adv.shortName.toLowerCase());
+                      const activeCount = tasksList.filter(t => isMemberMatch(t.assignee, adv) && t.status !== 'Completed').length;
+                      const isSelected = isMemberMatch(taskFormState.assignee, adv);
 
                       return (
                         <button
                           type="button"
-                          key={adv.name}
-                          onClick={() => setTaskFormState({ ...taskFormState, assignee: adv.name })}
+                          key={adv.id || adv.name}
+                          onClick={() => setTaskFormState({ ...taskFormState, assignee: adv.shortName || adv.name })}
                           className={`p-3 rounded-2xl text-left border transition-all cursor-pointer ${
                             isSelected
                               ? 'bg-amber-500/10 border-[#B88B2A] ring-1 ring-[#B88B2A]'
@@ -2331,7 +2473,7 @@ export const CaseWorkspace = ({
 
           <div className="flex items-center gap-2 shrink-0">
             <button
-              onClick={() => setActiveTab('settings')}
+              onClick={handleOpenEditCaseModal}
               className="px-3 py-1.5 bg-[#B88B2A]/15 text-[#B88B2A] border border-[#B88B2A] hover:bg-[#B88B2A]/25 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-2xs whitespace-nowrap"
             >
               <Edit2 size={13} /> Edit Case
@@ -2390,7 +2532,7 @@ export const CaseWorkspace = ({
           <div className="bg-white dark:bg-[#1E293B] border border-slate-200/80 dark:border-slate-800 rounded-2xl p-3.5 sm:p-5 shadow-xs space-y-2.5">
             <h3 className="text-xs font-black text-[#B88B2A] uppercase tracking-widest border-b border-slate-100 dark:border-slate-800 pb-2 flex justify-between items-center">
               <span>PARTIES</span>
-              <button onClick={() => setActiveTab('parties')} className="text-[10px] sm:text-[11px] font-bold text-[#B88B2A] hover:underline">View Parties →</button>
+              <button onClick={handleOpenEditCaseModal} className="text-[10px] sm:text-[11px] font-bold text-[#B88B2A] hover:underline cursor-pointer">Edit Parties →</button>
             </h3>
 
             <div className="grid grid-cols-2 gap-y-2.5 sm:gap-y-3.5 gap-x-3 sm:gap-x-6 text-xs">
@@ -2468,7 +2610,11 @@ export const CaseWorkspace = ({
               <div>
                 <span className="text-[10px] sm:text-[11px] font-medium text-slate-400 block mb-0.5">Assigned Team</span>
                 <button onClick={() => setIsTeamModalOpen(true)} className="font-bold text-[#B88B2A] hover:underline text-xs sm:text-sm flex items-center gap-1 cursor-pointer">
-                  2 Members →
+                  {(() => {
+                    const raw = Array.isArray(caseData.teamMembers) ? caseData.teamMembers : [];
+                    const count = raw.length > 0 ? raw.length : 1;
+                    return `${count} ${count === 1 ? 'Member' : 'Members'} →`;
+                  })()}
                 </button>
               </div>
 
@@ -10738,7 +10884,7 @@ Through Counsel
               ) : <span className="text-xs text-slate-400 italic">No missing information gaps identified.</span>}
 
               <div className="flex flex-wrap gap-2 pt-2">
-                <button onClick={() => setActiveTab('settings')} className="px-3 py-1.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 rounded-lg text-xs font-bold text-slate-800 dark:text-slate-200 transition-all cursor-pointer">
+                <button onClick={handleOpenEditCaseModal} className="px-3 py-1.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 rounded-lg text-xs font-bold text-slate-800 dark:text-slate-200 transition-all cursor-pointer">
                   + Add Information
                 </button>
                 <button onClick={() => setActiveTab('documents')} className="px-3 py-1.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 rounded-lg text-xs font-bold text-slate-800 dark:text-slate-200 transition-all cursor-pointer">
@@ -14623,6 +14769,13 @@ Through Counsel
                 >
                   <Share2 size={12} /> Share
                 </button>
+                <button 
+                  onClick={handleOpenEditCaseModal}
+                  className="px-2.5 py-1.5 hover:bg-[#B88B2A]/20 bg-[#B88B2A]/10 text-[#B88B2A] rounded-lg text-[11px] font-bold transition-colors border border-[#B88B2A]/30 shadow-2xs flex items-center gap-1 cursor-pointer whitespace-nowrap shrink-0"
+                  title="Edit Case Details"
+                >
+                  <Edit2 size={12} /> Edit Case
+                </button>
               </div>
             )}
           </div>
@@ -14637,6 +14790,13 @@ Through Counsel
               <span>Court: <strong className="text-[#0F172A] dark:text-white font-bold">{caseData.courtName || 'District Court'}</strong></span>
               <span className="text-slate-300 dark:text-slate-700">•</span>
               <span>Case No: <strong className="text-[#0F172A] dark:text-white font-bold">{caseData.caseNumber || caseData.number || caseData.firNumber || 'Pending Filing'}</strong></span>
+              <button
+                onClick={handleOpenEditCaseModal}
+                className="ml-1 inline-flex items-center gap-1 text-[10px] font-bold text-[#B88B2A] hover:underline cursor-pointer"
+                title="Edit Case Information"
+              >
+                <Edit2 size={10} /> Edit
+              </button>
             </div>
 
             {/* Mobile Action Controls Strip */}
@@ -14669,6 +14829,12 @@ Through Counsel
                   className="px-2 py-1 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg text-[10px] font-bold text-slate-700 dark:text-slate-300 transition-colors border border-slate-200 dark:border-slate-800 shadow-2xs flex items-center gap-1 cursor-pointer whitespace-nowrap shrink-0"
                 >
                   <Share2 size={11} /> Share
+                </button>
+                <button 
+                  onClick={handleOpenEditCaseModal}
+                  className="px-2 py-1 hover:bg-[#B88B2A]/20 bg-[#B88B2A]/10 text-[#B88B2A] rounded-lg text-[10px] font-bold transition-colors border border-[#B88B2A]/30 shadow-2xs flex items-center gap-1 cursor-pointer whitespace-nowrap shrink-0"
+                >
+                  <Edit2 size={11} /> Edit
                 </button>
               </div>
             )}
@@ -15221,6 +15387,244 @@ Through Counsel
                 {isSavingWebTeam ? 'Saving...' : 'Save Case Team'}
               </button>
             </div>
+          </div>
+        </div>
+      )}
+      {/* ─── Edit Case Details Modal ─── */}
+      {isEditCaseModalOpen && (
+        <div className="fixed inset-0 z-60 bg-black/70 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4">
+          <div className="bg-white dark:bg-[#1E293B] border border-slate-200 dark:border-slate-800 rounded-3xl p-5 sm:p-6 shadow-2xl max-w-2xl w-full max-h-[90vh] flex flex-col space-y-4 animate-in fade-in zoom-in duration-150">
+            <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3 shrink-0">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2 rounded-xl bg-[#B88B2A]/15 text-[#B88B2A] border border-[#B88B2A]/30">
+                  <Edit2 size={18} />
+                </div>
+                <div>
+                  <h3 className="text-base font-black text-slate-900 dark:text-white">Edit Case Details</h3>
+                  <p className="text-xs text-slate-500 mt-0.5">Update case information, court, stage, parties and status</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsEditCaseModalOpen(false)}
+                className="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveCaseDetails} className="flex-1 overflow-y-auto space-y-4 pr-1 custom-scrollbar">
+              {/* SECTION 1: General Details */}
+              <div className="space-y-3 bg-slate-50 dark:bg-slate-900/40 p-4 rounded-2xl border border-slate-200/80 dark:border-slate-800">
+                <h4 className="text-[11px] font-black text-[#B88B2A] uppercase tracking-wider">Case Identification & Classification</h4>
+                
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-[10px] font-bold text-slate-500 uppercase block mb-1">Case Title *</label>
+                    <input
+                      type="text"
+                      required
+                      value={editCaseForm.name}
+                      onChange={e => setEditCaseForm({ ...editCaseForm, name: e.target.value })}
+                      placeholder="e.g. Rajesh Sharma vs Amit Verma"
+                      className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-xs font-bold text-slate-800 dark:text-slate-200 focus:border-[#B88B2A] outline-none"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-[10px] font-bold text-slate-500 uppercase block mb-1">Case Number</label>
+                    <input
+                      type="text"
+                      value={editCaseForm.caseNumber}
+                      onChange={e => setEditCaseForm({ ...editCaseForm, caseNumber: e.target.value })}
+                      placeholder="e.g. CIV-2026-00154"
+                      className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-xs font-medium text-slate-800 dark:text-slate-200 focus:border-[#B88B2A] outline-none"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-[10px] font-bold text-slate-500 uppercase block mb-1">Case Type</label>
+                    <select
+                      value={editCaseForm.caseType}
+                      onChange={e => setEditCaseForm({ ...editCaseForm, caseType: e.target.value })}
+                      className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-xs font-medium text-slate-800 dark:text-slate-200 focus:border-[#B88B2A] outline-none cursor-pointer"
+                    >
+                      <option value="Civil">Civil Case</option>
+                      <option value="Criminal">Criminal Case</option>
+                      <option value="Property Dispute">Property Dispute</option>
+                      <option value="Corporate Legal">Corporate Legal</option>
+                      <option value="Divorce Case">Divorce / Family Case</option>
+                      <option value="Consumer Court">Consumer Court</option>
+                      <option value="Labor Dispute">Labor & Employment</option>
+                      <option value="Constitutional">Constitutional Writ</option>
+                      <option value="Cyber Crime">Cyber Crime</option>
+                      <option value="Arbitration">Arbitration & Dispute Resolution</option>
+                      <option value="Other">Other</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="text-[10px] font-bold text-slate-500 uppercase block mb-1">Practice Area</label>
+                    <input
+                      type="text"
+                      value={editCaseForm.practiceArea}
+                      onChange={e => setEditCaseForm({ ...editCaseForm, practiceArea: e.target.value })}
+                      placeholder="e.g. Real Estate / Property Dispute"
+                      className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-xs font-medium text-slate-800 dark:text-slate-200 focus:border-[#B88B2A] outline-none"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-[10px] font-bold text-slate-500 uppercase block mb-1">Status</label>
+                    <select
+                      value={editCaseForm.status}
+                      onChange={e => setEditCaseForm({ ...editCaseForm, status: e.target.value })}
+                      className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-xs font-medium text-slate-800 dark:text-slate-200 focus:border-[#B88B2A] outline-none cursor-pointer"
+                    >
+                      <option value="Active">Active</option>
+                      <option value="Pending">Pending</option>
+                      <option value="Closed">Closed</option>
+                      <option value="Disposed">Disposed</option>
+                      <option value="Archived">Archived</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="text-[10px] font-bold text-slate-500 uppercase block mb-1">Priority</label>
+                    <select
+                      value={editCaseForm.priority}
+                      onChange={e => setEditCaseForm({ ...editCaseForm, priority: e.target.value })}
+                      className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-xs font-medium text-slate-800 dark:text-slate-200 focus:border-[#B88B2A] outline-none cursor-pointer"
+                    >
+                      <option value="Low">Low</option>
+                      <option value="Medium">Medium</option>
+                      <option value="High">High</option>
+                      <option value="Critical">Critical</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              {/* SECTION 2: Court & Stage */}
+              <div className="space-y-3 bg-slate-50 dark:bg-slate-900/40 p-4 rounded-2xl border border-slate-200/80 dark:border-slate-800">
+                <h4 className="text-[11px] font-black text-[#B88B2A] uppercase tracking-wider">Court & Proceeding Stage</h4>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-[10px] font-bold text-slate-500 uppercase block mb-1">Court Name</label>
+                    <input
+                      type="text"
+                      value={editCaseForm.courtName}
+                      onChange={e => setEditCaseForm({ ...editCaseForm, courtName: e.target.value })}
+                      placeholder="e.g. District & Sessions Judge, Tis Hazari"
+                      className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-xs font-medium text-slate-800 dark:text-slate-200 focus:border-[#B88B2A] outline-none"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-[10px] font-bold text-slate-500 uppercase block mb-1">Current Stage</label>
+                    <select
+                      value={editCaseForm.stage}
+                      onChange={e => setEditCaseForm({ ...editCaseForm, stage: e.target.value })}
+                      className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-xs font-medium text-slate-800 dark:text-slate-200 focus:border-[#B88B2A] outline-none cursor-pointer"
+                    >
+                      <option value="Pre-litigation">Pre-litigation</option>
+                      <option value="Filing / Pleadings">Filing / Pleadings</option>
+                      <option value="Notice Issued">Notice Issued</option>
+                      <option value="Written Statement">Written Statement</option>
+                      <option value="Framing of Issues">Framing of Issues</option>
+                      <option value="Plaintiff Evidence">Plaintiff Evidence</option>
+                      <option value="Defendant Evidence">Defendant Evidence</option>
+                      <option value="Final Arguments">Final Arguments</option>
+                      <option value="Reserved for Judgment">Reserved for Judgment</option>
+                      <option value="Judgment Pronounced">Judgment Pronounced</option>
+                      <option value="Execution">Execution</option>
+                      <option value="Appeal">Appeal</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              {/* SECTION 3: Parties */}
+              <div className="space-y-3 bg-slate-50 dark:bg-slate-900/40 p-4 rounded-2xl border border-slate-200/80 dark:border-slate-800">
+                <h4 className="text-[11px] font-black text-[#B88B2A] uppercase tracking-wider">Litigating Parties</h4>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-[10px] font-bold text-slate-500 uppercase block mb-1">Client Name</label>
+                    <input
+                      type="text"
+                      value={editCaseForm.clientName}
+                      onChange={e => setEditCaseForm({ ...editCaseForm, clientName: e.target.value })}
+                      placeholder="e.g. Aditi Lakhera"
+                      className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-xs font-medium text-slate-800 dark:text-slate-200 focus:border-[#B88B2A] outline-none"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-[10px] font-bold text-slate-500 uppercase block mb-1">Client Role</label>
+                    <input
+                      type="text"
+                      value={editCaseForm.clientRole}
+                      onChange={e => setEditCaseForm({ ...editCaseForm, clientRole: e.target.value })}
+                      placeholder="e.g. Plaintiff / Petitioner / Appellant"
+                      className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-xs font-medium text-slate-800 dark:text-slate-200 focus:border-[#B88B2A] outline-none"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-[10px] font-bold text-slate-500 uppercase block mb-1">Opponent Name</label>
+                    <input
+                      type="text"
+                      value={editCaseForm.opponentName}
+                      onChange={e => setEditCaseForm({ ...editCaseForm, opponentName: e.target.value })}
+                      placeholder="e.g. Amit Verma"
+                      className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-xs font-medium text-slate-800 dark:text-slate-200 focus:border-[#B88B2A] outline-none"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-[10px] font-bold text-slate-500 uppercase block mb-1">Opponent Role</label>
+                    <input
+                      type="text"
+                      value={editCaseForm.opponentRole}
+                      onChange={e => setEditCaseForm({ ...editCaseForm, opponentRole: e.target.value })}
+                      placeholder="e.g. Defendant / Respondent / Accused"
+                      className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-xs font-medium text-slate-800 dark:text-slate-200 focus:border-[#B88B2A] outline-none"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* SECTION 4: Case Summary */}
+              <div className="space-y-2 bg-slate-50 dark:bg-slate-900/40 p-4 rounded-2xl border border-slate-200/80 dark:border-slate-800">
+                <label className="text-[10px] font-bold text-slate-500 uppercase block">Case Summary / Overview</label>
+                <textarea
+                  rows={3}
+                  value={editCaseForm.summary}
+                  onChange={e => setEditCaseForm({ ...editCaseForm, summary: e.target.value })}
+                  placeholder="Brief synopsis of dispute, allegations, and key claims..."
+                  className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-xs font-medium text-slate-800 dark:text-slate-200 focus:border-[#B88B2A] outline-none custom-scrollbar resize-none"
+                />
+              </div>
+
+              <div className="flex gap-2 pt-2 border-t border-slate-100 dark:border-slate-800 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => setIsEditCaseModalOpen(false)}
+                  className="flex-1 py-2.5 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-bold rounded-xl hover:bg-slate-200 transition-colors cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSavingCaseDetails}
+                  className="flex-1 py-2.5 bg-[#B88B2A] hover:bg-[#a67c24] text-[#111111] text-xs font-black rounded-xl transition-colors flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50"
+                >
+                  {isSavingCaseDetails ? 'Saving Changes...' : 'Save Case Details'}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

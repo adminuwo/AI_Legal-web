@@ -88,16 +88,16 @@ router.post('/test', async (req, res) => {
  */
 router.get('/my-jurisdiction', verifyToken, async (req, res) => {
     try {
-        const user = await User.findById(req.user.id).select('country countryCode state legalJurisdiction');
+        const user = await User.findById(req.user.id).select('country countryCode state jurisdiction legalJurisdiction personalizations');
         if (!user) {
             return res.status(404).json({ success: false, message: 'User not found.' });
         }
 
         const activeJurisdiction = user.legalJurisdiction?.country ? user.legalJurisdiction : {
-            country: user.country || 'India',
-            countryCode: user.countryCode || 'IN',
-            state: user.state || '',
-            jurisdictionType: user.state ? 'state' : 'national',
+            country: user.country || user.personalizations?.general?.country || user.jurisdiction || 'India',
+            countryCode: user.countryCode || user.personalizations?.general?.countryCode || 'IN',
+            state: user.state !== undefined ? user.state : (user.personalizations?.general?.state || ''),
+            jurisdictionType: (user.state || user.personalizations?.general?.state) ? 'state' : 'national',
             savedAt: user.updatedAt,
             source: 'profile_default'
         };
@@ -133,20 +133,32 @@ router.put('/my-jurisdiction', verifyToken, async (req, res) => {
             return res.status(404).json({ success: false, message: 'User not found.' });
         }
 
-        // Update top-level country & state fields for backwards compatibility
+        const resolvedCode = cleanCode || (cleanCountry.toLowerCase() === 'nepal' ? 'NP' : (cleanCountry.toLowerCase() === 'india' ? 'IN' : 'GLOBAL'));
+
+        // Update top-level country, state, and jurisdiction fields for backwards compatibility
         user.country = cleanCountry;
-        if (cleanCode) user.countryCode = cleanCode;
+        user.countryCode = resolvedCode;
+        user.jurisdiction = cleanCountry;
         user.state = cleanState;
 
         // Update dedicated legalJurisdiction subdocument
         user.legalJurisdiction = {
             country: cleanCountry,
-            countryCode: cleanCode || (cleanCountry.toLowerCase() === 'nepal' ? 'NP' : (cleanCountry.toLowerCase() === 'india' ? 'IN' : '')),
+            countryCode: resolvedCode,
             state: cleanState,
             jurisdictionType: jurisdictionType || (cleanState ? 'state' : 'national'),
             savedAt: new Date(),
             source: 'user_settings'
         };
+
+        // Also sync personalizations.general if present
+        if (!user.personalizations) user.personalizations = {};
+        if (!user.personalizations.general) user.personalizations.general = {};
+        user.personalizations.general.country = cleanCountry;
+        user.personalizations.general.countryCode = resolvedCode;
+        user.personalizations.general.jurisdiction = cleanCountry;
+        user.personalizations.general.state = cleanState;
+        user.markModified('personalizations');
 
         await user.save();
         logger.info(`[JurisdictionRoutes] Saved legal jurisdiction for user ${user._id}: ${cleanState ? cleanState + ', ' : ''}${cleanCountry}`);
@@ -161,8 +173,10 @@ router.put('/my-jurisdiction', verifyToken, async (req, res) => {
                 email: user.email,
                 country: user.country,
                 countryCode: user.countryCode,
+                jurisdiction: user.jurisdiction,
                 state: user.state,
-                legalJurisdiction: user.legalJurisdiction
+                legalJurisdiction: user.legalJurisdiction,
+                personalizations: user.personalizations
             }
         });
     } catch (err) {

@@ -2,13 +2,9 @@ import { atom } from "recoil"
 
 const getAvatarUrl = (user) => {
   if (!user || !user.email) return "";
-  let baseUrl = window._env_?.VITE_AISA_BACKEND_API || import.meta.env.VITE_AISA_BACKEND_API || (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') ? "http://localhost:8080/api" : (typeof window !== 'undefined' ? `${window.location.origin}/api` : "http://localhost:8080/api"));
-  // Remove /api suffix to get the base host for the proxy avatar URL
-  if (baseUrl.endsWith('/api')) {
-    baseUrl = baseUrl.slice(0, -4);
-  }
-  const name = user.name || user.email.split('@')[0];
-  return `${baseUrl}/api/auth/proxy-avatar?email=${encodeURIComponent(user.email)}&name=${encodeURIComponent(name)}`;
+  const name = user.fullName || user.name || user.email.split('@')[0];
+  const initials = name.trim().split(/\s+/).map(n => n[0]).join('').toUpperCase().slice(0, 2) || "A";
+  return `https://ui-avatars.com/api/?name=${encodeURIComponent(initials)}&background=111111&color=B88B2A&size=256&bold=true`;
 };
 
 const processUser = (user) => {
@@ -29,8 +25,16 @@ const processUser = (user) => {
       } catch (e) {}
     }
 
-    // Fallback if no avatar exists or it's the default placeholder
-    if (!user.avatar || user.avatar === '/User.jpeg' || user.avatar === '') {
+    // Recover name from fullName if name is placeholder 'Nia' or missing
+    if ((!user.name || user.name === 'Nia') && user.fullName && user.fullName !== 'Nia') {
+      user.name = user.fullName;
+    }
+    if (!user.fullName && user.name && user.name !== 'Nia') {
+      user.fullName = user.name;
+    }
+
+    // Fallback if no avatar exists, default placeholder, or broken unsplash link
+    if (!user.avatar || user.avatar === '/User.jpeg' || user.avatar === '' || user.avatar.includes('images.unsplash.com')) {
       return { ...user, avatar: getAvatarUrl(user) };
     }
   }
@@ -46,8 +50,10 @@ export const setUserData = (data) => {
     data.name = existing.name;
   }
 
-  const processedData = processUser(data);
+  const mergedData = { ...existing, ...data };
+  const processedData = processUser(mergedData);
   const finalData = { ...processedData, token };
+
 
   // Update primary user
   localStorage.setItem("user", JSON.stringify(finalData));

@@ -12,7 +12,7 @@ export const getSmartAvatar = async (email, name) => {
   if (!email) return "/User.jpeg";
   const normalizedEmail = email.trim().toLowerCase();
   const initials = name ? name.trim().split(/\s+/).map(n => n[0]).join('').toUpperCase().slice(0, 2) : normalizedEmail.slice(0, 2).toUpperCase();
-  const fallbackUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(initials || "U")}&background=random&color=fff&size=512`;
+  const fallbackUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(initials || "A")}&background=111111&color=B88B2A&size=512&bold=true`;
 
   // Sources to try (DIRECT only, bypassing rate-limited proxies)
   const sources = [
@@ -52,6 +52,10 @@ export const isGeneratedAvatar = (avatar) => {
   return !avatar || 
          avatar === '/User.jpeg' || 
          avatar === '' || 
+         avatar.startsWith('/') ||
+         avatar.includes('images.unsplash.com') ||
          avatar.includes('unavatar.io') || 
+         avatar.includes('gravatar.com') ||
          avatar.includes('ui-avatars.com');
 };
+

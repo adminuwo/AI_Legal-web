@@ -33,7 +33,7 @@ export default function HomeDashboard() {
   const { notifications, fetchNotifications } = usePersonalization();
   const currentUser = useRecoilValue(userData);
   const selectedRole = useRecoilValue(selectedRoleState) || 'advocate';
-  const userName = currentUser?.user?.name || "Advocate";
+  const userName = currentUser?.user?.fullName || currentUser?.user?.name || "Advocate";
 
   const unreadNotifCount = (notifications || []).filter(n => !n.isRead).length;
 

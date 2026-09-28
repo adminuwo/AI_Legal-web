@@ -69,17 +69,25 @@ export class UserService extends BaseService {
     }
 
     // Self-healing Avatar logic
-    if (!user.avatar || user.avatar === '/User.jpeg' || user.avatar.startsWith('/')) {
-      const freshAvatar = await getSmartAvatar(user.email, user.name);
+    const displayNameForAvatar = user.fullName || user.name || user.email?.split('@')[0];
+    if (!user.avatar || user.avatar === '/User.jpeg' || user.avatar.startsWith('/') || user.avatar.includes('images.unsplash.com')) {
+      const freshAvatar = await getSmartAvatar(user.email, displayNameForAvatar);
       user.avatar = (freshAvatar && !freshAvatar.startsWith('/')) ? freshAvatar : '';
       await user.save().catch(err => LoggerService.warn(`[UserService] Avatar save warning: ${err.message}`));
     } else if (isGeneratedAvatar(user.avatar)) {
-      const freshAvatar = await getSmartAvatar(user.email, user.name);
+      const freshAvatar = await getSmartAvatar(user.email, displayNameForAvatar);
       if (freshAvatar && !isGeneratedAvatar(freshAvatar)) {
         user.avatar = freshAvatar;
         await user.save().catch(err => LoggerService.warn(`[UserService] Avatar save warning: ${err.message}`));
       }
     }
+
+    // Self-heal placeholder name 'Nia' or empty name if real fullName exists
+    if ((!user.name || user.name === 'Nia') && user.fullName && user.fullName !== 'Nia') {
+      user.name = user.fullName;
+      await user.save().catch(err => LoggerService.warn(`[UserService] Name self-heal warning: ${err.message}`));
+    }
+
 
     const userObj = user.toObject();
     delete userObj.password;

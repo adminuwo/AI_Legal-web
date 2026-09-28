@@ -382,18 +382,26 @@ const ProfileSettingsDropdown = ({ defaultTab, onClose, onLogout }) => {
                                         {/* Avatar Box */}
                                         <div className="relative group shrink-0">
                                             <div className="w-20 h-20 sm:w-28 sm:h-28 rounded-full bg-[#111111] dark:bg-[#0F172A] flex items-center justify-center text-[#B88B2A] border border-[#B88B2A]/30 shadow-sm overflow-hidden relative z-10">
-                                                {user.avatar ? (
+                                                {user.avatar && !user.avatar.includes('images.unsplash.com') ? (
                                                     <img
                                                         src={user.avatar}
-                                                        alt={user.name}
+                                                        alt={user.fullName || user.name || 'Profile'}
+                                                        referrerPolicy="no-referrer"
                                                         className="w-full h-full object-cover transition-opacity"
-                                                        onError={(e) => { e.currentTarget.src = '/account.png'; }}
+                                                        onError={(e) => { 
+                                                            e.currentTarget.onerror = null;
+                                                            e.currentTarget.style.display = 'none';
+                                                            const p = e.currentTarget.parentElement;
+                                                            if (p) {
+                                                                const fb = p.querySelector('.profile-avatar-fallback');
+                                                                if (fb) fb.style.display = 'flex';
+                                                            }
+                                                        }}
                                                     />
-                                                ) : (
-                                                    <span className="text-2xl sm:text-4xl font-black">
-                                                        {(profileForm.fullName || user.name || 'U').charAt(0).toUpperCase()}
-                                                    </span>
-                                                )}
+                                                ) : null}
+                                                <span className={`profile-avatar-fallback text-2xl sm:text-4xl font-black items-center justify-center w-full h-full ${user.avatar && !user.avatar.includes('images.unsplash.com') ? 'hidden' : 'flex'}`}>
+                                                    {(profileForm.fullName || user.fullName || user.name || 'U').charAt(0).toUpperCase()}
+                                                </span>
 
                                                 {isEditing && (
                                                     <div

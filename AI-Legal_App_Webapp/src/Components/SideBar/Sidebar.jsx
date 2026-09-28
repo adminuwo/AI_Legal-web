@@ -45,6 +45,7 @@ const Sidebar = ({ isOpen, onClose, onOpenSettings }) => {
   const [currentUserData, setUserRecoil] = useRecoilState(userData);
   const selectedRole = useRecoilValue(selectedRoleState) || 'advocate';
   const user = currentUserData.user || { name: "Advocate", email: "..." };
+  const displayName = user.fullName || user.name || "Advocate";
 
   const userCountry = user?.country || user?.legalJurisdiction?.country || localStorage.getItem('ai_legal_selected_country') || 'India';
   const userCountryCode = user?.countryCode || user?.legalJurisdiction?.countryCode || localStorage.getItem('legal_country_code') || 'IN';
@@ -374,15 +375,29 @@ const Sidebar = ({ isOpen, onClose, onOpenSettings }) => {
         {/* User Identity Header */}
         <div className="flex items-center justify-between gap-2.5 px-3 py-2.5 border-b border-slate-100 dark:border-slate-800 shrink-0 bg-slate-50/50 dark:bg-[#1E293B]">
           <div className="flex items-center gap-2.5 min-w-0 flex-1">
-            <div className="w-8 h-8 rounded-full bg-[#B88B2A]/10 flex items-center justify-center shrink-0 overflow-hidden border border-[#B88B2A]/25">
-              {user.avatar ? (
-                <img src={user.avatar} alt="Profile" className="w-full h-full object-cover" onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = ''; }} />
-              ) : (
-                <span className="text-[#B88B2A] font-bold text-xs">{user.name?.charAt(0) || 'A'}</span>
-              )}
+            <div className="w-8 h-8 rounded-full bg-[#B88B2A]/10 flex items-center justify-center shrink-0 overflow-hidden border border-[#B88B2A]/25 relative">
+              {user.avatar && !user.avatar.includes('images.unsplash.com') ? (
+                <img 
+                  src={user.avatar} 
+                  alt={displayName} 
+                  referrerPolicy="no-referrer"
+                  className="w-full h-full object-cover" 
+                  onError={(e) => { 
+                    e.currentTarget.onerror = null; 
+                    e.currentTarget.style.display = 'none';
+                    if (e.currentTarget.parentElement) {
+                      const fb = e.currentTarget.parentElement.querySelector('.sidebar-avatar-fallback');
+                      if (fb) fb.style.display = 'flex';
+                    }
+                  }} 
+                />
+              ) : null}
+              <span className={`sidebar-avatar-fallback text-[#B88B2A] font-bold text-xs items-center justify-center w-full h-full ${user.avatar && !user.avatar.includes('images.unsplash.com') ? 'hidden' : 'flex'}`}>
+                {displayName.charAt(0).toUpperCase()}
+              </span>
             </div>
             <div className="min-w-0 flex-1">
-              <p className="text-xs font-bold text-slate-800 dark:text-white truncate leading-tight capitalize">{user.name || (isGeneralUser ? 'General User' : 'Advocate Profile')}</p>
+              <p className="text-xs font-bold text-slate-800 dark:text-white truncate leading-tight capitalize">{displayName || (isGeneralUser ? 'General User' : 'Advocate Profile')}</p>
               <p className="text-[10px] font-semibold text-slate-400 truncate mt-0.5">{user.email || (isGeneralUser ? 'User Account' : 'Advocate Account')}</p>
               <div className="flex flex-wrap items-center gap-1 mt-1">
                 <span className="inline-block px-1.5 py-0.5 rounded bg-[#B88B2A]/10 text-[#B88B2A] border border-[#B88B2A]/20 text-[8.5px] font-bold uppercase tracking-wider">
@@ -713,22 +728,32 @@ const Sidebar = ({ isOpen, onClose, onOpenSettings }) => {
               aria-haspopup="true"
             >
               <div className="flex items-center gap-3 min-w-0">
-                <div className="w-9 h-9 rounded-full bg-[#B88B2A]/10 flex items-center justify-center shrink-0 overflow-hidden border border-[#B88B2A]/25">
-                  {user.avatar ? (
-                    <img src={user.avatar} alt="Profile" className="w-full h-full object-cover" onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = ''; }} />
-                  ) : (
-                    <span className="text-[#B88B2A] font-bold text-sm">{user.name?.charAt(0) || 'A'}</span>
-                  )}
+                <div className="w-9 h-9 rounded-full bg-[#B88B2A]/10 flex items-center justify-center shrink-0 overflow-hidden border border-[#B88B2A]/25 relative">
+                  {user.avatar && !user.avatar.includes('images.unsplash.com') ? (
+                    <img 
+                      src={user.avatar} 
+                      alt={displayName} 
+                      referrerPolicy="no-referrer"
+                      className="w-full h-full object-cover" 
+                      onError={(e) => { 
+                        e.currentTarget.onerror = null; 
+                        e.currentTarget.style.display = 'none';
+                        if (e.currentTarget.parentElement) {
+                          const fb = e.currentTarget.parentElement.querySelector('.sidebar-avatar-fallback');
+                          if (fb) fb.style.display = 'flex';
+                        }
+                      }} 
+                    />
+                  ) : null}
+                  <span className={`sidebar-avatar-fallback text-[#B88B2A] font-bold text-sm items-center justify-center w-full h-full ${user.avatar && !user.avatar.includes('images.unsplash.com') ? 'hidden' : 'flex'}`}>
+                    {displayName.charAt(0).toUpperCase()}
+                  </span>
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-1.5 min-w-0">
-                    <p className="text-sm font-bold text-[#111827] dark:text-white truncate leading-tight capitalize">{user.name}</p>
+                    <p className="text-sm font-bold text-[#111827] dark:text-white truncate leading-tight capitalize">{displayName}</p>
                     <span className="px-1.5 py-0.5 rounded text-[9px] font-black uppercase bg-[#B88B2A]/15 text-[#B88B2A] border border-[#B88B2A]/30 shrink-0">
                       {isSuperAdminUser ? 'SUPER ADMIN' : isAdminUser ? 'ADMIN' : badge === 'SUPER ADMIN' ? 'Free' : badge}
-                    </span>
-                    <span className="text-xs shrink-0 flex items-center gap-0.5 px-1 py-0.5 rounded bg-slate-200/70 dark:bg-slate-800 text-[10px] font-bold" title={`Jurisdiction: ${userCountry}`}>
-                      <span>{countryFlag}</span>
-                      <span className="text-[9px] text-slate-600 dark:text-slate-300 uppercase">{userCountryCode}</span>
                     </span>
                   </div>
                   <p className="text-xs text-[#6B7280] dark:text-slate-400 truncate mt-0.5">{user.email}</p>
@@ -739,14 +764,28 @@ const Sidebar = ({ isOpen, onClose, onOpenSettings }) => {
           ) : (
             <button
               onClick={() => setShowDropdown(prev => !prev)}
-              title={user.name || "Advocate Account"}
+              title={displayName || "Advocate Account"}
               className="w-11 h-11 rounded-xl bg-[#B88B2A]/10 hover:bg-[#B88B2A]/20 border border-[#B88B2A]/30 flex items-center justify-center overflow-hidden transition-all cursor-pointer relative"
             >
-              {user.avatar ? (
-                <img src={user.avatar} alt="Profile" className="w-full h-full object-cover" onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = ''; }} />
-              ) : (
-                <span className="text-[#B88B2A] font-black text-sm">{user.name?.charAt(0) || 'A'}</span>
-              )}
+              {user.avatar && !user.avatar.includes('images.unsplash.com') ? (
+                <img 
+                  src={user.avatar} 
+                  alt={displayName} 
+                  referrerPolicy="no-referrer"
+                  className="w-full h-full object-cover" 
+                  onError={(e) => { 
+                    e.currentTarget.onerror = null; 
+                    e.currentTarget.style.display = 'none';
+                    if (e.currentTarget.parentElement) {
+                      const fb = e.currentTarget.parentElement.querySelector('.sidebar-avatar-fallback');
+                      if (fb) fb.style.display = 'flex';
+                    }
+                  }} 
+                />
+              ) : null}
+              <span className={`sidebar-avatar-fallback text-[#B88B2A] font-black text-sm items-center justify-center w-full h-full ${user.avatar && !user.avatar.includes('images.unsplash.com') ? 'hidden' : 'flex'}`}>
+                {displayName.charAt(0).toUpperCase()}
+              </span>
               <span className="absolute bottom-0.5 right-0.5 w-2 h-2 rounded-full bg-[#B88B2A] ring-2 ring-white dark:ring-[#0F172A]" />
             </button>
           )}

@@ -431,36 +431,6 @@ const LegalDashboard = ({
             </select>
           </div>
 
-          {/* Court Filter */}
-          <div className="flex items-center gap-1.5 bg-white dark:bg-[#1E293B] border border-slate-200/80 dark:border-slate-800 rounded-xl px-3 py-1.5 shadow-xs text-xs font-medium text-slate-500 dark:text-slate-400 shrink-0">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Court:</span>
-            <select
-              value={courtFilter}
-              onChange={(e) => setCourtFilter(e.target.value)}
-              className="bg-transparent border-none outline-none font-bold text-[#111111] dark:text-white text-xs cursor-pointer max-w-[130px] truncate"
-            >
-              <option value="All">All Courts</option>
-              {courts.map(court => (
-                <option key={court} value={court}>{court}</option>
-              ))}
-            </select>
-          </div>
-
-          {/* Case Type Filter */}
-          <div className="flex items-center gap-1.5 bg-white dark:bg-[#1E293B] border border-slate-200/80 dark:border-slate-800 rounded-xl px-3 py-1.5 shadow-xs text-xs font-medium text-slate-500 dark:text-slate-400 shrink-0">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Type:</span>
-            <select
-              value={typeFilter}
-              onChange={(e) => setTypeFilter(e.target.value)}
-              className="bg-transparent border-none outline-none font-bold text-[#111111] dark:text-white text-xs cursor-pointer max-w-[130px] truncate"
-            >
-              <option value="All">All Types</option>
-              {caseTypes.map(ct => (
-                <option key={ct} value={ct}>{ct}</option>
-              ))}
-            </select>
-          </div>
-
           {/* Sorting Option */}
           <div className="flex items-center gap-1.5 bg-white dark:bg-[#1E293B] border border-slate-200/80 dark:border-slate-800 rounded-xl px-3 py-1.5 shadow-xs text-xs font-medium text-slate-500 dark:text-slate-400 shrink-0">
             <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Sort:</span>
@@ -502,7 +472,7 @@ const LegalDashboard = ({
           >
             <Filter size={14} className="text-[#B88B2A]" />
             <span>Filters</span>
-            {(statusFilter !== 'All' || priorityFilter !== 'All' || courtFilter !== 'All' || typeFilter !== 'All') && (
+            {(statusFilter !== 'All' || priorityFilter !== 'All') && (
               <span className="w-2 h-2 rounded-full bg-[#B88B2A]" />
             )}
           </button>
@@ -1040,34 +1010,6 @@ const LegalDashboard = ({
                     <option value="High">High</option>
                     <option value="Medium">Medium</option>
                     <option value="Low">Low</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Court</label>
-                  <select
-                    value={courtFilter}
-                    onChange={(e) => setCourtFilter(e.target.value)}
-                    className="w-full p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-[#0F172A] font-bold text-slate-800 dark:text-white"
-                  >
-                    <option value="All">All Courts</option>
-                    {courts.map(court => (
-                      <option key={court} value={court}>{court}</option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Case Type</label>
-                  <select
-                    value={typeFilter}
-                    onChange={(e) => setTypeFilter(e.target.value)}
-                    className="w-full p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-[#0F172A] font-bold text-slate-800 dark:text-white"
-                  >
-                    <option value="All">All Types</option>
-                    {caseTypes.map(ct => (
-                      <option key={ct} value={ct}>{ct}</option>
-                    ))}
                   </select>
                 </div>
 

@@ -290,6 +290,28 @@ route.put("/personalizations", verifyToken, async (req, res) => {
             user.personalizations.general.language = 'English';
         }
 
+        // Keep root country, state, jurisdiction, and legalJurisdiction in sync if general was updated
+        if (user.personalizations?.general) {
+            const gen = user.personalizations.general;
+            if (gen.country) {
+                user.country = gen.country;
+                user.jurisdiction = gen.country;
+            }
+            if (gen.countryCode) user.countryCode = gen.countryCode;
+            if (gen.state !== undefined) user.state = gen.state;
+            if (gen.country) {
+                user.legalJurisdiction = {
+                    ...(user.legalJurisdiction || {}),
+                    country: gen.country,
+                    countryCode: gen.countryCode || (gen.country.toLowerCase() === 'nepal' ? 'NP' : (gen.country.toLowerCase() === 'india' ? 'IN' : 'GLOBAL')),
+                    state: gen.state !== undefined ? gen.state : (user.state || ''),
+                    jurisdictionType: (gen.state || user.state) ? 'state' : 'national',
+                    savedAt: new Date(),
+                    source: 'user_settings'
+                };
+            }
+        }
+
         // CRITICAL for Mongoose 'Mixed' type update detection
         user.markModified('personalizations');
 
@@ -309,7 +331,7 @@ route.put("/personalizations", verifyToken, async (req, res) => {
 route.put("/profile", verifyToken, async (req, res) => {
     try {
         const userId = req.user.id || req.user._id;
-        const { name, fullName, phone, phoneNumber, city, address, state, gender, dob } = req.body;
+        const { name, fullName, phone, phoneNumber, city, address, state, country, countryCode, jurisdiction, gender, dob } = req.body;
         
         const updateFields = {};
         if (name) updateFields.name = name;
@@ -318,6 +340,15 @@ route.put("/profile", verifyToken, async (req, res) => {
         if (city !== undefined) updateFields.city = city;
         if (address !== undefined) updateFields.address = address;
         if (state !== undefined) updateFields.state = state;
+        if (country !== undefined) {
+            updateFields.country = country;
+            updateFields.jurisdiction = country;
+        }
+        if (jurisdiction !== undefined && !updateFields.jurisdiction) {
+            updateFields.jurisdiction = jurisdiction;
+            if (!updateFields.country) updateFields.country = jurisdiction;
+        }
+        if (countryCode !== undefined) updateFields.countryCode = countryCode;
         if (gender !== undefined) updateFields.gender = gender;
         if (dob !== undefined) updateFields.dob = dob;
 

@@ -231,7 +231,7 @@ const DashboardLayout = () => {
     };
   }, []);
 
-  // Sync live user profile from MongoDB to ensure roles and permissions always stay up-to-date
+  // Sync live user profile from MongoDB to ensure profile, avatar, roles and permissions always stay up-to-date
   useEffect(() => {
     const activeToken = localStorage.getItem('token') || user?.token;
     if (!activeToken || activeToken === 'undefined' || activeToken === 'null') return;
@@ -240,15 +240,15 @@ const DashboardLayout = () => {
     })
     .then(res => {
       const freshUser = res?.data;
-      if (freshUser && freshUser.role) {
+      if (freshUser && (freshUser._id || freshUser.id || freshUser.email)) {
         const current = getUserData() || {};
-        if (current.role !== freshUser.role) {
-          const updated = setUserData({ ...current, ...freshUser, role: freshUser.role });
-          setUserRecoil({ user: updated });
-        }
+        const updated = setUserData({ ...current, ...freshUser });
+        setUserRecoil({ user: updated });
       }
     })
-    .catch(() => {});
+    .catch((err) => {
+      console.warn('[Profile Sync] Live profile sync failed:', err?.message);
+    });
   }, []);
 
   // Sync CSS variable for child pages top-padding
