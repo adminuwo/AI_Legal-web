@@ -76,7 +76,17 @@ export const cleanAiOutputBrackets = (text) => {
                 }
             }
         } catch (_) {
-            // Not valid JSON, keep original cleaned text
+            // If strict JSON.parse fails (e.g. truncated JSON), extract via regex
+            const topicMatch = trimmed.match(/"topic"\s*:\s*"([^"\\]*(?:\\.[^"\\]*)*)"/);
+            const directAnswerMatch = trimmed.match(/"direct_answer"\s*:\s*"([^"\\]*(?:\\.[^"\\]*)*)"/);
+            if (directAnswerMatch || topicMatch) {
+                let fallback = '';
+                if (topicMatch) fallback += `### ${topicMatch[1].replace(/\\"/g, '"').replace(/\\n/g, '\n')}\n\n`;
+                if (directAnswerMatch) fallback += `${directAnswerMatch[1].replace(/\\"/g, '"').replace(/\\n/g, '\n')}\n\n`;
+                if (fallback.trim()) {
+                    cleaned = fallback.trim();
+                }
+            }
         }
     }
 
@@ -721,7 +731,10 @@ export const askVertex = async (prompt, context = null, options = {}) => {
             logger.info(`\n\n[CONTRACT-ANALYZER-SYSTEM-PROMPT] systemInstruction reaching LLM:\n${systemInstruction}\n[CONTRACT-ANALYZER-SYSTEM-PROMPT-END]\n\n`);
         }
 
-        const isJsonMode = !!(options.isJson || options.mode === 'JSON' || options.mode === 'FILE_CONVERSION' || (systemInstruction && (systemInstruction.includes("JSON format") || systemInstruction.includes("STRICT JSON") || systemInstruction.includes("JSON object") || systemInstruction.includes("JSON verification object") || systemInstruction.includes("JSON action"))));
+        // Strict JSON mode: only when explicitly requested by options or file conversion.
+        // Never allow chat / legal modes to be forced into application/json MIME type.
+        const isConversationalMode = options.mode === 'NORMAL_CHAT' || options.mode === 'LEGAL_TOOLKIT' || options.mode === 'CHAT' || options.mode === 'RAG' || options.isLegalTool;
+        const isJsonMode = !isConversationalMode && !!(options.isJson || options.mode === 'JSON' || options.mode === 'FILE_CONVERSION');
 
         let finalPrompt = prompt;
         if (targetLanguage) {
@@ -1030,6 +1043,9 @@ export const askVertex = async (prompt, context = null, options = {}) => {
 
         if (onChunk) {
             let fullText = '';
+            let isBufferedJson = null;
+            let streamBuffer = '';
+
             try {
                 for await (const chunk of result.stream) {
                     let text = '';
@@ -1042,7 +1058,32 @@ export const askVertex = async (prompt, context = null, options = {}) => {
                     }
                     if (text) {
                         fullText += text;
-                        onChunk(text);
+                        if (!isJsonMode) {
+                            if (isBufferedJson === null) {
+                                streamBuffer += text;
+                                const trimmed = streamBuffer.trimStart();
+                                if (trimmed.startsWith('[') || trimmed.startsWith('{')) {
+                                    if (/^(\[\s*\{|\{\s*")/s.test(trimmed)) {
+                                        isBufferedJson = true; // Buffer and clean before emitting
+                                    } else if (trimmed.length > 25) {
+                                        isBufferedJson = false;
+                                        onChunk(streamBuffer);
+                                        streamBuffer = '';
+                                    }
+                                } else if (trimmed.length > 0) {
+                                    isBufferedJson = false;
+                                    onChunk(streamBuffer);
+                                    streamBuffer = '';
+                                }
+                            } else if (isBufferedJson === false) {
+                                onChunk(text);
+                            } else {
+                                // Keep buffering JSON candidate
+                                streamBuffer += text;
+                            }
+                        } else {
+                            onChunk(text);
+                        }
                     }
                 }
             } catch (streamIterErr) {
@@ -1058,6 +1099,13 @@ export const askVertex = async (prompt, context = null, options = {}) => {
                 fullText = fullText.replace(/```json\s*|\s*```/g, '').trim();
             } else {
                 fullText = cleanAiOutputBrackets(fullText);
+            }
+
+            // If we buffered a JSON output, emit the cleanly formatted text to onChunk now!
+            if (isBufferedJson === true) {
+                onChunk(fullText);
+            } else if (streamBuffer && isBufferedJson === null) {
+                onChunk(streamBuffer);
             }
 
             logger.info(`[VERTEX] Streaming completed successfully (${fullText.length} chars).`);
