@@ -577,21 +577,6 @@ export default function HomeDashboard() {
             </div>
             
             <div className="flex items-center gap-2 shrink-0">
-              {selectedRole === 'advocate' && (
-                <button
-                  onClick={() => navigate('/dashboard/consultations')}
-                  className="relative flex items-center gap-1.5 p-2 sm:px-3 sm:py-2.5 bg-white dark:bg-zinc-800 hover:bg-slate-50 dark:hover:bg-zinc-700/60 border border-slate-200 dark:border-zinc-700 text-slate-700 dark:text-zinc-200 font-bold rounded-xl text-xs sm:text-sm shadow-xs transition-all active:scale-95 cursor-pointer"
-                  title="Client Consultation Messages"
-                >
-                  <MessageSquare className="w-4 h-4 text-[#B88B2A]" />
-                  <span className="hidden md:inline">Client Chats</span>
-                  {advocateUnreadCount > 0 && (
-                    <span className="px-1.5 py-0.5 rounded-full bg-[#B88B2A] text-white text-[10px] font-black">
-                      {advocateUnreadCount > 99 ? '99+' : advocateUnreadCount}
-                    </span>
-                  )}
-                </button>
-              )}
               <button
                 onClick={() => setIsNotifOpen(true)}
                 className="relative flex items-center gap-2 p-2 sm:px-4 sm:py-2.5 bg-[#B88B2A]/15 hover:bg-[#B88B2A]/25 border border-[#B88B2A]/40 text-[#8B6517] dark:text-[#E2B755] font-black rounded-xl text-xs sm:text-sm shadow-xs transition-all active:scale-95 cursor-pointer"
