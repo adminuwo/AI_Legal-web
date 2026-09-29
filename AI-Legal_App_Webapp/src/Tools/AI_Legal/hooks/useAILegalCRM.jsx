@@ -59,6 +59,11 @@ export const useAILegalCRM = ({
       if (res && res.success && Array.isArray(res.workspaces)) {
         const firms = res.workspaces.filter(w => w.type === 'law_firm');
         setFirmWorkspaces(firms);
+        const currentActiveWs = localStorage.getItem('AI_LEGAL_LAST_ACTIVE_WORKSPACE_ID');
+        if ((!currentActiveWs || currentActiveWs === 'firm_abc_workspace' || currentActiveWs === 'firm_default' || currentActiveWs === 'personal_practice') && firms.length > 0) {
+          const defaultFirmId = firms[0]._id || firms[0].id;
+          localStorage.setItem('AI_LEGAL_LAST_ACTIVE_WORKSPACE_ID', defaultFirmId);
+        }
       }
     } catch (err) {
       console.warn('[CRM] Failed to fetch workspaces:', err);
@@ -370,6 +375,7 @@ export const useAILegalCRM = ({
         setNewCaseForm={setNewCaseForm}
         setActiveLegalToolkit={setActiveLegalToolkit}
         onBack={handleDashboardBack}
+        fetchLegalCases={fetchLegalCases}
       />
     );
   };
@@ -388,6 +394,14 @@ export const useAILegalCRM = ({
           setEditingCaseId(null);
         }}
         onSuccess={(created) => {
+          if (created && (created._id || created.id)) {
+            const createdId = created._id || created.id;
+            setAllProjects(prev => {
+              const exists = (prev || []).some(p => (p._id || p.id) === createdId);
+              if (exists) return prev;
+              return [created, ...(prev || [])];
+            });
+          }
           if (fetchLegalCases) {
             fetchLegalCases(true);
           }

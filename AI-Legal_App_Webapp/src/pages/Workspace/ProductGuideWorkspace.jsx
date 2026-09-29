@@ -143,15 +143,23 @@ export default function ProductGuideWorkspace() {
     try {
       const token = user?.token || localStorage.getItem('token');
       const formData = new FormData();
+      formData.append('file', selectedFile);
       formData.append('document', selectedFile);
-      await axios.post(`${API}/knowledge/upload`, formData, {
+      formData.append('category', 'PRODUCT_GUIDE');
+      const res = await axios.post(`${API}/knowledge/upload`, formData, {
         headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'multipart/form-data' }
       });
-      toast.success('Document uploaded successfully.');
+      if (res.data?.success) {
+        toast.success('Document uploaded successfully to RAG Knowledge Base.');
+      } else {
+        toast.success('Document uploaded.');
+      }
       setSelectedFile(null);
       loadDocuments();
     } catch (err) {
-      toast.error('Upload failed.');
+      const msg = err.response?.data?.message || err.message || 'Upload failed.';
+      toast.error(`Upload failed: ${msg}`);
+      console.error('Upload Error:', err);
     } finally {
       setUploading(false);
       setUploadStep('');

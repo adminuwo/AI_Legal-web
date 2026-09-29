@@ -225,7 +225,7 @@ export const seedSampleConveeOrgs = async (req, res) => {
         students: [
           { name: 'Ishita Kapoor', email: 'ishita.kapoor@symlaw.ac.in', id: 'SLS2022-114', class: 'BBA.LLB (Hons) - 5th Year' },
           { name: 'Nikhil Nair', email: 'nikhil.nair@symlaw.ac.in', id: 'SLS2023-044', class: 'BA.LLB - 3rd Year' },
-          { name: 'Aditi Lakhera', email: 'aditi.lakhera@symlaw.ac.in', id: 'SLS2024-001', class: 'BA.LLB - 2nd Year' }
+          { name: 'Ananya Sharma', email: 'ananya.sharma@symlaw.ac.in', id: 'SLS2024-001', class: 'BA.LLB - 2nd Year' }
         ]
       }
     ];

@@ -49,9 +49,20 @@ export const CreateCaseWizardModal = ({ isOpen, onClose, onSuccess, initialData 
   const [isConfidential, setIsConfidential] = useState(false);
 
   // STEP 3: Assign Team
+  const loggedInUser = React.useMemo(() => {
+    try {
+      return JSON.parse(localStorage.getItem('user') || '{}');
+    } catch {
+      return {};
+    }
+  }, []);
+
+  const activeOwnerName = loggedInUser?.fullName || loggedInUser?.name || (loggedInUser?.email ? loggedInUser.email.split('@')[0] : 'Lead Advocate');
+  const activeOwnerInitials = activeOwnerName.split(' ').filter(Boolean).map(n => n[0]).join('').slice(0, 2).toUpperCase() || 'LA';
+
   const [firmMembers, setFirmMembers] = useState([]);
   const [selectedTeamMembers, setSelectedTeamMembers] = useState([]);
-  const [leadAdvocate, setLeadAdvocate] = useState('Aditi Lakhera (Firm Owner)');
+  const [leadAdvocate, setLeadAdvocate] = useState(activeOwnerName);
 
   // STEP 4: Opponent & Court
   const [oppositeParty, setOppositeParty] = useState('');
@@ -94,13 +105,17 @@ export const CreateCaseWizardModal = ({ isOpen, onClose, onSuccess, initialData 
 
   const [errors, setErrors] = useState({});
 
-  const activeWsId = localStorage.getItem('AI_LEGAL_LAST_ACTIVE_WORKSPACE_ID') || 'firm_abc_workspace';
+  const rawSavedWsId = localStorage.getItem('AI_LEGAL_LAST_ACTIVE_WORKSPACE_ID');
+  const activeWsId = (rawSavedWsId && rawSavedWsId !== 'firm_abc_workspace' && rawSavedWsId !== 'firm_default' && rawSavedWsId !== 'personal_practice')
+    ? rawSavedWsId
+    : '';
 
   // Fetch workspace members for Team Assignment step
   useEffect(() => {
     if (isOpen) {
       const fetchWorkspaceMembers = async () => {
         try {
+          if (!activeWsId) return;
           const res = await apiService.get(`/workspaces/${activeWsId}/members`);
           const membersList = res?.data?.members || res?.members || res?.data || [];
           if (Array.isArray(membersList)) {
@@ -312,6 +327,7 @@ export const CreateCaseWizardModal = ({ isOpen, onClose, onSuccess, initialData 
       clientName: finalClientName,
       role: activeRole,
       workspaceType,
+      workspaceId: (workspaceType === 'law_firm' && activeWsId) ? activeWsId : undefined,
       caseType: caseCategory,
       subType: caseCategory,
       courtName: courtName.trim() || 'District Court',
@@ -346,6 +362,8 @@ export const CreateCaseWizardModal = ({ isOpen, onClose, onSuccess, initialData 
       noticeDate,
       nextHearingDate,
       isConfidential,
+      leadAdvocate: leadAdvocate || activeOwnerName,
+      leadAdvocateUserId: loggedInUser?.id || loggedInUser?._id || '',
       assignedTeamMembers: selectedTeamMembers,
       assignedUserIds: selectedTeamMembers,
       teamMembers: selectedTeamMembers.map(id => {
@@ -558,7 +576,7 @@ export const CreateCaseWizardModal = ({ isOpen, onClose, onSuccess, initialData 
                     </label>
                     <input
                       type="text"
-                      placeholder="e.g. Aditi Lakhera / Apex Logistics Pvt Ltd"
+                      placeholder="e.g. Rahul Sharma / Apex Logistics Pvt Ltd"
                       value={clientName}
                       onChange={e => setClientName(e.target.value)}
                       className="w-full border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-2.5 text-xs font-semibold focus:outline-none focus:border-[#B88B2A] text-slate-900 dark:text-white bg-white dark:bg-[#111111]"
@@ -865,19 +883,19 @@ export const CreateCaseWizardModal = ({ isOpen, onClose, onSuccess, initialData 
                 <div className="p-4 rounded-2xl border-2 border-[#B88B2A] bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-transparent dark:bg-amber-500/10 flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-full bg-[#B88B2A]/20 border border-[#B88B2A]/40 flex items-center justify-center font-bold text-[#B88B2A] text-sm shrink-0">
-                      AL
+                      {activeOwnerInitials}
                     </div>
                     <div>
                       <div className="flex items-center gap-2">
                         <span className="font-extrabold text-sm text-slate-900 dark:text-white">
-                          Aditi Lakhera
+                          {activeOwnerName}
                         </span>
                         <span className="px-2 py-0.5 rounded-md bg-[#B88B2A]/20 text-[#B88B2A] text-[10px] font-black uppercase">
-                          Firm Owner
+                          {loggedInUser?.role === 'law_firm' ? 'Firm Owner' : 'Lead Counsel'}
                         </span>
                       </div>
                       <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                        Managing Partner • Corporate & Litigation
+                        {loggedInUser?.designation || 'Managing Partner • Corporate & Litigation'}
                       </p>
                     </div>
                   </div>

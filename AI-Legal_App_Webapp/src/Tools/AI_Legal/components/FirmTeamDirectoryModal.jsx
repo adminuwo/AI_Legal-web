@@ -256,7 +256,7 @@ export const FirmTeamDirectoryModal = ({
                         .join(' ');
                       rawName = formatted.toLowerCase().includes('adv') ? formatted : `Adv. ${formatted}`;
                     } else if (item.isOwner) {
-                      rawName = 'Adv. Aditi Lakhera';
+                      rawName = item.role ? `Adv. ${item.role}` : 'Adv. Managing Partner';
                     } else {
                       rawName = `Adv. ${item.role || 'Senior Advocate'}`;
                     }

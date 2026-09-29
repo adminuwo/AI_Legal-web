@@ -378,7 +378,7 @@ First, inspect and classify the uploaded document.
 🔍 LEGAL ANALYSIS
 [List key parameters using • bullet points, e.g.:
 • Contract Type: Rental Agreement
-• Parties: Rahul Sharma (Landlord), Aditi Lakhera (Tenant)
+• Parties: Rahul Sharma (Landlord), Priya Verma (Tenant)
 • Monthly Rent: ₹20,000 / NPR 20,000
 • Security Deposit: ₹40,000 / NPR 40,000
 • Agreement Duration: 11 Months

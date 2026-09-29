@@ -21,7 +21,8 @@ cloudinary.config({
 
 const ALLOWED_EXTENSIONS = new Set([
     'pdf', 'docx', 'doc', 'txt', 'rtf', 'csv', 'xlsx', 'xls',
-    'png', 'jpg', 'jpeg', 'webp', 'mp3', 'wav', 'm4a', 'mp4'
+    'png', 'jpg', 'jpeg', 'webp', 'mp3', 'wav', 'm4a', 'mp4',
+    'md', 'markdown'
 ]);
 
 const DISALLOWED_EXTENSIONS = new Set([

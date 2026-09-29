@@ -78,18 +78,18 @@ export const CaseWorkspace = ({
         if (res && res.success && Array.isArray(res.messages) && isMounted) {
           const userObj = JSON.parse(localStorage.getItem('user') || '{}');
           const currentUserId = userObj?.id || userObj?._id;
+          const myName = (userObj?.fullName || userObj?.name || (userObj?.email ? userObj.email.split('@')[0] : '')).toLowerCase();
 
           const formatted = res.messages.map(m => ({
             id: m._id || m.id || `msg_${Date.now()}_${Math.random()}`,
             author: m.senderName || m.author || (m.sender && (m.sender.fullName || m.sender.name)) || 'Advocate',
             time: m.createdAt ? new Date(m.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : (m.time || 'Just now'),
             message: m.content || m.message || '',
-            isSelf: (m.senderName && m.senderName.includes('Aditi')) || m.senderId === currentUserId || (m.author && m.author.includes('Aditi'))
+            isSelf: (m.senderId && currentUserId && String(m.senderId) === String(currentUserId)) ||
+                    (myName && ((m.senderName && m.senderName.toLowerCase().includes(myName)) || (m.author && m.author.toLowerCase().includes(myName))))
           }));
 
-          if (formatted.length > 0) {
-            setInternalTeamNotesList(formatted);
-          }
+          setInternalTeamNotesList(formatted);
         }
       } catch (err) {
         // Silent catch for real-time chat sync
@@ -279,17 +279,15 @@ export const CaseWorkspace = ({
       status: 'Pending',
       deadline: 'Tomorrow',
       dueDate: new Date(Date.now() + 86400000).toISOString().substring(0, 10),
-      assignee: 'Adv. Aditi',
-      assignedBy: 'Adv. Rajesh Sharma',
+      assignee: 'Lead Advocate',
+      assignedBy: 'Lead Advocate',
       relatedModule: 'Evidence',
       subtasks: [
         { id: 'st_1', title: 'Verify electronic chat hash values', completed: false },
         { id: 'st_2', title: 'Draft Section 65B affidavit text', completed: true },
         { id: 'st_3', title: 'Obtain notary stamp', completed: false }
       ],
-      comments: [
-        { id: 'c_1', author: 'Adv. Rajesh Sharma', text: 'Ensure original device details are mentioned in clause 3.', time: '10:00 AM' }
-      ],
+      comments: [],
       createdAt: new Date().toISOString()
     },
     {
@@ -301,8 +299,8 @@ export const CaseWorkspace = ({
       status: 'Pending',
       deadline: 'In 7 days',
       dueDate: new Date(Date.now() + 7 * 86400000).toISOString().substring(0, 10),
-      assignee: 'Adv. Rahul Verma',
-      assignedBy: 'Adv. Aditi',
+      assignee: 'Lead Advocate',
+      assignedBy: 'Lead Advocate',
       relatedModule: 'Pleadings',
       subtasks: [
         { id: 'st_4', title: 'Compare WS against plaint paragraphs', completed: false },
@@ -326,7 +324,7 @@ export const CaseWorkspace = ({
     priority: 'Medium',
     deadline: 'Tomorrow',
     dueDate: new Date().toISOString().substring(0, 10),
-    assignee: 'Adv. Aditi',
+    assignee: 'Lead Advocate',
     relatedModule: 'Hearings',
     subtasks: []
   });
@@ -341,7 +339,7 @@ export const CaseWorkspace = ({
       priority: 'Critical',
       reason: 'Electronic evidence detected in uploaded chat screenshots & receipts.',
       deadline: 'Tomorrow',
-      assignee: 'Adv. Aditi',
+      assignee: 'Lead Advocate',
       relatedModule: 'Evidence',
       description: 'Draft Section 65B Certificate under Indian Evidence Act for WhatsApp chat exports and payment receipts.'
     },
@@ -351,7 +349,7 @@ export const CaseWorkspace = ({
       priority: 'High',
       reason: 'Opposing party filed Written Statement response on record.',
       deadline: 'In 14 days',
-      assignee: 'Adv. Rahul Verma',
+      assignee: 'Lead Advocate',
       relatedModule: 'Pleadings',
       description: 'Draft and submit replication rejoinder refuting defendant parawise denials.'
     },
@@ -361,7 +359,7 @@ export const CaseWorkspace = ({
       priority: 'Medium',
       reason: 'Notice dispatch tracking number registered in timeline.',
       deadline: 'Today',
-      assignee: 'Adv. Aditi',
+      assignee: 'Lead Advocate',
       relatedModule: 'Client Connect',
       description: 'Fetch postal delivery confirmation report to attach with affidavit of service.'
     }
@@ -380,7 +378,7 @@ export const CaseWorkspace = ({
     category: 'General Notes',
     priority: 'Medium',
     tags: '',
-    author: 'Adv. Aditi',
+    author: 'Lead Advocate',
     pinned: false
   });
   const [isVoiceDictationModalOpen, setIsVoiceDictationModalOpen] = useState(false);
@@ -392,20 +390,7 @@ export const CaseWorkspace = ({
   const [isAiNoteOutputModalOpen, setIsAiNoteOutputModalOpen] = useState(false);
   const [aiNoteOutputData, setAiNoteOutputData] = useState(null);
   const [activeAiProcessingActionId, setActiveAiProcessingActionId] = useState(null);
-  const [internalTeamNotesList, setInternalTeamNotesList] = useState([
-    {
-      id: 'in_1',
-      author: 'Adv. Rajesh Sharma (Managing Partner)',
-      time: 'Today, 10:15 AM',
-      message: 'Please prepare written arguments and cross-examination notes before Friday hearing.'
-    },
-    {
-      id: 'in_2',
-      author: 'Adv. Rahul Verma (Senior Associate)',
-      time: 'Yesterday, 4:30 PM',
-      message: 'Bank statement evidence audit completed. Uploaded verified PDF file to Evidence Vault.'
-    }
-  ]);
+  const [internalTeamNotesList, setInternalTeamNotesList] = useState([]);
   const [newInternalNoteInput, setNewInternalNoteInput] = useState('');
 
   // File Input Refs for Web File Picker Flow
@@ -880,13 +865,16 @@ export const CaseWorkspace = ({
 
   const renderTeamChat = () => {
     const userObj = JSON.parse(localStorage.getItem('user') || '{}');
-    const currentUserName = userObj?.fullName || userObj?.name || 'Aditi Lakhera';
+    const currentUserName = userObj?.fullName || userObj?.name || (userObj?.email ? userObj.email.split('@')[0] : 'Advocate');
 
     // Dynamic Team Roster derived from genuine case assignments
+    const isLegacyHardcodedAditi = caseData.leadAdvocate && /aditi\s*lakhera/i.test(caseData.leadAdvocate) && !/aditi/i.test(currentUserName);
     const assignedMembersFromCase = Array.isArray(caseData.teamMembers) ? caseData.teamMembers : [];
+    const leadNameResolved = isLegacyHardcodedAditi ? currentUserName : (caseData.leadAdvocate || currentUserName || 'Lead Advocate');
     const teamMembersList = assignedMembersFromCase.length > 0
       ? assignedMembersFromCase.map((m, idx) => {
-          const name = typeof m === 'string' ? m : (m.fullName || m.name || 'Advocate');
+          const rawName = typeof m === 'string' ? m : (m.fullName || m.name || 'Advocate');
+          const name = (isLegacyHardcodedAditi && /aditi\s*lakhera/i.test(rawName)) ? currentUserName : rawName;
           const isLead = m.isLead || idx === 0;
           return {
             id: m.userId || m.id || `m_${idx}`,
@@ -900,7 +888,7 @@ export const CaseWorkspace = ({
           };
         })
       : [
-          { id: 'lead', name: caseData.leadAdvocate || 'Aditi Lakhera', fullName: caseData.leadAdvocate || 'Aditi Lakhera', role: 'Lead Advocate', initial: 'A', bg: 'bg-[#B88B2A]', isLead: true }
+          { id: 'lead', name: leadNameResolved, fullName: leadNameResolved, role: 'Lead Advocate', initial: leadNameResolved.charAt(0).toUpperCase() || 'A', bg: 'bg-[#B88B2A]', isLead: true }
         ];
 
     const totalMembersCount = teamMembersList.length;
@@ -999,7 +987,7 @@ export const CaseWorkspace = ({
               </div>
             ) : (
               internalTeamNotesList.map((msg) => {
-                const isSelf = msg.isSelf || (msg.author && msg.author.toLowerCase().includes('aditi'));
+                const isSelf = msg.isSelf || (currentUserName && msg.author && msg.author.toLowerCase().includes(currentUserName.toLowerCase()));
                 return (
                   <div key={msg.id} className={`flex items-start gap-2.5 ${isSelf ? 'justify-end' : 'justify-start'}`}>
                     {!isSelf && (
@@ -1717,7 +1705,7 @@ export const CaseWorkspace = ({
         const cleanName = rawName.replace(/^(adv\.|advocate)\s+/i, '').trim();
         const cleanLower = cleanName.toLowerCase();
 
-        // Check if this member matches logged-in user profile (e.g. 'aditi' matches 'Aditi Lakhera' or email prefix 'aditi')
+        // Check if this member matches logged-in user profile
         const isSelf = (
           (userEmailPrefix && (cleanLower === userEmailPrefix || userEmailPrefix.includes(cleanLower))) ||
           (userFullName && (cleanLower === userFullName.toLowerCase() || userFullName.toLowerCase().includes(cleanLower)))
@@ -1727,7 +1715,7 @@ export const CaseWorkspace = ({
         const displayName = (isSelf && userFullName) ? userFullName : cleanName;
         const normalizedKey = displayName.toLowerCase();
 
-        // Deduplicate fuzzy matches (e.g. "aditi" vs "aditi lakhera")
+        // Deduplicate fuzzy matches
         let matchedKey = null;
         for (const k of memberMap.keys()) {
           const kFirst = k.split(' ')[0];
@@ -1782,7 +1770,7 @@ export const CaseWorkspace = ({
 
       // 3. Fallback: If no members are assigned to this case yet, show only the Lead Advocate
       if (memberMap.size === 0) {
-        const fallbackName = leadAdvocateName || userFullName || 'Aditi Lakhera';
+        const fallbackName = leadAdvocateName || userFullName || 'Lead Advocate';
         registerMember(fallbackName, 'Lead Advocate', true);
       } else if (leadAdvocateName) {
         let leadFound = false;
@@ -1839,7 +1827,7 @@ export const CaseWorkspace = ({
         priority: 'Medium',
         deadline: '',
         dueDate: new Date().toISOString().substring(0, 10),
-        assignee: 'Adv. Aditi Lakhera',
+        assignee: leadAdvocateName || userFullName || 'Advocate',
         relatedModule: 'Hearings',
         subtasks: []
       });
@@ -1857,7 +1845,7 @@ export const CaseWorkspace = ({
         priority: sugg.priority || 'High',
         deadline: sugg.deadline || 'Tomorrow',
         dueDate: new Date(Date.now() + 86400000).toISOString().substring(0, 10),
-        assignee: sugg.assignee || 'Adv. Aditi Lakhera',
+        assignee: sugg.assignee || leadAdvocateName || userFullName || 'Advocate',
         relatedModule: sugg.relatedModule || 'General',
         subtasks: []
       });
@@ -1875,7 +1863,7 @@ export const CaseWorkspace = ({
         priority: t.priority || 'Medium',
         deadline: t.deadline || 'Tomorrow',
         dueDate: t.dueDate || new Date().toISOString().substring(0, 10),
-        assignee: t.assignee || 'Adv. Aditi Lakhera',
+        assignee: t.assignee || leadAdvocateName || userFullName || 'Advocate',
         relatedModule: t.relatedModule || 'Hearings',
         subtasks: t.subtasks || []
       });
@@ -1899,7 +1887,7 @@ export const CaseWorkspace = ({
         deadline: taskFormState.deadline || 'Tomorrow',
         dueDate: taskFormState.dueDate,
         assignee: taskFormState.assignee,
-        assignedBy: editingTask ? editingTask.assignedBy : 'Adv. Aditi Lakhera',
+        assignedBy: editingTask ? editingTask.assignedBy : (userFullName || leadAdvocateName || 'Advocate'),
         relatedModule: taskFormState.relatedModule,
         subtasks: taskFormState.subtasks || [],
         comments: editingTask ? (editingTask.comments || []) : [],
@@ -2216,7 +2204,7 @@ export const CaseWorkspace = ({
 
                     <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-100 dark:border-slate-800 text-[10px] font-bold text-slate-500">
                       <div className="flex items-center gap-2">
-                        <span>👤 {t.assignee || 'Adv. Aditi Lakhera'}</span>
+                        <span>👤 {t.assignee || caseData.leadAdvocate || 'Advocate'}</span>
                         <span>•</span>
                         <span>📅 Due {t.deadline || 'Tomorrow'}</span>
                       </div>
@@ -2538,7 +2526,7 @@ export const CaseWorkspace = ({
             <div className="grid grid-cols-2 gap-y-2.5 sm:gap-y-3.5 gap-x-3 sm:gap-x-6 text-xs">
               <div>
                 <span className="text-[10px] sm:text-[11px] font-medium text-slate-400 block mb-0.5">Client</span>
-                <strong className="font-bold text-slate-800 dark:text-[#E2E8F0] text-xs sm:text-sm">{caseData.clientName || 'Aditi Lakhera'}</strong>
+                <strong className="font-bold text-slate-800 dark:text-[#E2E8F0] text-xs sm:text-sm">{caseData.clientName || 'Client Profile'}</strong>
               </div>
               <div>
                 <span className="text-[10px] sm:text-[11px] font-medium text-slate-400 block mb-0.5">Client Role</span>
@@ -2602,8 +2590,8 @@ export const CaseWorkspace = ({
                   {caseData.leadAdvocate || caseData.ownerName || (() => {
                     try {
                       const u = JSON.parse(localStorage.getItem('user') || '{}');
-                      return u.name || u.fullName || 'Adv. Aditi Lakhera';
-                    } catch { return 'Adv. Aditi Lakhera'; }
+                      return u.fullName || u.name || 'Lead Advocate';
+                    } catch { return 'Lead Advocate'; }
                   })()}
                 </strong>
               </div>
@@ -2624,9 +2612,9 @@ export const CaseWorkspace = ({
                   {caseData.caseOwner || caseData.firmName || (() => {
                     try {
                       const u = JSON.parse(localStorage.getItem('user') || '{}');
-                      const userName = u.name || u.fullName || 'Aditi Lakhera';
+                      const userName = u.fullName || u.name || (u.email ? u.email.split('@')[0] : 'Advocate');
                       return u.firmName || u.personalizations?.advocateProfile?.firmName || `${userName}'s Law Firm`;
-                    } catch { return 'Aditi Lakhera\'s Law Firm'; }
+                    } catch { return 'Law Firm Workspace'; }
                   })()}
                 </strong>
               </div>
@@ -2636,8 +2624,8 @@ export const CaseWorkspace = ({
                   {caseData.createdBy || (() => {
                     try {
                       const u = JSON.parse(localStorage.getItem('user') || '{}');
-                      return u.name || u.fullName || 'Adv. Aditi Lakhera';
-                    } catch { return 'Adv. Aditi Lakhera'; }
+                      return u.fullName || u.name || 'Lead Advocate';
+                    } catch { return 'Lead Advocate'; }
                   })()}
                 </strong>
               </div>
@@ -5352,7 +5340,7 @@ export const CaseWorkspace = ({
         teamAccessPreset: 'View Only',
         size: '101 KB',
         uploadDate: new Date().toISOString(),
-        uploadedBy: 'Adv. Aditi Lakhera'
+        uploadedBy: caseData.leadAdvocate || 'Lead Advocate'
       }
     ];
 
@@ -5403,7 +5391,7 @@ export const CaseWorkspace = ({
       }
 
       const userObj = JSON.parse(localStorage.getItem('user') || '{}');
-      const uName = userObj.fullName || userObj.name || caseData.advocateName || 'Adv. Aditi Lakhera';
+      const uName = userObj.fullName || userObj.name || caseData.advocateName || caseData.leadAdvocate || (userObj.email ? userObj.email.split('@')[0] : 'Advocate');
 
       const newDoc = {
         id: `doc_${Date.now()}`,
@@ -5548,7 +5536,7 @@ export const CaseWorkspace = ({
 
                     <div className="flex items-center justify-between text-[10px] pt-1">
                       <span className="font-bold text-slate-500">
-                        👤 {item.uploadedBy || 'Adv. Aditi Lakhera'}
+                        👤 {item.uploadedBy || caseData.leadAdvocate || 'Advocate'}
                       </span>
                       <span className="px-2 py-0.5 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-md font-bold">
                         {item.shareWith || 'Entire Team'}
@@ -5798,7 +5786,7 @@ export const CaseWorkspace = ({
       }
 
       const userObj = JSON.parse(localStorage.getItem('user') || '{}');
-      const uName = userObj.fullName || userObj.name || caseData.advocateName || 'Adv. Aditi Lakhera';
+      const uName = userObj.fullName || userObj.name || caseData.advocateName || caseData.leadAdvocate || (userObj.email ? userObj.email.split('@')[0] : 'Advocate');
 
       const newExhibit = {
         id: `ev_${Date.now()}`,
@@ -5902,7 +5890,7 @@ export const CaseWorkspace = ({
               className="px-3.5 py-2 rounded-2xl text-xs font-bold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-transparent focus:border-[#B88B2A] focus:outline-none cursor-pointer"
             >
               <option value="All">Uploaded By: All</option>
-              <option value="Aditi">Adv. Aditi Lakhera</option>
+              <option value="Lead">{caseData.leadAdvocate || 'Lead Advocate'}</option>
               <option value="Team">Team Member</option>
             </select>
 
@@ -5967,7 +5955,7 @@ export const CaseWorkspace = ({
 
                     <div className="flex items-center justify-between text-[10px] pt-1">
                       <span className="font-bold text-slate-500">
-                        👤 {item.uploadedBy || 'Adv. Aditi Lakhera'}
+                        👤 {item.uploadedBy || caseData.leadAdvocate || 'Advocate'}
                       </span>
                       <span className="px-2 py-0.5 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-md font-bold">
                         {item.shareWith || 'Entire Team'}
@@ -6646,9 +6634,15 @@ export const CaseWorkspace = ({
     let rawActivities = [];
 
     if (Array.isArray(realtimeActivities) && realtimeActivities.length > 0) {
+      const userObj = JSON.parse(localStorage.getItem('user') || '{}');
+      const dynamicCounsel = caseData.leadAdvocate || userObj?.fullName || userObj?.name || (userObj?.email ? userObj.email.split('@')[0] : 'Lead Advocate');
+      const dynamicCounselFormatted = dynamicCounsel.startsWith('Adv.') ? dynamicCounsel : `Adv. ${dynamicCounsel}`;
+
       rawActivities = realtimeActivities.map(act => {
         const titleStr = act.action || act.title || 'CASE_REPORT_GENERATED';
         const isReport = titleStr === 'CASE_REPORT_GENERATED' || act.activityCategory === 'Reports';
+        const actorName = act.actorName || act.author || dynamicCounsel;
+        const actorRole = act.actorRole || `${actorName} (Counsel)`;
         return {
           id: act._id || act.id,
           _id: act._id || act.id,
@@ -6656,8 +6650,8 @@ export const CaseWorkspace = ({
           type: titleStr,
           title: titleStr,
           version: act.version || `Version 1.0 • ${act.activityCategory?.toLowerCase() || 'reports'}`,
-          author: act.actorName || act.author || 'Aditi Lakhera',
-          authorRole: act.actorRole || `${act.actorName || 'Adv. Aditi Lakhera'} (SUPER_ADMIN)`,
+          author: actorName,
+          authorRole: actorRole,
           caseName: act.caseName || caseData.name || 'hddh',
           time: act.createdAt ? new Date(act.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : (act.time || '11:56 am'),
           date: act.createdAt ? new Date(act.createdAt).toLocaleDateString() : (act.date || '21/8/2026'),
@@ -6671,18 +6665,18 @@ export const CaseWorkspace = ({
             caseTitle: (caseData.name || 'HDDH').toUpperCase(),
             moduleSource: act.activityCategory?.toLowerCase() || 'reports',
             docType: titleStr,
-            authorCounsel: act.actorRole || 'Adv. Aditi Lakhera (SUPER_ADMIN)',
+            authorCounsel: actorRole,
             dateGenerated: act.createdAt ? new Date(act.createdAt).toLocaleDateString() : '21 August 2026',
             section1: act.description || `Respectfully showeth that the undersigned Advocate Counsel has prepared this legal document in accordance with statutory procedures and advocate instructions for ${caseData.name || 'hddh'}.`,
             section2: {
               caseRef: 'AI Case Intelligence Snapshot Generated',
-              preparedBy: act.actorName || 'Adv. Aditi Lakhera',
+              preparedBy: actorName,
               timestamp: act.createdAt ? new Date(act.createdAt).toLocaleString() : '21/8/2026, 11:56:27 am',
               reviewStatus: 'Synced'
             },
             section3: "It is submitted before the Hon'ble Court that the contents set out herein carry full legal force under applicable statutes and precedents.",
             prayer: "Wherefore, in the facts and circumstances of the case, it is prayed that appropriate relief be granted in favour of the client in the interest of justice.",
-            signoff: "Adv. Aditi Lakhera\nCounsel for Petitioner / Applicant",
+            signoff: `${dynamicCounselFormatted}\nCounsel for Petitioner / Applicant`,
             auditTrail: act._id || act.id
           }
         };
@@ -6692,9 +6686,13 @@ export const CaseWorkspace = ({
     } else {
       // Build real-time activity list dynamically from caseData items (documents, hearings, etc.)
       const dynamicList = [];
+      const userObj = JSON.parse(localStorage.getItem('user') || '{}');
+      const dynamicCounsel = caseData.leadAdvocate || userObj?.fullName || userObj?.name || (userObj?.email ? userObj.email.split('@')[0] : 'Lead Advocate');
+      const dynamicCounselFormatted = dynamicCounsel.startsWith('Adv.') ? dynamicCounsel : `Adv. ${dynamicCounsel}`;
 
       if (caseData.documents && caseData.documents.length > 0) {
         caseData.documents.forEach((doc, idx) => {
+          const docUploader = doc.uploadedBy || dynamicCounsel;
           dynamicList.push({
             id: `doc_act_${idx}`,
             _id: doc._id || `doc_act_${idx}`,
@@ -6702,8 +6700,8 @@ export const CaseWorkspace = ({
             type: 'DOCUMENT_UPLOADED',
             title: `DOCUMENT_UPLOADED: ${doc.name || 'Case Filing'}`,
             version: 'Version 1.0 • documents',
-            author: doc.uploadedBy || 'Aditi Lakhera',
-            authorRole: `${doc.uploadedBy || 'Adv. Aditi Lakhera'} (SUPER_ADMIN)`,
+            author: docUploader,
+            authorRole: `${docUploader} (Counsel)`,
             caseName: caseData.name || 'hddh',
             time: '11:56 am',
             date: '21/8/2026',
@@ -6717,18 +6715,18 @@ export const CaseWorkspace = ({
               caseTitle: (caseData.name || 'HDDH').toUpperCase(),
               moduleSource: 'documents',
               docType: 'DOCUMENT_UPLOADED',
-              authorCounsel: `${doc.uploadedBy || 'Adv. Aditi Lakhera'} (SUPER_ADMIN)`,
+              authorCounsel: `${docUploader} (Counsel)`,
               dateGenerated: '21 August 2026',
               section1: `Document "${doc.name || 'Case Filing'}" uploaded and cataloged in legal case repository.`,
               section2: {
                 caseRef: doc.name || 'Filing Document',
-                preparedBy: doc.uploadedBy || 'Adv. Aditi Lakhera',
+                preparedBy: docUploader,
                 timestamp: '21/8/2026, 11:56:27 am',
                 reviewStatus: 'Verified'
               },
               section3: "Legal document verified for evidentiary submission and case folder binding.",
               prayer: "Prayed that document be admitted on court record.",
-              signoff: "Adv. Aditi Lakhera\nCounsel for Petitioner / Applicant",
+              signoff: `${dynamicCounselFormatted}\nCounsel for Petitioner / Applicant`,
               auditTrail: doc._id || `audit_doc_${idx}`
             }
           });
@@ -6788,9 +6786,9 @@ export const CaseWorkspace = ({
             type: 'CASE_REPORT_GENERATED',
             title: 'CASE_REPORT_GENERATED',
             version: 'Version 1.0 • reports',
-            author: 'Aditi Lakhera',
-            authorRole: 'Adv. Aditi Lakhera (SUPER_ADMIN)',
-            caseName: caseData.name || 'hddh',
+            author: dynamicCounsel,
+            authorRole: `${dynamicCounsel} (Counsel)`,
+            caseName: caseData.name || 'Unspecified Case',
             time: '11:56 am',
             date: '21/8/2026',
             timestamp: '21/8/2026, 11:56:27 am',
@@ -6800,21 +6798,21 @@ export const CaseWorkspace = ({
             auditId: '6a87ef93ead456e89b3f0254',
             docContent: {
               court: "IN THE HON'BLE COURT OF DISTRICT & SESSIONS JUDGE",
-              caseTitle: (caseData.name || 'HDDH').toUpperCase(),
+              caseTitle: (caseData.name || 'UNSPECIFIED CASE').toUpperCase(),
               moduleSource: 'reports',
               docType: 'CASE_REPORT_GENERATED',
-              authorCounsel: 'Adv. Aditi Lakhera (SUPER_ADMIN)',
+              authorCounsel: `${dynamicCounsel} (Counsel)`,
               dateGenerated: '21 August 2026',
-              section1: `Respectfully showeth that the undersigned Advocate Counsel has prepared this legal document in accordance with statutory procedures and advocate instructions for ${caseData.name || 'hddh'}.`,
+              section1: `Respectfully showeth that the undersigned Advocate Counsel has prepared this legal document in accordance with statutory procedures and advocate instructions for ${caseData.name || 'Unspecified Case'}.`,
               section2: {
                 caseRef: 'AI Case Intelligence Snapshot Generated',
-                preparedBy: 'Adv. Aditi Lakhera',
+                preparedBy: dynamicCounsel,
                 timestamp: '21/8/2026, 11:56:27 am',
                 reviewStatus: 'None'
               },
               section3: "It is submitted before the Hon'ble Court that the contents set out herein carry full legal force under applicable statutes and precedents.",
               prayer: "Wherefore, in the facts and circumstances of the case, it is prayed that appropriate relief be granted in favour of the client in the interest of justice.",
-              signoff: "Adv. Aditi Lakhera\nCounsel for Petitioner / Applicant",
+              signoff: `${dynamicCounselFormatted}\nCounsel for Petitioner / Applicant`,
               auditTrail: "6a87ef93ead456e89b3f0254"
             }
           },
@@ -6825,9 +6823,9 @@ export const CaseWorkspace = ({
             type: 'DRAFT_NOTICE_CREATED',
             title: 'DRAFT_NOTICE_CREATED',
             version: 'Version 1.0 • drafts',
-            author: 'Aditi Lakhera',
-            authorRole: 'Adv. Aditi Lakhera (SUPER_ADMIN)',
-            caseName: caseData.name || 'hddh',
+            author: dynamicCounsel,
+            authorRole: `${dynamicCounsel} (Counsel)`,
+            caseName: caseData.name || 'Unspecified Case',
             time: '10:15 am',
             date: '21/8/2026',
             timestamp: '21/8/2026, 10:15:12 am',
@@ -6837,21 +6835,21 @@ export const CaseWorkspace = ({
             auditId: '7b98ff94ebd567f90c4g0365',
             docContent: {
               court: "IN THE HON'BLE COURT OF DISTRICT & SESSIONS JUDGE",
-              caseTitle: (caseData.name || 'HDDH').toUpperCase(),
+              caseTitle: (caseData.name || 'UNSPECIFIED CASE').toUpperCase(),
               moduleSource: 'drafts',
               docType: 'DRAFT_NOTICE_CREATED',
-              authorCounsel: 'Adv. Aditi Lakhera (SUPER_ADMIN)',
+              authorCounsel: `${dynamicCounsel} (Counsel)`,
               dateGenerated: '21 August 2026',
-              section1: `Respectfully showeth that formal Legal Demand Notice regarding default of outstanding contractual payments was prepared for ${caseData.name || 'hddh'}.`,
+              section1: `Respectfully showeth that formal Legal Demand Notice regarding default of outstanding contractual payments was prepared for ${caseData.name || 'Unspecified Case'}.`,
               section2: {
                 caseRef: 'Legal Demand Notice Draft',
-                preparedBy: 'Adv. Aditi Lakhera',
+                preparedBy: dynamicCounsel,
                 timestamp: '21/8/2026, 10:15:12 am',
                 reviewStatus: 'Verified'
               },
               section3: "Formal notice served requesting clearing of dues within statutory 15 days window.",
               prayer: "Prayed that respondent complies with notice terms to avoid civil summary suit.",
-              signoff: "Adv. Aditi Lakhera\nCounsel for Petitioner / Applicant",
+              signoff: `${dynamicCounselFormatted}\nCounsel for Petitioner / Applicant`,
               auditTrail: "7b98ff94ebd567f90c4g0365"
             }
           },
@@ -7189,10 +7187,10 @@ export const CaseWorkspace = ({
                     {selectedActivityDetail.version || 'Version 1.0 • reports'}
                   </p>
                   <p className="text-xs font-bold text-[#B88B2A] mt-1">
-                    Generated by: {selectedActivityDetail.authorRole || 'Adv. Aditi Lakhera (SUPER_ADMIN)'}
+                    Generated by: {selectedActivityDetail.authorRole || selectedActivityDetail.author || (caseData.leadAdvocate ? 'Adv. ' + caseData.leadAdvocate : 'Advocate Counsel')}
                   </p>
                   <p className="text-[11px] font-semibold text-slate-400 mt-0.5">
-                    Case: {selectedActivityDetail.caseName || 'hddh'} | {selectedActivityDetail.timestamp || '21/8/2026, 11:56:27 am'}
+                    Case: {selectedActivityDetail.caseName || caseData.name || 'hddh'} | {selectedActivityDetail.timestamp || '21/8/2026, 11:56:27 am'}
                   </p>
                 </div>
 
@@ -7218,7 +7216,7 @@ export const CaseWorkspace = ({
                     {selectedActivityDetail.docContent?.court || "IN THE HON'BLE COURT OF DISTRICT & SESSIONS JUDGE"}
                   </p>
                   <p className="text-[10px] text-slate-500">
-                    CASE TITLE: {(selectedActivityDetail.caseName || 'HDDH').toUpperCase()}
+                    CASE TITLE: {(selectedActivityDetail.caseName || caseData.name || 'HDDH').toUpperCase()}
                   </p>
                   <p className="text-[10px] text-slate-500">
                     MODULE SOURCE: {selectedActivityDetail.docContent?.moduleSource || 'reports'}
@@ -7227,7 +7225,7 @@ export const CaseWorkspace = ({
                     DOCUMENT TYPE: {selectedActivityDetail.type}
                   </p>
                   <p className="text-[10px] text-slate-500">
-                    AUTHOR COUNSEL: {selectedActivityDetail.authorRole || 'Adv. Aditi Lakhera (SUPER_ADMIN)'}
+                    AUTHOR COUNSEL: {selectedActivityDetail.authorRole || selectedActivityDetail.author || (caseData.leadAdvocate ? 'Adv. ' + caseData.leadAdvocate : 'Advocate Counsel')}
                   </p>
                   <p className="text-[10px] text-slate-500">
                     DATE GENERATED: {selectedActivityDetail.docContent?.dateGenerated || '21 August 2026'}
@@ -7250,7 +7248,7 @@ export const CaseWorkspace = ({
                     1. MEMORANDUM OF RECORD & LEGAL GROUNDS:
                   </p>
                   <p className="text-slate-700 dark:text-slate-300 font-sans text-xs">
-                    {selectedActivityDetail.docContent?.section1 || `Respectfully showeth that the undersigned Advocate Counsel has prepared this legal document in accordance with statutory procedures and advocate instructions for ${selectedActivityDetail.caseName || 'hddh'}.`}
+                    {selectedActivityDetail.docContent?.section1 || `Respectfully showeth that the undersigned Advocate Counsel has prepared this legal document in accordance with statutory procedures and advocate instructions for ${selectedActivityDetail.caseName || caseData.name || 'hddh'}.`}
                   </p>
                 </div>
 
@@ -7261,7 +7259,7 @@ export const CaseWorkspace = ({
                   </p>
                   <div className="space-y-0.5 text-slate-700 dark:text-slate-300 font-sans text-xs pl-2">
                     <p>- Case Reference: {selectedActivityDetail.docContent?.section2?.caseRef || 'AI Case Intelligence Snapshot Generated'}</p>
-                    <p>- Prepared By: {selectedActivityDetail.docContent?.section2?.preparedBy || 'Adv. Aditi Lakhera'}</p>
+                    <p>- Prepared By: {selectedActivityDetail.docContent?.section2?.preparedBy || selectedActivityDetail.author || (caseData.leadAdvocate ? 'Adv. ' + caseData.leadAdvocate : 'Advocate Counsel')}</p>
                     <p>- Timestamp: {selectedActivityDetail.timestamp || '21/8/2026, 11:56:27 am'}</p>
                     <p>- Review Status: {selectedActivityDetail.docContent?.section2?.reviewStatus || 'None'}</p>
                   </div>
@@ -7291,7 +7289,7 @@ export const CaseWorkspace = ({
                 <div className="pt-4 border-t border-slate-200 dark:border-slate-800 flex justify-between items-end text-xs">
                   <div>
                     <p className="font-bold text-slate-900 dark:text-white">
-                      {selectedActivityDetail.author || 'Adv. Aditi Lakhera'}
+                      {selectedActivityDetail.author || (caseData.leadAdvocate ? 'Adv. ' + caseData.leadAdvocate : 'Advocate Counsel')}
                     </p>
                     <p className="text-[10px] text-slate-500 font-sans">
                       Counsel for Petitioner / Applicant
@@ -7411,7 +7409,7 @@ export const CaseWorkspace = ({
 
       try {
         if (activeQuickTool === 'draft-maker') {
-          let resultText = `IN THE HON'BLE ${qaCourtLevel.toUpperCase()} COURT\n\nMEMORANDUM OF ${qaDraftType.toUpperCase()}\n\nIn the matter of: ${caseName.toUpperCase()}\n\n1. RESPECTFULLY SHOWETH:\nThat the petitioner/applicant has filed this ${qaDraftType} in accordance with statutory procedures in ${qaDraftLang}.\n\n2. GROUNDS & CONTEXT:\n- Fundamental rights and statutory protections apply under relevant legal sections.\n- Compliance with prescribed notice and timeline rules verified.\n- Facts of the matter clearly substantiate petitioner's claim.\n\n3. SPECIAL ADVOCATE INSTRUCTIONS & REMARKS:\n${qaDraftInstructions || 'No special instructions recorded.'}\n\n4. PRAYER:\nWherefore it is respectfully prayed that appropriate order be granted in favour of petitioner.\n\nAdv. Aditi Lakhera\nCounsel for Petitioner / Applicant`;
+          let resultText = `IN THE HON'BLE ${qaCourtLevel.toUpperCase()} COURT\n\nMEMORANDUM OF ${qaDraftType.toUpperCase()}\n\nIn the matter of: ${caseName.toUpperCase()}\n\n1. RESPECTFULLY SHOWETH:\nThat the petitioner/applicant has filed this ${qaDraftType} in accordance with statutory procedures in ${qaDraftLang}.\n\n2. GROUNDS & CONTEXT:\n- Fundamental rights and statutory protections apply under relevant legal sections.\n- Compliance with prescribed notice and timeline rules verified.\n- Facts of the matter clearly substantiate petitioner's claim.\n\n3. SPECIAL ADVOCATE INSTRUCTIONS & REMARKS:\n${qaDraftInstructions || 'No special instructions recorded.'}\n\n4. PRAYER:\nWherefore it is respectfully prayed that appropriate order be granted in favour of petitioner.\n\n${caseData.leadAdvocate ? 'Adv. ' + caseData.leadAdvocate : 'Advocate Counsel'}\nCounsel for Petitioner / Applicant`;
 
           try {
             if (typeof apiService.generateLegalDocument === 'function') {
@@ -7431,7 +7429,7 @@ export const CaseWorkspace = ({
         } else if (activeQuickTool === 'argument-builder') {
           const argTypeUpper = qaArgumentType.toUpperCase();
           const caseName = caseData.name || 'hddh';
-          const clientName = 'Aditi Lakhera';
+          const clientName = caseData.clientName || 'Client Profile';
           const typeLower = qaArgumentType.toLowerCase();
 
           let section1Foundation = '';
@@ -7473,7 +7471,7 @@ export const CaseWorkspace = ({
             section4Countering = `1. Misinterpretation of Law:\n   - Opposing counsel misapplied statutory provisions.\n\n2. Lack of Substantial Evidence:\n   - Claims based on unverified hearsay.\n\n3. Procedural Lapses:\n   - Barred by statutory limitation and procedural default.`;
           }
 
-          let resultText = `${argTypeUpper} BEFORE THE HONORABLE COURT\n\nSection I: Fact Summary & Legal Foundation\n\n${section1Foundation}\n\nSection II: Core Legal Arguments\n\n${section2CoreArgs}\n\nSection III: Evidentiary Proof & Exhibit Links\n\n${section3Evidentiary}\n\nSection IV: Countering Opposing Counsel Claims\n\n${section4Countering}\n\nAdv. ${clientName}\nCounsel for Petitioner / Applicant`;
+          let resultText = `${argTypeUpper} BEFORE THE HONORABLE COURT\n\nSection I: Fact Summary & Legal Foundation\n\n${section1Foundation}\n\nSection II: Core Legal Arguments\n\n${section2CoreArgs}\n\nSection III: Evidentiary Proof & Exhibit Links\n\n${section3Evidentiary}\n\nSection IV: Countering Opposing Counsel Claims\n\n${section4Countering}\n\n${caseData.leadAdvocate ? 'Adv. ' + caseData.leadAdvocate : 'Advocate Counsel'}\nCounsel for Petitioner / Applicant`;
 
           try {
             if (typeof apiService.generateArguments === 'function') {
@@ -7491,7 +7489,7 @@ export const CaseWorkspace = ({
           toast.success("Court arguments compiled successfully!");
         } else if (activeQuickTool === 'cross-examination') {
           const targetCount = parseInt(qaQuestionCount, 10) || 20;
-          const clientName = 'Aditi Lakhera';
+          const clientName = caseData.clientName || 'Client Profile';
 
           const phase1Questions = [
             `You have known ${clientName} for several years, correct?`,
@@ -7593,7 +7591,7 @@ export const CaseWorkspace = ({
           setQuickToolOutput(resultText);
           toast.success(`${targetCount} ${qaCrossExamType} questions generated successfully!`);
         } else if (activeQuickTool === 'progress-report') {
-          const reportText = `IN THE HON'BLE COURT OF DISTRICT & SESSIONS JUDGE\n\nCASE PROGRESS REPORT & LITIGATION AUDIT\nCASE TITLE: ${(caseData.name || 'HDDH').toUpperCase()}\nDATE: ${new Date().toLocaleDateString()}\nAUDIT TRAIL: 6a87ef93ead456e89b3f0254\n\n1. CASE OVERVIEW:\nCase Name: ${caseData.name || 'hddh'}\nStatus: ${caseData.status || 'Active'} | Priority: ${caseData.priority || 'High'}\nCourt: ${caseData.courtName || 'District Court, New Delhi'}\n\n2. LITIGATION MILESTONES & HEARINGS:\n- Hearing Stage: Final Arguments\n- Evidence Vault: All documents cataloged and verified.\n- Next Hearing: Listed for judicial directions.\n\n3. LITIGATION PROBABILITY & SCORE:\n- Estimated Win Probability: 85%\n- Risk Assessment: Low procedural risk.\n\nAdv. Aditi Lakhera\nCounsel for Petitioner / Applicant`;
+          const reportText = `IN THE HON'BLE COURT OF DISTRICT & SESSIONS JUDGE\n\nCASE PROGRESS REPORT & LITIGATION AUDIT\nCASE TITLE: ${(caseData.name || 'HDDH').toUpperCase()}\nDATE: ${new Date().toLocaleDateString()}\nAUDIT TRAIL: 6a87ef93ead456e89b3f0254\n\n1. CASE OVERVIEW:\nCase Name: ${caseData.name || 'hddh'}\nStatus: ${caseData.status || 'Active'} | Priority: ${caseData.priority || 'High'}\nCourt: ${caseData.courtName || 'District Court, New Delhi'}\n\n2. LITIGATION MILESTONES & HEARINGS:\n- Hearing Stage: Final Arguments\n- Evidence Vault: All documents cataloged and verified.\n- Next Hearing: Listed for judicial directions.\n\n3. LITIGATION PROBABILITY & SCORE:\n- Estimated Win Probability: 85%\n- Risk Assessment: Low procedural risk.\n\n${caseData.leadAdvocate ? 'Adv. ' + caseData.leadAdvocate : 'Advocate Counsel'}\nCounsel for Petitioner / Applicant`;
           
           setQuickToolOutput(reportText);
 
@@ -7824,7 +7822,7 @@ export const CaseWorkspace = ({
                     {activeQuickTool === 'draft-maker' ? 'Enterprise Legal Draft Generator' : quickToolTitle}
                   </h3>
                   <p className="text-xs font-semibold text-slate-400 mt-0.5">
-                    Workspace: {caseData.name || 'hddh'} (Aditi Lakhera)
+                    Workspace: {caseData.name || 'Case Workspace'}{caseData.leadAdvocate ? ` • ${caseData.leadAdvocate}` : ''}
                   </p>
                 </div>
                 <div className="flex items-center gap-2 relative">
@@ -8466,6 +8464,8 @@ export const CaseWorkspace = ({
                     type="button"
                     onClick={async () => {
                       const actType = activeQuickTool === 'progress-report' ? 'CASE_REPORT_GENERATED' : (qaDraftType ? `DRAFT_${qaDraftType.toUpperCase().replace(/\s+/g, '_')}_CREATED` : 'DRAFT_NOTICE_CREATED');
+                      const dynamicCounselName = caseData.leadAdvocate || (typeof userObj !== 'undefined' ? (userObj?.fullName || userObj?.name) : null) || 'Lead Advocate';
+                      const dynamicCounselRole = caseData.leadAdvocate ? `Adv. ${caseData.leadAdvocate}` : 'Advocate Counsel';
                       
                       const newAct = {
                         id: `act_${Date.now()}`,
@@ -8475,8 +8475,8 @@ export const CaseWorkspace = ({
                         action: actType,
                         title: actType,
                         version: 'Version 1.0 • drafts',
-                        author: 'Aditi Lakhera',
-                        authorRole: 'Adv. Aditi Lakhera (SUPER_ADMIN)',
+                        author: dynamicCounselName,
+                        authorRole: dynamicCounselRole,
                         caseName: caseData.name || 'hddh',
                         time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
                         date: new Date().toLocaleDateString(),
@@ -8490,7 +8490,7 @@ export const CaseWorkspace = ({
                           caseTitle: (caseData.name || 'HDDH').toUpperCase(),
                           moduleSource: 'drafts',
                           docType: actType,
-                          authorCounsel: 'Adv. Aditi Lakhera (SUPER_ADMIN)',
+                          authorCounsel: dynamicCounselRole,
                           dateGenerated: new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }),
                           section1: quickToolOutput
                         }
@@ -10917,6 +10917,7 @@ Through Counsel
   };
 
   const renderOldTasks_Legacy = () => {
+    const defaultTaskAssignee = caseData.leadAdvocate ? `Adv. ${caseData.leadAdvocate}` : 'Lead Advocate';
     // Dynamic Active Tasks from Case Data (with robust fallbacks)
     const activeTasks = (caseData.tasks && caseData.tasks.length > 0)
       ? caseData.tasks
@@ -10928,7 +10929,7 @@ Through Counsel
             priority: 'High',
             deadline: 'Today',
             status: 'Completed',
-            assignee: 'Adv. Aditi',
+            assignee: defaultTaskAssignee,
             relatedModule: 'Case Info',
             subtasks: [
               { id: 'st_1', title: 'Verify client identification documents', checked: true },
@@ -10936,11 +10937,11 @@ Through Counsel
             ],
             attachments: ['plaint_recovery_suit.pdf'],
             comments: [
-              { author: 'Adv. Aditi', role: 'Lead Advocate', text: 'Client facts recorded in case notes.', timestamp: '10:30 AM' }
+              { author: defaultTaskAssignee, role: 'Lead Advocate', text: 'Client facts recorded in case notes.', timestamp: '10:30 AM' }
             ],
             timeline: [
-              { user: 'Adv. Aditi', time: '10:15 AM', action: 'Created task "Gather detailed case facts"' },
-              { user: 'Adv. Aditi', time: '10:30 AM', action: 'Marked task as Completed' }
+              { user: defaultTaskAssignee, time: '10:15 AM', action: 'Created task "Gather detailed case facts"' },
+              { user: defaultTaskAssignee, time: '10:30 AM', action: 'Marked task as Completed' }
             ]
           },
           {
@@ -10950,7 +10951,7 @@ Through Counsel
             priority: 'Critical',
             deadline: 'Tomorrow',
             status: 'Pending',
-            assignee: 'Adv. Rahul',
+            assignee: defaultTaskAssignee,
             relatedModule: 'Evidence Vault',
             subtasks: [
               { id: 'st_3', title: 'Draft Section 65B affidavit format', checked: true },
@@ -10962,7 +10963,7 @@ Through Counsel
               { author: 'Managing Partner', role: 'Partner', text: 'Ensure Section 65B certificate is ready before oral hearing listing.', timestamp: '11:45 AM' }
             ],
             timeline: [
-              { user: 'Managing Partner', time: '11:30 AM', action: 'Assigned task to Adv. Rahul' }
+              { user: 'Managing Partner', time: '11:30 AM', action: `Assigned task to ${defaultTaskAssignee}` }
             ]
           },
           {
@@ -10972,7 +10973,7 @@ Through Counsel
             priority: 'High',
             deadline: 'In 2 days',
             status: 'In Progress',
-            assignee: 'Adv. Aditi',
+            assignee: defaultTaskAssignee,
             relatedModule: 'Hearings',
             subtasks: [
               { id: 'st_6', title: 'Audit Loan Deed Ex. P-1 notary stamp', checked: true },
@@ -10981,7 +10982,7 @@ Through Counsel
             attachments: ['Postal_Slip_Ex_P3.pdf'],
             comments: [],
             timeline: [
-              { user: 'Adv. Aditi', time: 'Yesterday', action: 'Started work on evidence review' }
+              { user: defaultTaskAssignee, time: 'Yesterday', action: 'Started work on evidence review' }
             ]
           },
           {
@@ -10991,7 +10992,7 @@ Through Counsel
             priority: 'Medium',
             deadline: 'In 3 days',
             status: 'Pending',
-            assignee: 'Adv. Rahul',
+            assignee: defaultTaskAssignee,
             relatedModule: 'Arguments',
             subtasks: [
               { id: 'st_8', title: 'Review witness attestation clause in contract', checked: false },
@@ -11000,7 +11001,7 @@ Through Counsel
             attachments: [],
             comments: [],
             timeline: [
-              { user: 'Adv. Aditi', time: 'Today', action: 'Created task for witness cross questions' }
+              { user: defaultTaskAssignee, time: 'Today', action: 'Created task for witness cross questions' }
             ]
           }
         ];
@@ -11104,13 +11105,13 @@ Through Counsel
         priority: sug.priority,
         deadline: sug.deadline,
         status: 'Pending',
-        assignee: 'Adv. Aditi',
+        assignee: defaultTaskAssignee,
         relatedModule: sug.relatedModule || 'General',
         subtasks: [],
         attachments: [],
         comments: [],
         timeline: [
-          { user: 'Adv. Aditi', time: 'Just now', action: `Added AI suggested task "${sug.title}"` }
+          { user: defaultTaskAssignee, time: 'Just now', action: `Added AI suggested task "${sug.title}"` }
         ]
       };
       handleUpdateField({ tasks: [newTaskObj, ...activeTasks] });
@@ -11129,13 +11130,13 @@ Through Counsel
         priority: newCreatedTask.priority,
         deadline: newCreatedTask.deadline,
         status: 'Pending',
-        assignee: newCreatedTask.assignee,
+        assignee: newCreatedTask.assignee || defaultTaskAssignee,
         relatedModule: newCreatedTask.relatedModule,
         subtasks: newCreatedTask.subtasks || [],
         attachments: [],
         comments: [],
         timeline: [
-          { user: 'Adv. Aditi', time: 'Just now', action: `Created task "${newCreatedTask.title}"` }
+          { user: defaultTaskAssignee, time: 'Just now', action: `Created task "${newCreatedTask.title}"` }
         ]
       };
       handleUpdateField({ tasks: [newTaskObj, ...activeTasks] });
@@ -11145,7 +11146,7 @@ Through Counsel
         description: '',
         priority: 'Medium',
         deadline: 'Tomorrow',
-        assignee: 'Adv. Aditi',
+        assignee: defaultTaskAssignee,
         relatedModule: 'Hearings',
         subtasks: []
       });
@@ -11197,7 +11198,7 @@ Through Counsel
     const handleAddCommentToTask = (taskObj) => {
       if (!taskCommentInput.trim()) return;
       const newComment = {
-        author: 'Adv. Aditi',
+        author: defaultTaskAssignee,
         role: 'Lead Advocate',
         text: taskCommentInput.trim(),
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
@@ -11547,7 +11548,7 @@ Through Counsel
                                 </span>
 
                                 <span className="flex items-center gap-1 font-mono">
-                                  <User size={11} className="text-slate-400" /> {t.assignee || 'Adv. Aditi'}
+                                  <User size={11} className="text-slate-400" /> {t.assignee || defaultTaskAssignee}
                                 </span>
 
                                 {subtasksArr.length > 0 && (
@@ -11654,7 +11655,7 @@ Through Counsel
                       <div key={i} className="flex items-center justify-between py-2 border-b border-slate-100 dark:border-slate-800 last:border-0">
                         <div>
                           <span className="text-xs font-bold text-[#0F172A] dark:text-white block">{t.title}</span>
-                          <span className="text-[9px] font-mono text-slate-400 font-bold">Assigned to: {t.assignee || 'Adv. Aditi'}</span>
+                          <span className="text-[9px] font-mono text-slate-400 font-bold">Assigned to: {t.assignee || defaultTaskAssignee}</span>
                         </div>
                         <span className="px-2 py-0.5 bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 text-[8px] font-mono font-bold uppercase rounded shrink-0">
                           {t.deadline || 'Upcoming'}
@@ -11954,6 +11955,7 @@ Through Counsel
   };
 
   const renderNotes = () => {
+    const defaultNoteAuthor = caseData.leadAdvocate ? `Adv. ${caseData.leadAdvocate}` : 'Lead Advocate';
     // Dynamic Active Notes from Case Data (with robust initial fallbacks matching Mobile App)
     const activeNotes = (Array.isArray(caseData.notes) && caseData.notes.length > 0)
       ? caseData.notes
@@ -11965,7 +11967,7 @@ Through Counsel
               content: caseData.notes,
               category: 'General Notes',
               priority: 'Medium',
-              author: 'Adv. Aditi',
+              author: defaultNoteAuthor,
               tags: ['general', 'overview'],
               pinned: true,
               createdAt: new Date().toISOString(),
@@ -12003,7 +12005,7 @@ Through Counsel
               content: 'Client confirmed that notice of demand was served via registered AD post on 14th June. Postal acknowledgment card slip Ex. P-3 is available in physical file.',
               category: 'Client Meeting',
               priority: 'Medium',
-              author: 'Adv. Aditi',
+              author: defaultNoteAuthor,
               tags: ['client-meeting', 'postal-receipt'],
               pinned: false,
               createdAt: new Date(Date.now() - 2 * 86400000).toISOString(),
@@ -12126,7 +12128,7 @@ Through Counsel
           content: noteFormState.content.trim(),
           category: noteFormState.category,
           priority: noteFormState.priority,
-          author: 'Adv. Aditi',
+          author: defaultNoteAuthor,
           tags: tagsArray,
           pinned: noteFormState.pinned,
           createdAt: new Date().toISOString(),
@@ -12143,7 +12145,7 @@ Through Counsel
         category: 'General Notes',
         priority: 'Medium',
         tags: '',
-        author: 'Adv. Aditi',
+        author: defaultNoteAuthor,
         pinned: false
       });
     };
@@ -12156,7 +12158,7 @@ Through Counsel
         category: noteObj.category || 'General Notes',
         priority: noteObj.priority || 'Medium',
         tags: (noteObj.tags || []).join(', '),
-        author: noteObj.author || 'Adv. Aditi',
+        author: noteObj.author || defaultNoteAuthor,
         pinned: !!noteObj.pinned
       });
       setIsEditNoteModalOpen(true);
@@ -12305,7 +12307,7 @@ Through Counsel
       if (!newInternalNoteInput.trim()) return;
       const newInNote = {
         id: `in_${Date.now()}`,
-        author: 'Adv. Aditi (You)',
+        author: `${defaultNoteAuthor} (You)`,
         time: 'Just now',
         message: newInternalNoteInput.trim()
       };
@@ -12485,7 +12487,7 @@ Through Counsel
                   category: 'General Notes',
                   priority: 'Medium',
                   tags: '',
-                  author: 'Adv. Aditi',
+                  author: defaultNoteAuthor,
                   pinned: false
                 });
                 setIsCreateNoteModalOpen(true);
@@ -13073,7 +13075,7 @@ Through Counsel
 
               <div className="flex justify-between items-center pt-3 border-t border-slate-100 dark:border-slate-800">
                 <span className="text-[10px] font-mono font-bold text-slate-400">
-                  Author: {selectedNoteDetail.author || 'Adv. Aditi'}
+                  Author: {selectedNoteDetail.author || defaultNoteAuthor}
                 </span>
 
                 <div className="flex gap-2">
@@ -13353,6 +13355,8 @@ Through Counsel
   };
 
   const renderCourtOrders = () => {
+    const defaultOrderAdvocate = caseData.leadAdvocate ? `Adv. ${caseData.leadAdvocate}` : 'Advocate Counsel';
+    const defaultOrderFirm = caseData.leadAdvocate ? `Adv. ${caseData.leadAdvocate} & Associates` : 'Advocate & Associates';
     // Dynamic Active Court Orders (matching Mobile App MOCK_COURT_ORDERS fallback structure if empty)
     const activeOrders = (Array.isArray(caseData.courtOrders) && caseData.courtOrders.length > 0)
       ? caseData.courtOrders
@@ -13378,7 +13382,7 @@ Through Counsel
               stageOfCase: 'High Court Arguments',
               petitioner: caseData.clientName || 'Petitioner Client',
               respondent: caseData.opponentName || 'Respondent Opposing',
-              advocates: 'Adv. Aditi & Associates',
+              advocates: defaultOrderFirm,
               caseStatus: 'Active'
             },
             aiSummary: {
@@ -13551,7 +13555,7 @@ Through Counsel
           stageOfCase: orderFormState.stageOfCase || 'Court Arguments',
           petitioner: orderFormState.petitioner || caseData.clientName || 'Petitioner',
           respondent: orderFormState.respondent || caseData.opponentName || 'Respondent',
-          advocates: orderFormState.advocates || 'Adv. Aditi',
+          advocates: orderFormState.advocates || defaultOrderAdvocate,
           caseStatus: 'Active'
         },
         aiSummary: {
@@ -13676,7 +13680,7 @@ Through Counsel
             stageOfCase: 'Arguments Stage',
             petitioner: caseData.clientName || 'Petitioner',
             respondent: caseData.opponentName || 'Respondent',
-            advocates: 'Adv. Aditi',
+            advocates: defaultOrderAdvocate,
             caseStatus: 'Active'
           },
           aiSummary: {
@@ -13790,7 +13794,7 @@ Through Counsel
           priority: tasksArr[itemIndex].priority || 'Medium',
           status: 'Pending',
           deadline: orderCopy.metadata?.nextHearingDate || 'Tomorrow',
-          assignee: 'Adv. Aditi',
+          assignee: defaultOrderAdvocate,
           relatedModule: 'Court Orders',
           sourceOrderId: orderId,
           checklist: []
@@ -13922,7 +13926,7 @@ Through Counsel
                   stageOfCase: 'Arguments Stage',
                   petitioner: caseData.clientName || '',
                   respondent: caseData.opponentName || '',
-                  advocates: 'Adv. Aditi',
+                  advocates: defaultOrderAdvocate,
                   notesText: '',
                   priority: 'Medium'
                 });
@@ -15111,10 +15115,15 @@ Through Counsel
 
             {/* Dynamic Assigned & Unassigned Lists */}
             {(() => {
+              const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
+              const currentUserName = storedUser?.fullName || storedUser?.name || 'Lead Advocate';
               const rawAssigned = Array.isArray(caseData.teamMembers) ? caseData.teamMembers : [];
+              const isLegacyAditi = caseData.leadAdvocate && /aditi\s*lakhera/i.test(caseData.leadAdvocate) && !/aditi/i.test(currentUserName);
+              const resolvedLead = isLegacyAditi ? currentUserName : (caseData.leadAdvocate || currentUserName || 'Lead Advocate');
               const assignedList = rawAssigned.length > 0
                 ? rawAssigned.map((m, idx) => {
-                    const name = typeof m === 'string' ? m : (m.fullName || m.name || 'Advocate');
+                    const rawName = typeof m === 'string' ? m : (m.fullName || m.name || 'Advocate');
+                    const name = (isLegacyAditi && /aditi\s*lakhera/i.test(rawName)) ? currentUserName : rawName;
                     const isLead = m.isLead || idx === 0;
                     return {
                       id: m.userId || m.id || `m_${idx}`,
@@ -15130,7 +15139,7 @@ Through Counsel
                     {
                       id: 'lead',
                       userId: caseData.userId,
-                      name: caseData.leadAdvocate || 'Aditi Lakhera',
+                      name: resolvedLead,
                       role: 'Lead Advocate',
                       firmDesignation: 'Managing Partner',
                       department: 'Corporate Law',
@@ -15556,7 +15565,7 @@ Through Counsel
                       type="text"
                       value={editCaseForm.clientName}
                       onChange={e => setEditCaseForm({ ...editCaseForm, clientName: e.target.value })}
-                      placeholder="e.g. Aditi Lakhera"
+                      placeholder="e.g. Rahul Sharma"
                       className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-xs font-medium text-slate-800 dark:text-slate-200 focus:border-[#B88B2A] outline-none"
                     />
                   </div>

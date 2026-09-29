@@ -415,7 +415,7 @@ export default function ClientConnectWorkspace({ initialCaseData = null, onBack 
     setIsGeneratingDraft(true);
 
     const userObj = JSON.parse(localStorage.getItem('user') || '{}');
-    const advocateName = userObj?.fullName || userObj?.name || 'Aditi Lakhera';
+    const advocateName = userObj?.fullName || userObj?.name || (userObj?.email ? userObj.email.split('@')[0] : 'Advocate');
     const advocateSignature = `Regards,\n\nAdv. ${advocateName}\nLead Advocate\n${activeMatter?.name || 'Law Firm Workspace'}`;
 
     try {
@@ -502,7 +502,7 @@ ${advocateSignature}`;
     setBuilderStep('PREVIEW');
     setIsEditingDraft(true);
     const userObj = JSON.parse(localStorage.getItem('user') || '{}');
-    const advocateName = userObj?.fullName || userObj?.name || 'Aditi Lakhera';
+    const advocateName = userObj?.fullName || userObj?.name || (userObj?.email ? userObj.email.split('@')[0] : 'Advocate');
     setAiDraftSubject(activeChannel === 'Email' ? `Case Update: ${activeMatter?.name || 'Legal Matter'}` : '');
     setAiDraftBody(`Dear ${activeClient?.name || 'Client'},\n\n[Write your message here]\n\nRegards,\nAdv. ${advocateName}\nLead Advocate`);
   };

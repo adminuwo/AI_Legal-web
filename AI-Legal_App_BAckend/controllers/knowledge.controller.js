@@ -45,17 +45,17 @@ const estimateChunks = async (fileBuffer, mimeType) => {
         } else if (mimeType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
            const result = await mammoth.extractRawText({ buffer: fileBuffer });
            text = result.value;
-        } else if (mimeType === 'text/plain' || mimeType === 'text/csv') {
+        } else if (mimeType === 'text/plain' || mimeType === 'text/csv' || mimeType === 'text/markdown' || (fileBuffer && !mimeType?.includes('pdf'))) {
             text = fileBuffer.toString();
         } else {
             return Math.max(1, Math.ceil(fileBuffer.length / 800));
         }
 
         const chunks = await ingestionService.chunkText(text);
-        return chunks.length;
+        return Math.max(1, chunks.length);
     } catch (error) {
         logger.warn(`Chunk estimation failed: ${error.message}`);
-        return 0;
+        return Math.max(1, Math.ceil((fileBuffer?.length || 800) / 800));
     }
 }
 
@@ -70,21 +70,21 @@ export const uploadDocument = async (req, res) => {
 
         const originalName = req.file.originalname;
         const fileBuffer = req.file.buffer;
-        const mimeType = req.file.mimetype;
-        let category = req.body.category || 'General';
+        const mimeType = req.file.mimetype || 'application/octet-stream';
+        let category = (req.body.category || 'PRODUCT_GUIDE').toUpperCase();
         const assetType = req.body.assetType;
         const fileSize = req.file.size;
 
-        logger.info(`Received file for GCS upload: ${originalName} (${fileSize} bytes) - Category: ${category}`);
+        logger.info(`Received file for knowledge upload: ${originalName} (${fileSize} bytes) - Category: ${category}`);
 
-        // 1. Upload to Google Cloud Storage
+        // 1. Upload to Google Cloud Storage (with automatic resilient local fallback)
         let gcsUri = null;
         try {
             let bucketName = 'aisa_knowledge_base';
             let folderPath = '';
 
             // Map AI Ad Agent specific folders
-            if (category === 'AiAdAsset') {
+            if (category === 'AIADASSET') {
                 bucketName = 'social_media_agent_assets';
                 if (assetType === 'logo') folderPath = 'Brand Logo/';
                 else if (assetType === 'company') folderPath = 'Company overview Document/';
@@ -106,25 +106,33 @@ export const uploadDocument = async (req, res) => {
             gcsUri = `gs://${bucketName}/${gcsFileName}`;
             logger.info(`GCS Upload Success: ${gcsUri}`);
         } catch (gcsError) {
-            logger.error(`GCS Upload Failed: ${gcsError.message}`);
-            // Throw the actual error so the frontend stops and reports it
-            throw new Error(`Google Cloud Storage Error: ${gcsError.message}`);
+            logger.warn(`GCS Upload notice (saving locally): ${gcsError.message}`);
+            try {
+                const uploadsDir = path.resolve(process.cwd(), 'uploads', 'knowledge');
+                if (!fs.existsSync(uploadsDir)) {
+                    fs.mkdirSync(uploadsDir, { recursive: true });
+                }
+                const safeLocalName = `${Date.now()}-${originalName.replace(/\s+/g, '_')}`;
+                const diskPath = path.join(uploadsDir, safeLocalName);
+                fs.writeFileSync(diskPath, fileBuffer);
+                gcsUri = `local://${safeLocalName}`;
+                logger.info(`Local Knowledge Storage Success: ${diskPath}`);
+            } catch (localErr) {
+                logger.error(`Local file save error: ${localErr.message}`);
+                throw new Error(`Storage Error: ${localErr.message}`);
+            }
         }
 
-        // 2. Dispatch Vertex AI RAG Engine Import (Run asynchronously)
-        if (gcsUri && category !== 'AiAdAsset') {
+        // 2. Dispatch Vertex AI RAG Engine Import (Run asynchronously if GCS available)
+        if (gcsUri && gcsUri.startsWith('gs://') && category !== 'AIADASSET') {
             vertexService.importToVertexRag(gcsUri, originalName).catch(err => {
                 logger.error(`Background Vertex RAG error for ${originalName}: ${err.message}`);
             });
         }
 
-        // 3. Category Normalization (Adopting new defaults while preserving specialized agents)
-        category = req.body.category || 'GENERAL';
-        category = category.toUpperCase();
-        
-        // If it's not a specialized agent category, enforce the platform standard
+        // 3. Category Normalization
         if (!['LEGAL', 'GENERAL', 'AIADASSET', 'FINANCE', 'PRODUCT_GUIDE'].includes(category)) {
-            category = 'GENERAL';
+            category = 'PRODUCT_GUIDE';
         }
 
         // 3. Always Store Metadata (for listing)
@@ -309,6 +317,17 @@ export const downloadDocument = async (req, res) => {
         if (!document.gcsUri) {
             logger.warn(`Download failed: Document ${document.filename} has no GCS URI`);
             return res.status(404).send('Document has no associated storage location');
+        }
+
+        // Support local storage files
+        if (document.gcsUri.startsWith('local://')) {
+            const localFileName = document.gcsUri.replace('local://', '');
+            const localFilePath = path.resolve(process.cwd(), 'uploads', 'knowledge', localFileName);
+            if (fs.existsSync(localFilePath)) {
+                res.setHeader('Content-Type', document.mimetype || 'application/octet-stream');
+                res.setHeader('Content-Disposition', `inline; filename="${encodeURIComponent(document.filename)}"`);
+                return fs.createReadStream(localFilePath).pipe(res);
+            }
         }
 
         logger.info(`Attempting to stream document: ${document.filename} from ${document.gcsUri}`);

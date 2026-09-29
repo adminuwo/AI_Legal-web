@@ -2,7 +2,8 @@ import { upload } from '../services/cloudinary.service.js';
 import logger from '../utils/logger.js';
 
 const uploadMiddleware = (req, res, next) => {
-    const uploader = upload.single('file'); // Expect form field name 'file'
+    // Support 'file', 'document', or any field name seamlessly
+    const uploader = upload.any();
 
     uploader(req, res, (err) => {
         if (err) {
@@ -11,6 +12,12 @@ const uploadMiddleware = (req, res, next) => {
                 success: false,
                 message: err.message || 'File upload failed'
             });
+        }
+        // Normalize req.file so downstream controllers get the file regardless of field name
+        if (req.files && req.files.length > 0) {
+            req.file = req.files.find(f => f.fieldname === 'file') ||
+                       req.files.find(f => f.fieldname === 'document') ||
+                       req.files[0];
         }
         next();
     });

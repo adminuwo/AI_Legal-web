@@ -91,6 +91,50 @@ export const getWorkspaces = async (req, res) => {
             });
         }
 
+        // 1b. Ensure Law Firm Workspace exists if user role is law_firm or admin
+        const userDoc = await User.findById(userId).lean();
+        const activeRoleHeader = (req.headers['x-user-role'] || userDoc?.role || '').toLowerCase();
+        
+        let existingFirmWs = await Workspace.findOne({
+            ownerId: userId,
+            type: { $in: ['law_firm', 'enterprise', 'firm'] }
+        });
+
+        if (!existingFirmWs) {
+            const firmMem = await WorkspaceMembership.findOne({ userId }).populate('workspaceId');
+            if (firmMem?.workspaceId && (firmMem.workspaceId.type === 'law_firm' || firmMem.workspaceId.type !== 'personal')) {
+                existingFirmWs = firmMem.workspaceId;
+            }
+        }
+
+        if (!existingFirmWs && (activeRoleHeader === 'law_firm' || userDoc?.role === 'law_firm' || userDoc?.role === 'admin' || req.query?.type === 'law_firm')) {
+            const firmName = userDoc?.lawFirmName || (userDoc?.fullName ? `${userDoc.fullName}'s Law Firm` : 'Firm Workspace');
+            const newFirm = await Workspace.create({
+                name: firmName,
+                type: 'law_firm',
+                ownerId: userId,
+                badge: 'Law Firm',
+                icon: 'business-outline',
+                casesCount: await Project.countDocuments({ userId, workspaceType: 'law_firm' }),
+                membersCount: 1
+            });
+
+            await WorkspaceMembership.create({
+                workspaceId: newFirm._id,
+                userId: userId,
+                role: 'Managing Partner',
+                department: 'Corporate Law',
+                permission: 'Administrator',
+                modules: ['Firm Dashboard', 'Cases', 'Documents', 'Evidence', 'Tasks', 'Hearings', 'Calendar', 'Research', 'AI Assistant', 'Reports', 'Billing', 'Client CRM']
+            });
+
+            // Update any orphaned firm cases
+            await Project.updateMany(
+                { userId, workspaceType: 'law_firm', workspaceId: { $in: [null, '', 'personal_practice'] } },
+                { $set: { workspaceId: String(newFirm._id) } }
+            );
+        }
+
         // 2. Fetch memberships
         const memberships = await WorkspaceMembership.find({ userId }).populate('workspaceId');
         
@@ -122,7 +166,10 @@ export const getWorkspaces = async (req, res) => {
 
                     if (isFirmAdmin) {
                         ws.casesCount = await Project.countDocuments({
-                            workspaceId: { $in: [ws._id.toString(), ws._id] }
+                            $or: [
+                                { workspaceId: { $in: [ws._id.toString(), ws._id] } },
+                                { userId, workspaceType: 'law_firm' }
+                            ]
                         });
                     } else {
                         // Invited team member: count ONLY cases explicitly assigned to them!
@@ -501,8 +548,8 @@ export const getWorkspaceMembers = async (req, res) => {
         if (isMockOrDbDown) {
             console.log('[WORKSPACE CONTROLLER] DB Down or Mock ID. Returning mock workspace members.');
             const currentUser = await User.findById(userId).catch(() => null);
-            const ownerName = currentUser?.name || currentUser?.fullName || 'Adv. Aditi Lakhera';
-            const ownerEmail = currentUser?.email || 'aditi@uwo24.com';
+            const ownerName = currentUser?.fullName || currentUser?.name || (currentUser?.email ? currentUser.email.split('@')[0] : 'Managing Partner');
+            const ownerEmail = currentUser?.email || 'advocate@firm.com';
 
             const mockMembers = [
                 {
@@ -595,7 +642,7 @@ export const getWorkspaceMembers = async (req, res) => {
                         .join(' ');
                     realName = formatted.toLowerCase().includes('adv') ? formatted : `Adv. ${formatted}`;
                 } else {
-                    realName = 'Adv. Aditi Lakhera';
+                    realName = 'Adv. Associate';
                 }
             }
 
@@ -622,8 +669,8 @@ export const getWorkspaceMembers = async (req, res) => {
         // If no memberships found in DB yet, auto-populate the workspace owner / logged-in user
         if (formattedMembers.length === 0) {
             const ownerUser = workspace.ownerId ? await User.findById(workspace.ownerId) : await User.findById(req.user.id || req.user._id);
-            const ownerName = ownerUser?.fullName || ownerUser?.name || 'Adv. Aditi Lakhera';
-            const ownerEmail = ownerUser?.email || 'aditi@uwo24.com';
+            const ownerName = ownerUser?.fullName || ownerUser?.name || (ownerUser?.email ? ownerUser.email.split('@')[0] : 'Managing Partner');
+            const ownerEmail = ownerUser?.email || 'partner@firm.com';
 
             formattedMembers.push({
                 id: `mem_owner_${ownerUser?._id || 'default'}`,

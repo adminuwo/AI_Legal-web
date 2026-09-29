@@ -438,6 +438,47 @@ router.post('/', verifyToken, verifyMatterCreationAccess, async (req, res) => {
         } else if (reqWsType === 'law_firm' || req.body.role === 'law_firm' || (activeWorkspaceId && activeWorkspaceId !== 'personal_practice' && !String(activeWorkspaceId).startsWith('personal_') && mongoose.Types.ObjectId.isValid(activeWorkspaceId))) {
             workspaceTypeToSave = 'law_firm';
             roleToSave = 'law_firm';
+
+            if (!activeWorkspaceId || activeWorkspaceId === 'personal_practice' || activeWorkspaceId === 'firm_abc_workspace' || activeWorkspaceId === 'firm_default' || !mongoose.Types.ObjectId.isValid(activeWorkspaceId)) {
+                // Find existing firm workspace owned by user
+                const ownedFirm = await Workspace.findOne({
+                    ownerId: req.user.id,
+                    type: { $in: ['law_firm', 'enterprise', 'firm'] }
+                });
+                if (ownedFirm) {
+                    activeWorkspaceId = String(ownedFirm._id);
+                } else {
+                    const membership = await WorkspaceMembership.findOne({
+                        userId: req.user.id,
+                        status: { $ne: 'Removed' }
+                    }).populate('workspaceId');
+                    if (membership?.workspaceId && (membership.workspaceId.type === 'law_firm' || membership.workspaceId.type !== 'personal')) {
+                        activeWorkspaceId = String(membership.workspaceId._id);
+                    } else {
+                        // Auto-create a Law Firm Workspace for this user
+                        const userDoc = await User.findById(req.user.id).lean();
+                        const firmName = userDoc?.lawFirmName || (userDoc?.fullName ? `${userDoc.fullName}'s Law Firm` : 'Firm Workspace');
+                        const newFirmWs = await Workspace.create({
+                            name: firmName,
+                            type: 'law_firm',
+                            ownerId: req.user.id,
+                            badge: 'Law Firm',
+                            icon: 'business-outline',
+                            casesCount: 1,
+                            membersCount: 1
+                        });
+                        await WorkspaceMembership.create({
+                            workspaceId: newFirmWs._id,
+                            userId: req.user.id,
+                            role: 'Managing Partner',
+                            department: 'Corporate Law',
+                            permission: 'Administrator',
+                            modules: ['Firm Dashboard', 'Cases', 'Documents', 'Evidence', 'Tasks', 'Hearings', 'Calendar', 'Research', 'AI Assistant', 'Reports', 'Billing', 'Client CRM']
+                        });
+                        activeWorkspaceId = String(newFirmWs._id);
+                    }
+                }
+            }
         } else {
             workspaceTypeToSave = 'advocate';
             roleToSave = 'advocate';
@@ -625,6 +666,38 @@ router.get('/', verifyToken, async (req, res) => {
                         activeWorkspaceId = String(ownedFirm._id);
                     }
                 }
+
+                // If user STILL has no firm workspace in DB, auto-ensure one for them!
+                if (!activeWorkspaceId || !mongoose.Types.ObjectId.isValid(activeWorkspaceId)) {
+                    const userDoc = await User.findById(authUserId).lean();
+                    const firmName = userDoc?.lawFirmName || (userDoc?.fullName ? `${userDoc.fullName}'s Law Firm` : 'Firm Workspace');
+                    const newFirmWs = await Workspace.create({
+                        name: firmName,
+                        type: 'law_firm',
+                        ownerId: authUserId,
+                        badge: 'Law Firm',
+                        icon: 'business-outline',
+                        casesCount: 0,
+                        membersCount: 1
+                    });
+                    await WorkspaceMembership.create({
+                        workspaceId: newFirmWs._id,
+                        userId: authUserId,
+                        role: 'Managing Partner',
+                        department: 'Corporate Law',
+                        permission: 'Administrator',
+                        modules: ['Firm Dashboard', 'Cases', 'Documents', 'Evidence', 'Tasks', 'Hearings', 'Calendar', 'Research', 'AI Assistant', 'Reports', 'Billing', 'Client CRM']
+                    });
+                    activeWorkspaceId = String(newFirmWs._id);
+                }
+
+                // Migrate/link any user cases created with workspaceType: 'law_firm' but personal_practice / empty workspaceId
+                if (activeWorkspaceId && mongoose.Types.ObjectId.isValid(activeWorkspaceId)) {
+                    await Project.updateMany(
+                        { userId: { $in: userIdConditions }, workspaceType: 'law_firm', workspaceId: { $in: ['personal_practice', null, ''] } },
+                        { $set: { workspaceId: activeWorkspaceId } }
+                    );
+                }
             }
         }
         
@@ -653,7 +726,7 @@ router.get('/', verifyToken, async (req, res) => {
             // 1. Check if user is the Workspace Owner
             const isFirmOwner = await Workspace.exists({
                 $or: wsObjId ? [{ _id: wsIdStr }, { _id: wsObjId }] : [{ _id: wsIdStr }],
-                ownerId: req.user.id
+                ownerId: { $in: userIdConditions }
             });
 
             // 2. Fetch the user's active membership in this workspace
@@ -673,10 +746,22 @@ router.get('/', verifyToken, async (req, res) => {
 
             if (isFirmAdmin) {
                 // Firm Owner / Managing Partner sees all cases in this firm workspace
+                // PLUS all law firm cases created by this user
                 roleQuery = {
-                    $and: [
-                        { $or: wsQueryConditions },
-                        { workspaceType: 'law_firm' }
+                    $or: [
+                        {
+                            $and: [
+                                { $or: wsQueryConditions },
+                                { workspaceType: 'law_firm' }
+                            ]
+                        },
+                        {
+                            userId: { $in: userIdConditions },
+                            $or: [
+                                { workspaceType: 'law_firm' },
+                                { role: 'law_firm' }
+                            ]
+                        }
                     ]
                 };
             } else if (membership) {
@@ -719,9 +804,24 @@ router.get('/', verifyToken, async (req, res) => {
                     ]
                 };
             } else {
-                // User is not a member or owner of this firm: zero access
-                roleQuery = { _id: null };
+                // If user has law_firm cases, let them see their own cases
+                roleQuery = {
+                    userId: { $in: userIdConditions },
+                    $or: [
+                        { workspaceType: 'law_firm' },
+                        { role: 'law_firm' }
+                    ]
+                };
             }
+        } else if (requestedWsType === 'law_firm') {
+            // General Law Firm mode fallback: returns all law firm cases owned by or assigned to user
+            roleQuery = {
+                userId: { $in: userIdConditions },
+                $or: [
+                    { workspaceType: 'law_firm' },
+                    { role: 'law_firm' }
+                ]
+            };
         } else if (requestedWsType === 'student') {
             // STRICT STUDENT WORKSPACE QUERY
             roleQuery = {
@@ -1039,10 +1139,11 @@ router.get('/:id', verifyToken, async (req, res) => {
         // Resolve Firm Owner / Lead Advocate real identity
         const ownerIdStr = String(project.userId || '');
         const leadUser = await AccessControlService.resolveUploaderIdentity(project.userId, project);
+        const resolvedLeadName = project.leadAdvocate || leadUser?.fullName || leadUser?.name || 'Lead Advocate';
         const ownerIdentity = {
             userId: ownerIdStr,
-            name: leadUser?.name || project.leadAdvocate || 'Aditi Lakhera',
-            fullName: leadUser?.fullName || leadUser?.name || project.leadAdvocate || 'Aditi Lakhera',
+            name: resolvedLeadName,
+            fullName: resolvedLeadName,
             role: leadUser?.role || 'Firm Owner',
             email: leadUser?.email || '',
             avatar: leadUser?.avatar || ''
@@ -1055,8 +1156,8 @@ router.get('/:id', verifyToken, async (req, res) => {
         const leadMember = {
             id: ownerIdStr || 'lead_owner',
             userId: ownerIdStr,
-            name: leadUser?.name || project.leadAdvocate || 'Aditi Lakhera',
-            fullName: leadUser?.fullName || leadUser?.name || project.leadAdvocate || 'Aditi Lakhera',
+            name: resolvedLeadName,
+            fullName: resolvedLeadName,
             role: 'Lead Advocate',
             caseRole: 'Lead Advocate',
             firmDesignation: leadUser?.role || 'Managing Partner',
