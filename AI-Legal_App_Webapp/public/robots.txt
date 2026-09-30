@@ -1,18 +1,25 @@
 # Robots.txt for AI LEGAL™ Platform
-# Primary: https://ailegal.aisa24.com
+# Primary Domain: https://ailegal.aisa24.com
 
-# Standard Search Engines (Google, Bing, Apple)
+# Standard Search Engines (Google, Bing, Apple, DuckDuckGo)
 User-agent: Googlebot
 User-agent: Bingbot
 User-agent: Applebot
 User-agent: DuckDuckBot
 Allow: /
-Allow: /mobile-app
+Allow: /features
+Allow: /case-search
 Allow: /pricing
-Allow: /privacy
-Allow: /terms
-Allow: /security
-Allow: /help
+Allow: /mobile-app
+Allow: /legal-research
+Allow: /enterprise
+Allow: /blog
+Allow: /about
+Allow: /post-judgment
+Allow: /privacy-policy
+Allow: /terms-of-service
+Allow: /cookie-policy
+Allow: /disclaimer
 Disallow: /admin
 Disallow: /api/
 Disallow: /auth/reset-password/
@@ -20,36 +27,73 @@ Disallow: /auth/reset-password/
 # AI Search & Indexing Crawlers (ChatGPT, Claude, Perplexity)
 User-agent: GPTBot
 Allow: /
-Allow: /mobile-app
+Allow: /features
+Allow: /case-search
 Allow: /pricing
+Allow: /mobile-app
+Allow: /legal-research
+Allow: /enterprise
+Allow: /blog
+Allow: /about
 
 User-agent: ChatGPT-User
 Allow: /
-Allow: /mobile-app
+Allow: /features
+Allow: /case-search
 Allow: /pricing
+Allow: /mobile-app
+Allow: /legal-research
+Allow: /enterprise
+Allow: /blog
+Allow: /about
 
 User-agent: ClaudeBot
 Allow: /
-Allow: /mobile-app
+Allow: /features
+Allow: /case-search
 Allow: /pricing
+Allow: /mobile-app
+Allow: /legal-research
+Allow: /enterprise
+Allow: /blog
+Allow: /about
 
 User-agent: Claude-Web
 Allow: /
-Allow: /mobile-app
+Allow: /features
+Allow: /case-search
 Allow: /pricing
+Allow: /mobile-app
+Allow: /legal-research
+Allow: /enterprise
+Allow: /blog
+Allow: /about
 
 User-agent: PerplexityBot
 Allow: /
-Allow: /mobile-app
+Allow: /features
+Allow: /case-search
 Allow: /pricing
+Allow: /mobile-app
+Allow: /legal-research
+Allow: /enterprise
+Allow: /blog
+Allow: /about
 
 # Default for all other web crawlers
 User-agent: *
 Allow: /
-Allow: /mobile-app
+Allow: /features
+Allow: /case-search
 Allow: /pricing
-Allow: /privacy
-Allow: /terms
+Allow: /mobile-app
+Allow: /legal-research
+Allow: /enterprise
+Allow: /blog
+Allow: /about
+Allow: /post-judgment
+Allow: /privacy-policy
+Allow: /terms-of-service
 Disallow: /admin
 Disallow: /api/
 Disallow: /auth/reset-password/
