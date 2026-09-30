@@ -8,8 +8,8 @@ import { useLocation } from 'react-router-dom';
  */
 const ROUTE_METADATA = {
   '/': {
-    title: "AI LEGAL™ — India's #1 Legal AI & Litigation Case Management Software | Try Free",
-    description: "All-in-one AI legal case management & litigation software for India. Track cases across Supreme Court, High Courts & 8,200+ courts, research 3.8 Cr+ judgments, and draft court-ready petitions under BNS & BNSS. Start your free trial today!",
+    title: "AI LEGAL™ — India's #1 Legal AI & Litigation Software",
+    description: "All-in-one Legal AI for India. Track court cases, research 3.8 Cr+ judgments, and draft petitions under BNS & BNSS. Try Free!",
     canonical: "https://ailegal.aisa24.com/"
   },
   '/features': {
@@ -90,8 +90,8 @@ const ROUTE_METADATA = {
 };
 
 const DEFAULT_METADATA = {
-  title: "AI LEGAL™ — India's #1 Legal AI & Litigation Case Management Software | Try Free",
-  description: "All-in-one AI legal case management & litigation software for India. Track cases across Supreme Court, High Courts & 8,200+ courts, research 3.8 Cr+ judgments, and draft court-ready petitions under BNS & BNSS. Start your free trial today!",
+  title: "AI LEGAL™ — India's #1 Legal AI & Litigation Software",
+  description: "All-in-one Legal AI for India. Track court cases, research 3.8 Cr+ judgments, and draft petitions under BNS & BNSS. Try Free!",
   canonical: "https://ailegal.aisa24.com/"
 };
 
