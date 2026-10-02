@@ -14,7 +14,7 @@ const feedbackSchema = new mongoose.Schema({
         type: String,
         required: false
     },
-    type: {
+    type: { 
         type: String,
         enum: ['thumbs_up', 'thumbs_down', 'gatekeeper_positive', 'gatekeeper_negative'],
         required: true

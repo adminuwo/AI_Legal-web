@@ -241,43 +241,6 @@ export const syncUninstallsToDatabase = async ({ days = 30, propertyIdOverride =
             { upsert: true, new: true }
         );
         upsertedCount++;
-
-        // 2. Reflect in AppInstall collection:
-        // Mark corresponding existing install records as 'uninstalled' or create uninstall records
-        if (item.count > 0) {
-            const dateStart = new Date(item.date);
-            dateStart.setHours(0, 0, 0, 0);
-            const dateEnd = new Date(item.date);
-            dateEnd.setHours(23, 59, 59, 999);
-
-            // Deterministically upsert dedicated GA4 uninstall telemetry records
-            // This ensures idempotency: re-running the sync will NEVER re-cannibalize active registered users
-            for (let i = 0; i < item.count; i++) {
-                const uniqueInstallId = `ga4_uninst_${item.platform}_${item.date}_${i + 1}`;
-                await AppInstall.findOneAndUpdate(
-                    { installId: uniqueInstallId },
-                    {
-                        $set: {
-                            status: 'uninstalled',
-                            uninstalledAt: dateEnd,
-                            updatedAt: new Date()
-                        },
-                        $setOnInsert: {
-                            installId: uniqueInstallId,
-                            platform: item.platform,
-                            country: 'India',
-                            countryCode: 'IN',
-                            installedAt: dateStart,
-                            source: item.platform === 'ios' ? 'app-store' : 'google-play',
-                            firstInstall: false,
-                            appVersion: '1.0.11',
-                            uninstallDetectionMethod: 'ga4_event'
-                        }
-                    },
-                    { upsert: true }
-                );
-            }
-        }
     }
 
     return {

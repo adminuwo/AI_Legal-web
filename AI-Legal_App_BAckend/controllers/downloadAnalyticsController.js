@@ -274,8 +274,7 @@ export const getDownloadSummary = async (req, res) => {
             webCount,
             firstTimeCount,
             uninstallCount,
-            uniqueUserCount,
-            gaUninstallsAgg
+            uniqueUserCount
         ] = await Promise.all([
             AppInstall.countDocuments(installRangeQuery),
             AppInstall.countDocuments(installBaseQuery),
@@ -289,16 +288,11 @@ export const getDownloadSummary = async (req, res) => {
             AppInstall.countDocuments({ ...rangeQuery, platform: 'ios' }),
             AppInstall.countDocuments(webQuery),
             AppInstall.countDocuments({ ...installRangeQuery, firstInstall: true }),
-            AppInstall.countDocuments({ ...installRangeQuery, status: 'uninstalled' }),
-            AppInstall.distinct('userId', { ...installRangeQuery, userId: { $ne: null } }),
-            GaAnalyticsSync.aggregate([
-                { $match: { metricName: 'app_remove' } },
-                { $group: { _id: null, total: { $sum: '$count' } } }
-            ])
+            AppInstall.countDocuments({ ...installRangeQuery, status: 'uninstalled', userId: { $ne: null } }),
+            AppInstall.distinct('userId', { ...installRangeQuery, userId: { $ne: null } })
         ]);
 
-        const gaUninstallsCount = gaUninstallsAgg[0]?.total || 0;
-        const finalUninstalls = Math.max(uninstallCount, gaUninstallsCount);
+        const finalUninstalls = uninstallCount;
 
         return res.status(200).json({
             success: true,
@@ -1009,7 +1003,8 @@ export const getUninstalledUsers = async (req, res) => {
 
         const dateRange = range || req.query.dateRange || 'all';
         const matchQuery = {
-            status: 'uninstalled'
+            status: 'uninstalled',
+            userId: { $ne: null }
         };
 
         if (platform && platform.toLowerCase() !== 'all') {
@@ -1032,14 +1027,8 @@ export const getUninstalledUsers = async (req, res) => {
         const l = Math.max(1, parseInt(limit, 10));
         const skip = (p - 1) * l;
 
-        // Base finalQuery
+        // Base finalQuery strictly for registered users
         let finalQuery = { ...matchQuery };
-
-        if (userType === 'registered') {
-            finalQuery.userId = { $ne: null };
-        } else if (userType === 'guest') {
-            finalQuery.userId = null;
-        }
 
         // If search term is provided
         if (search && search.trim()) {
@@ -1069,7 +1058,7 @@ export const getUninstalledUsers = async (req, res) => {
         }
 
         // Fetch records and count
-        const [total, uninstalls, platformStats, registeredCount] = await Promise.all([
+        const [total, uninstalls, platformStats] = await Promise.all([
             AppInstall.countDocuments(finalQuery),
             AppInstall.find(finalQuery)
                 .populate('userId', 'name email phone role avatar createdAt')
@@ -1085,8 +1074,7 @@ export const getUninstalledUsers = async (req, res) => {
                         count: { $sum: 1 }
                     }
                 }
-            ]),
-            AppInstall.countDocuments({ ...matchQuery, userId: { $ne: null } })
+            ])
         ]);
 
         const stats = {
@@ -1094,7 +1082,7 @@ export const getUninstalledUsers = async (req, res) => {
             android: 0,
             ios: 0,
             other: 0,
-            registered: registeredCount,
+            registered: total,
             guest: 0
         };
 
@@ -1103,8 +1091,6 @@ export const getUninstalledUsers = async (req, res) => {
             else if (item._id === 'ios') stats.ios = item.count;
             else stats.other += item.count;
         });
-
-        stats.guest = Math.max(0, (stats.android + stats.ios + stats.other) - registeredCount);
 
         // Format uninstalls
         const formattedList = uninstalls.map(item => ({
