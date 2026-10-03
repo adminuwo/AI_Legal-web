@@ -570,16 +570,36 @@ export const getCountryDetails = async (req, res) => {
             ? (((d7Count - prev7Count) / prev7Count) * 100).toFixed(1)
             : d7Count > 0 ? '+100.0' : '0.0';
 
-        // 2. State / Region Breakdown Pipeline
+        // 2. State / Region Breakdown Pipeline (Normalize Delhi, NCT, Central/Capital Region into one unified entry)
+        const isIndia = /^india$/i.test(String(country || '').trim());
         const statePipeline = [
             { $match: matchQuery },
             {
                 $group: {
                     _id: {
                         $cond: [
-                            { $and: [{ $ne: ['$state', null] }, { $ne: ['$state', ''] }, { $ne: ['$state', 'Unspecified Region'] }] },
-                            '$state',
-                            'Central / Capital Region'
+                            {
+                                $or: [
+                                    { $regexMatch: { input: { $ifNull: ['$state', ''] }, regex: /delhi|capital region|nct/i } },
+                                    { $eq: ['$state', 'Central / Capital Region'] },
+                                    { $eq: ['$state', 'Delhi'] },
+                                    { $eq: ['$state', 'Delhi (NCT)'] },
+                                    {
+                                        $and: [
+                                            { $literal: isIndia },
+                                            { $or: [{ $eq: ['$state', null] }, { $eq: ['$state', ''] }, { $eq: ['$state', 'Unspecified Region'] }] }
+                                        ]
+                                    }
+                                ]
+                            },
+                            'Delhi (NCT)',
+                            {
+                                $cond: [
+                                    { $and: [{ $ne: ['$state', null] }, { $ne: ['$state', ''] }, { $ne: ['$state', 'Unspecified Region'] }] },
+                                    '$state',
+                                    'General Territory'
+                                ]
+                            }
                         ]
                     },
                     totalDownloads: { $sum: 1 },
@@ -615,7 +635,27 @@ export const getCountryDetails = async (req, res) => {
 
         const stateResults = await AppInstall.aggregate(statePipeline);
 
-        let regions = stateResults.map(r => ({
+        // Deduplicate and combine any matching regions (e.g. Delhi variants)
+        const regionMap = new Map();
+        for (const r of stateResults) {
+            let key = (r._id || 'General Territory').trim();
+            if (/delhi|capital region|nct/i.test(key)) {
+                key = 'Delhi (NCT)';
+            }
+            if (regionMap.has(key)) {
+                const ex = regionMap.get(key);
+                ex.totalDownloads += r.totalDownloads || 0;
+                ex.todayDownloads += r.todayDownloads || 0;
+                ex.d7Downloads += r.d7Downloads || 0;
+                ex.d30Downloads += r.d30Downloads || 0;
+                ex.androidCount += r.androidCount || 0;
+                ex.iosCount += r.iosCount || 0;
+            } else {
+                regionMap.set(key, { ...r, _id: key });
+            }
+        }
+
+        let regions = Array.from(regionMap.values()).map(r => ({
             region: r._id,
             downloads: r.totalDownloads,
             percentageOfCountry: totalCountryDownloads > 0

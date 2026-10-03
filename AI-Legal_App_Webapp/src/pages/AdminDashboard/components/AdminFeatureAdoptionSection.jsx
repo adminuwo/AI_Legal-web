@@ -100,6 +100,24 @@ export default function AdminFeatureAdoptionSection({ user, fallbackStats = {} }
   const [sortBy, setSortBy] = useState('lifetimeRuns'); // 'lifetimeRuns' | 'adoptionRate' | 'totalRuns'
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState(null);
+  const [expandedCardKeys, setExpandedCardKeys] = useState({});
+
+  const toggleCardExpand = (key) => {
+    setExpandedCardKeys(prev => ({
+      ...prev,
+      [key]: !prev[key]
+    }));
+  };
+
+  const expandAllMobile = () => {
+    const all = {};
+    rawFeatures.forEach(f => { all[f.key] = true; });
+    setExpandedCardKeys(all);
+  };
+
+  const collapseAllMobile = () => {
+    setExpandedCardKeys({});
+  };
 
   const fetchAdoptionData = useCallback(async () => {
     try {
@@ -192,14 +210,14 @@ export default function AdminFeatureAdoptionSection({ user, fallbackStats = {} }
           </p>
         </div>
 
-        {/* FILTERS & VIEW CONTROLS */}
-        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+        {/* FILTERS & VIEW CONTROLS - SINGLE ROW IN PHONE VIEW */}
+        <div className="w-full lg:w-auto flex items-center gap-1.5 sm:gap-2.5 overflow-x-auto no-scrollbar scrollbar-none flex-nowrap pb-1 lg:pb-0 scroll-smooth">
           {/* User Cohort Dropdown */}
-          <div className="relative">
+          <div className="relative shrink-0">
             <select
               value={cohort}
               onChange={(e) => setCohort(e.target.value)}
-              className="appearance-none bg-slate-50 dark:bg-zinc-800/80 hover:bg-slate-100 dark:hover:bg-zinc-800 border border-slate-200 dark:border-zinc-700/80 text-slate-800 dark:text-zinc-200 text-xs font-bold rounded-xl pl-3 pr-8 py-2 cursor-pointer transition-all focus:outline-none focus:ring-2 focus:ring-[#B88B2A]/40"
+              className="appearance-none bg-slate-50 dark:bg-zinc-800/80 hover:bg-slate-100 dark:hover:bg-zinc-800 border border-slate-200 dark:border-zinc-700/80 text-slate-800 dark:text-zinc-200 text-[11px] sm:text-xs font-bold rounded-xl pl-2.5 sm:pl-3 pr-6 sm:pr-7 py-1.5 sm:py-2 cursor-pointer transition-all focus:outline-none focus:ring-2 focus:ring-[#B88B2A]/40 whitespace-nowrap"
               title="Select which active user cohort to analyze"
             >
               {COHORT_OPTIONS.map((opt) => (
@@ -208,15 +226,15 @@ export default function AdminFeatureAdoptionSection({ user, fallbackStats = {} }
                 </option>
               ))}
             </select>
-            <ChevronDown className="w-3.5 h-3.5 text-slate-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+            <ChevronDown className="w-3 sm:w-3.5 h-3 sm:h-3.5 text-slate-400 absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" />
           </div>
 
           {/* Activity Window Dropdown */}
-          <div className="relative">
+          <div className="relative shrink-0">
             <select
               value={activityWindow}
               onChange={(e) => setActivityWindow(e.target.value)}
-              className="appearance-none bg-slate-50 dark:bg-zinc-800/80 hover:bg-slate-100 dark:hover:bg-zinc-800 border border-slate-200 dark:border-zinc-700/80 text-slate-800 dark:text-zinc-200 text-xs font-bold rounded-xl pl-3 pr-8 py-2 cursor-pointer transition-all focus:outline-none focus:ring-2 focus:ring-[#B88B2A]/40"
+              className="appearance-none bg-slate-50 dark:bg-zinc-800/80 hover:bg-slate-100 dark:hover:bg-zinc-800 border border-slate-200 dark:border-zinc-700/80 text-slate-800 dark:text-zinc-200 text-[11px] sm:text-xs font-bold rounded-xl pl-2.5 sm:pl-3 pr-6 sm:pr-7 py-1.5 sm:py-2 cursor-pointer transition-all focus:outline-none focus:ring-2 focus:ring-[#B88B2A]/40 whitespace-nowrap"
               title="Activity time window for feature usage"
             >
               {WINDOW_OPTIONS.map((opt) => (
@@ -225,29 +243,30 @@ export default function AdminFeatureAdoptionSection({ user, fallbackStats = {} }
                 </option>
               ))}
             </select>
-            <ChevronDown className="w-3.5 h-3.5 text-slate-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+            <ChevronDown className="w-3 sm:w-3.5 h-3 sm:h-3.5 text-slate-400 absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" />
           </div>
 
           {/* Sort Dropdown */}
-          <div className="relative">
+          <div className="relative shrink-0">
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
-              className="appearance-none bg-slate-50 dark:bg-zinc-800/80 hover:bg-slate-100 dark:hover:bg-zinc-800 border border-slate-200 dark:border-zinc-700/80 text-slate-800 dark:text-zinc-200 text-xs font-bold rounded-xl pl-3 pr-8 py-2 cursor-pointer transition-all focus:outline-none focus:ring-2 focus:ring-[#B88B2A]/40"
+              className="appearance-none bg-slate-50 dark:bg-zinc-800/80 hover:bg-slate-100 dark:hover:bg-zinc-800 border border-slate-200 dark:border-zinc-700/80 text-slate-800 dark:text-zinc-200 text-[11px] sm:text-xs font-bold rounded-xl pl-2.5 sm:pl-3 pr-6 sm:pr-7 py-1.5 sm:py-2 cursor-pointer transition-all focus:outline-none focus:ring-2 focus:ring-[#B88B2A]/40 whitespace-nowrap"
               title="Sort features"
             >
-              <option value="lifetimeRuns" className="dark:bg-zinc-800">Sort: Top All-Time (Ab Tak)</option>
-              <option value="adoptionRate" className="dark:bg-zinc-800">Sort: Top Cohort Adoption %</option>
+              <option value="lifetimeRuns" className="dark:bg-zinc-800">Sort: Top All-Time</option>
+              <option value="adoptionRate" className="dark:bg-zinc-800">Sort: Top Adoption %</option>
               <option value="totalRuns" className="dark:bg-zinc-800">Sort: Most Cohort Runs</option>
             </select>
-            <ChevronDown className="w-3.5 h-3.5 text-slate-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+            <ChevronDown className="w-3 sm:w-3.5 h-3 sm:h-3.5 text-slate-400 absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" />
           </div>
 
           {/* View Mode Toggle */}
-          <div className="flex items-center bg-slate-100 dark:bg-zinc-800/90 p-1 rounded-xl border border-slate-200 dark:border-zinc-700/60">
+          <div className="flex items-center bg-slate-100 dark:bg-zinc-800/90 p-0.5 sm:p-1 rounded-xl border border-slate-200 dark:border-zinc-700/60 shrink-0">
             <button
+              type="button"
               onClick={() => setViewMode('grid')}
-              className={`px-2.5 py-1 text-xs font-extrabold rounded-lg transition-all cursor-pointer ${
+              className={`px-2 sm:px-2.5 py-1 text-[11px] sm:text-xs font-extrabold rounded-lg transition-all cursor-pointer whitespace-nowrap ${
                 viewMode === 'grid'
                   ? 'bg-white dark:bg-[#1E293B] text-slate-900 dark:text-white shadow-xs'
                   : 'text-slate-500 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white'
@@ -256,8 +275,9 @@ export default function AdminFeatureAdoptionSection({ user, fallbackStats = {} }
               Cards
             </button>
             <button
+              type="button"
               onClick={() => setViewMode('funnel')}
-              className={`px-2.5 py-1 text-xs font-extrabold rounded-lg transition-all cursor-pointer ${
+              className={`px-2 sm:px-2.5 py-1 text-[11px] sm:text-xs font-extrabold rounded-lg transition-all cursor-pointer whitespace-nowrap ${
                 viewMode === 'funnel'
                   ? 'bg-white dark:bg-[#1E293B] text-slate-900 dark:text-white shadow-xs'
                   : 'text-slate-500 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white'
@@ -269,9 +289,10 @@ export default function AdminFeatureAdoptionSection({ user, fallbackStats = {} }
 
           {/* Refresh Button */}
           <button
+            type="button"
             onClick={fetchAdoptionData}
             disabled={loading}
-            className="p-2 rounded-xl bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700/80 hover:bg-slate-100 dark:hover:bg-zinc-700 text-slate-600 dark:text-zinc-300 transition-all cursor-pointer disabled:opacity-50"
+            className="p-1.5 sm:p-2 rounded-xl bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700/80 hover:bg-slate-100 dark:hover:bg-zinc-700 text-slate-600 dark:text-zinc-300 transition-all cursor-pointer disabled:opacity-50 shrink-0"
             title="Refresh adoption telemetry"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin text-[#B88B2A]' : ''}`} />
@@ -367,117 +388,189 @@ export default function AdminFeatureAdoptionSection({ user, fallbackStats = {} }
 
       {/* RENDER VIEW: GRID CARDS OR FUNNEL */}
       {viewMode === 'grid' ? (
-        <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-          {filteredFeatures.map((feat) => {
-            const Icon = ICON_MAP[feat.key] || Sparkles;
-            const theme = COLOR_MAP[feat.color] || COLOR_MAP.blue;
-            const adoption = feat.adoptionRate || 0;
-            const dropoff = feat.dropoffRate || (100 - adoption);
-            const usedUsers = feat.usedUsersCount || 0;
-            const unusedUsers = feat.unusedUsersCount || Math.max(0, cohortTotal - usedUsers);
-
-            return (
-              <div 
-                key={feat.key} 
-                className="bg-white dark:bg-[#1E293B] rounded-2xl p-4 sm:p-5 border border-slate-200/80 dark:border-zinc-800 shadow-xs space-y-3 transition-all hover:border-slate-300 dark:hover:border-zinc-700 flex flex-col justify-between"
+        <div className="space-y-3">
+          {/* Mobile Collapse/Expand Action Bar */}
+          <div className="flex sm:hidden items-center justify-between px-1 py-1 text-xs">
+            <span className="text-[11px] font-bold text-slate-500 dark:text-zinc-400">
+              {filteredFeatures.length} Use Cases {Object.values(expandedCardKeys).filter(Boolean).length > 0 ? `(${Object.values(expandedCardKeys).filter(Boolean).length} open)` : '(Collapsed)'}
+            </span>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={expandAllMobile}
+                className="text-[11px] font-extrabold text-[#B88B2A] hover:underline cursor-pointer"
               >
-                <div>
-                  {/* TOP ROW: ICON + CATEGORY PILL */}
-                  <div className="flex items-start justify-between gap-2">
-                    <div className={`p-2.5 w-fit rounded-xl border ${theme.bg}`}>
-                      <Icon className="w-4 h-4 sm:w-5 sm:h-5" />
-                    </div>
-                    <span className="text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md bg-slate-100 dark:bg-zinc-800 text-slate-500 dark:text-zinc-400">
-                      {feat.badge || feat.category}
-                    </span>
-                  </div>
+                Expand All
+              </button>
+              <span className="text-slate-300 dark:text-zinc-700">•</span>
+              <button
+                type="button"
+                onClick={collapseAllMobile}
+                className="text-[11px] font-extrabold text-slate-500 dark:text-zinc-400 hover:underline cursor-pointer"
+              >
+                Collapse All
+              </button>
+            </div>
+          </div>
 
-                  {/* FEATURE TITLE */}
-                  <div className="mt-2.5">
-                    <h4 className="text-sm font-extrabold text-slate-900 dark:text-white truncate" title={feat.title}>
-                      {feat.title}
-                    </h4>
-                    <p className="text-[10px] text-slate-400 truncate mt-0.5" title={feat.description}>
-                      {feat.description}
-                    </p>
-                  </div>
+          <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+            {filteredFeatures.map((feat) => {
+              const Icon = ICON_MAP[feat.key] || Sparkles;
+              const theme = COLOR_MAP[feat.color] || COLOR_MAP.blue;
+              const adoption = feat.adoptionRate || 0;
+              const dropoff = feat.dropoffRate || (100 - adoption);
+              const usedUsers = feat.usedUsersCount || 0;
+              const unusedUsers = feat.unusedUsersCount || Math.max(0, cohortTotal - usedUsers);
+              const isExpanded = !!expandedCardKeys[feat.key];
 
-                  {/* BLOCK 1: AB TAK KA TOTAL (LIFETIME TOTAL STATS) */}
-                  <div className="mt-3 p-2.5 rounded-xl bg-slate-50 dark:bg-zinc-800/60 border border-slate-100 dark:border-zinc-800/80">
-                    <div className="flex items-center justify-between">
-                      <span className="text-[9px] font-black uppercase tracking-wider text-slate-400">AB TAK KA TOTAL</span>
-                      <span className="text-[10px] font-extrabold text-[#B88B2A]">
-                        {feat.lifetimeAdoptionRate || 0}% users
-                      </span>
-                    </div>
-                    <div className="flex items-baseline justify-between mt-1">
-                      <span className="text-base font-black text-slate-900 dark:text-white">
-                        {(feat.lifetimeRuns || 0).toLocaleString()} <span className="text-[10px] font-semibold text-slate-400 font-sans">runs</span>
-                      </span>
-                      <span className="text-[11px] font-bold text-slate-500 dark:text-zinc-400">
-                        {(feat.lifetimeUsersCount || 0).toLocaleString()} users
-                      </span>
-                    </div>
-                  </div>
+              return (
+                <div 
+                  key={feat.key} 
+                  className="bg-white dark:bg-[#1E293B] rounded-2xl p-3.5 sm:p-5 border border-slate-200/80 dark:border-zinc-800 shadow-xs transition-all hover:border-slate-300 dark:hover:border-zinc-700 flex flex-col justify-between"
+                >
+                  <div>
+                    {/* CARD HEADER (CLICKABLE ACCORDION ON PHONE, REGULAR ON DESKTOP) */}
+                    <div 
+                      onClick={() => toggleCardExpand(feat.key)}
+                      className="cursor-pointer sm:cursor-default select-none"
+                    >
+                      {/* TOP ROW: ICON + CATEGORY PILL + DROPDOWN ARROW */}
+                      <div className="flex items-start justify-between gap-2">
+                        <div className={`p-2 sm:p-2.5 w-fit rounded-xl border shrink-0 ${theme.bg}`}>
+                          <Icon className="w-4 h-4 sm:w-5 sm:h-5" />
+                        </div>
 
-                  {/* BLOCK 2: IS COHORT / WINDOW ME */}
-                  <div className="mt-3 space-y-2">
-                    <div className="flex items-center justify-between text-[10px]">
-                      <span className="font-extrabold text-slate-500 uppercase tracking-wider">SELECTED COHORT</span>
-                      <span className={`text-[10px] font-black px-1.5 py-0.5 rounded ${
-                        adoption >= 20 ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' :
-                        adoption >= 5 ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400' :
-                        adoption > 0 ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400' :
-                        'bg-slate-100 dark:bg-zinc-800 text-slate-400'
-                      }`}>
-                        {adoption}% adoption
-                      </span>
-                    </div>
+                        <div className="flex items-center gap-1.5 shrink-0">
+                          <span className="text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md bg-slate-100 dark:bg-zinc-800 text-slate-500 dark:text-zinc-400">
+                            {feat.badge || feat.category}
+                          </span>
 
-                    <div className="flex items-baseline justify-between">
-                      <span className="text-lg font-black text-slate-900 dark:text-white">
-                        {(feat.totalRuns || 0).toLocaleString()} <span className="text-[10px] font-semibold text-slate-400 font-sans">runs</span>
-                      </span>
-                      <span className="text-[10px] font-bold text-slate-500">
-                        ~{feat.avgRunsPerUser || 0} runs/user
-                      </span>
-                    </div>
-
-                    {/* DUAL COLOR PROGRESS BAR (USED vs UNUSED) */}
-                    <div className="space-y-1">
-                      <div className="w-full h-2 rounded-full bg-slate-100 dark:bg-zinc-800 overflow-hidden flex">
-                        <div 
-                          className={`h-full transition-all duration-500 ${theme.bar}`}
-                          style={{ width: `${Math.min(100, Math.max(0, adoption))}%` }}
-                          title={`${usedUsers} users used (${adoption}%)`}
-                        />
-                        <div 
-                          className="h-full bg-slate-200 dark:bg-zinc-700/60 transition-all duration-500"
-                          style={{ width: `${Math.min(100, Math.max(0, dropoff))}%` }}
-                          title={`${unusedUsers} users inactive (${dropoff}%)`}
-                        />
+                          {/* Mobile Dropdown Button */}
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              toggleCardExpand(feat.key);
+                            }}
+                            className="sm:hidden p-1 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-slate-600 dark:text-zinc-300 transition-colors flex items-center justify-center cursor-pointer ml-0.5"
+                            aria-label={isExpanded ? "Collapse card" : "Expand card"}
+                          >
+                            <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${isExpanded ? 'rotate-180 text-[#B88B2A]' : 'text-slate-400'}`} />
+                          </button>
+                        </div>
                       </div>
 
-                      <div className="flex items-center justify-between text-[10px] font-bold">
-                        <span className="text-emerald-600 dark:text-emerald-400">
-                          {usedUsers} used
-                        </span>
-                        <span className="text-slate-400 dark:text-zinc-500">
-                          {unusedUsers} didn't use
-                        </span>
+                      {/* FEATURE TITLE */}
+                      <div className="mt-2 sm:mt-2.5">
+                        <div className="flex items-center justify-between gap-2">
+                          <h4 className="text-xs sm:text-sm font-extrabold text-slate-900 dark:text-white truncate" title={feat.title}>
+                            {feat.title}
+                          </h4>
+                          {/* Mobile Collapsed Metric Badge */}
+                          {!isExpanded && (
+                            <span className="sm:hidden text-[10px] font-bold text-[#B88B2A] shrink-0">
+                              {(feat.lifetimeRuns || 0).toLocaleString()} runs
+                            </span>
+                          )}
+                        </div>
+
+                        {/* Mobile Collapsed Preview Line */}
+                        {!isExpanded && (
+                          <div className="flex sm:hidden items-center gap-1.5 mt-1 text-[10px] text-slate-500 dark:text-zinc-400 font-semibold truncate">
+                            <span>{feat.lifetimeAdoptionRate || 0}% users</span>
+                            <span>•</span>
+                            <span className="text-emerald-600 dark:text-emerald-400">{adoption}% cohort</span>
+                            <span>•</span>
+                            <span className="text-slate-400 font-normal">Tap to expand ↓</span>
+                          </div>
+                        )}
+
+                        <p className={`text-[10px] text-slate-400 truncate mt-0.5 ${isExpanded ? 'block' : 'hidden sm:block'}`} title={feat.description}>
+                          {feat.description}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* COLLAPSIBLE DETAILS (HIDDEN ON PHONE WHEN COLLAPSED, ALWAYS VISIBLE ON DESKTOP) */}
+                    <div className={`${isExpanded ? 'block' : 'hidden sm:block'} space-y-3 pt-1 sm:pt-0`}>
+                      {/* BLOCK 1: AB TAK KA TOTAL (LIFETIME TOTAL STATS) */}
+                      <div className="mt-3 p-2.5 rounded-xl bg-slate-50 dark:bg-zinc-800/60 border border-slate-100 dark:border-zinc-800/80">
+                        <div className="flex items-center justify-between">
+                          <span className="text-[9px] font-black uppercase tracking-wider text-slate-400">AB TAK KA TOTAL</span>
+                          <span className="text-[10px] font-extrabold text-[#B88B2A]">
+                            {feat.lifetimeAdoptionRate || 0}% users
+                          </span>
+                        </div>
+                        <div className="flex items-baseline justify-between mt-1">
+                          <span className="text-base font-black text-slate-900 dark:text-white">
+                            {(feat.lifetimeRuns || 0).toLocaleString()} <span className="text-[10px] font-semibold text-slate-400 font-sans">runs</span>
+                          </span>
+                          <span className="text-[11px] font-bold text-slate-500 dark:text-zinc-400">
+                            {(feat.lifetimeUsersCount || 0).toLocaleString()} users
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* BLOCK 2: IS COHORT / WINDOW ME */}
+                      <div className="mt-3 space-y-2">
+                        <div className="flex items-center justify-between text-[10px]">
+                          <span className="font-extrabold text-slate-500 uppercase tracking-wider">SELECTED COHORT</span>
+                          <span className={`text-[10px] font-black px-1.5 py-0.5 rounded ${
+                            adoption >= 20 ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' :
+                            adoption >= 5 ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400' :
+                            adoption > 0 ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400' :
+                            'bg-slate-100 dark:bg-zinc-800 text-slate-400'
+                          }`}>
+                            {adoption}% adoption
+                          </span>
+                        </div>
+
+                        <div className="flex items-baseline justify-between">
+                          <span className="text-lg font-black text-slate-900 dark:text-white">
+                            {(feat.totalRuns || 0).toLocaleString()} <span className="text-[10px] font-semibold text-slate-400 font-sans">runs</span>
+                          </span>
+                          <span className="text-[10px] font-bold text-slate-500">
+                            ~{feat.avgRunsPerUser || 0} runs/user
+                          </span>
+                        </div>
+
+                        {/* DUAL COLOR PROGRESS BAR (USED vs UNUSED) */}
+                        <div className="space-y-1">
+                          <div className="w-full h-2 rounded-full bg-slate-100 dark:bg-zinc-800 overflow-hidden flex">
+                            <div 
+                              className={`h-full transition-all duration-500 ${theme.bar}`}
+                              style={{ width: `${Math.min(100, Math.max(0, adoption))}%` }}
+                              title={`${usedUsers} users used (${adoption}%)`}
+                            />
+                            <div 
+                              className="h-full bg-slate-200 dark:bg-zinc-700/60 transition-all duration-500"
+                              style={{ width: `${Math.min(100, Math.max(0, dropoff))}%` }}
+                              title={`${unusedUsers} users inactive (${dropoff}%)`}
+                            />
+                          </div>
+
+                          <div className="flex items-center justify-between text-[10px] font-bold">
+                            <span className="text-emerald-600 dark:text-emerald-400">
+                              {usedUsers} used
+                            </span>
+                            <span className="text-slate-400 dark:text-zinc-500">
+                              {unusedUsers} didn't use
+                            </span>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
 
-                {/* BOTTOM FOOTER */}
-                <div className="pt-2 border-t border-slate-100 dark:border-zinc-800/80 flex items-center justify-between text-[10px] text-slate-400">
-                  <span className="font-semibold">{feat.category}</span>
-                  <span className="font-medium">Footprint: {usedUsers}/{cohortTotal}</span>
+                  {/* BOTTOM FOOTER */}
+                  <div className={`${isExpanded ? 'flex' : 'hidden sm:flex'} pt-2 border-t border-slate-100 dark:border-zinc-800/80 items-center justify-between text-[10px] text-slate-400 mt-2`}>
+                    <span className="font-semibold">{feat.category}</span>
+                    <span className="font-medium">Footprint: {usedUsers}/{cohortTotal}</span>
+                  </div>
                 </div>
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
         </div>
       ) : (
         /* PENETRATION FUNNEL VIEW */

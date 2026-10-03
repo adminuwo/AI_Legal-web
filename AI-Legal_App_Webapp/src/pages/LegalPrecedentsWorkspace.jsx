@@ -5,14 +5,15 @@ import {
   CheckCircle2, Copy, Download, Share2, Sparkles, Filter, ChevronRight,
   ExternalLink, Layers, AlertCircle, RefreshCw, Bookmark, Award, Shield, Building2,
   FileCheck2, HelpCircle, ArrowRight, Check, MessageSquare, Globe, ChevronDown,
-  Users, Monitor, ShieldCheck, Wrench, Heart, Leaf, Skull, X
+  Users, Monitor, ShieldCheck, Wrench, Heart, Leaf, Skull, X, Plus, FolderPlus
 } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useRecoilValue, useRecoilState } from 'recoil';
 import toast from 'react-hot-toast';
 import apiService from '../services/apiService';
 import { useSubscription } from '../context/SubscriptionContext';
 import { useLanguage } from '../context/LanguageContext';
-import { getUserData } from '../userStore/userData';
+import { getUserData, activeProjectsData } from '../userStore/userData';
 import { LANDMARK_JUDGMENTS_DATABASE } from '../data/landmarkJudgmentsData';
 import caseSearchService from '../services/caseSearchService';
 import JudgmentPdfModal from '../Components/CaseSearch/JudgmentPdfModal';
@@ -503,6 +504,7 @@ export const findMatchingLandmark = (candidate) => {
     { tokens: ['navtej', 'johar', '377'], slug: 'navtej-singh-johar' },
     { tokens: ['bommai', '356'], slug: 'sr-bommai' },
     { tokens: ['bir singh', 'mukesh'], slug: 'bir-singh' },
+    { tokens: ['cox and kings', 'sap india'], slug: 'cox-and-kings-sap-india' },
   ];
 
   const searchStr = `${name} ${id} ${citation}`.toLowerCase();
@@ -941,13 +943,27 @@ export default function LegalPrecedentsWorkspace() {
   const LATEST_JUDGMENTS = isNepal ? LATEST_JUDGMENTS_NEPAL : LATEST_JUDGMENTS_INDIA;
 
   // Mode: 'CURRENT' (Current Case Mode) or 'MANUAL' (Manual Search Mode)
-  // Default to 'MANUAL' to match Screenshot 2 unless caseId provided
   const [researchMode, setResearchMode] = useState(initialCaseId ? 'CURRENT' : 'MANUAL');
   
+  // Real Recoil Projects from My Matters store
+  const [recoilProjects, setRecoilProjects] = useRecoilState(activeProjectsData);
+
   // Case context state
   const [advocateCases, setAdvocateCases] = useState([]);
   const [selectedCase, setSelectedCase] = useState(null);
   const [isLoadingCases, setIsLoadingCases] = useState(false);
+
+  // Create Matter Modal State
+  const [isCreateMatterModalOpen, setIsCreateMatterModalOpen] = useState(false);
+  const [isCreatingMatter, setIsCreatingMatter] = useState(false);
+  const [newMatterForm, setNewMatterForm] = useState({
+    name: '',
+    clientName: '',
+    accused: '',
+    caseType: 'Cheque Bounce (Sec 138 NI Act)',
+    courtName: '',
+    summary: ''
+  });
 
   // Manual search state
   const [searchQuery, setSearchQuery] = useState('');
@@ -977,37 +993,305 @@ export default function LegalPrecedentsWorkspace() {
   // Case context filter state
   const [caseFilterQuery, setCaseFilterQuery] = useState('');
 
-  // Fetch Advocate Cases on mount
-  useEffect(() => {
-    fetchAdvocateCases();
-  }, []);
+  // Helper to extract clean legal search keywords from an advocate case without injecting private party names
+  const buildCaseLegalQuery = (targetCase) => {
+    if (!targetCase) return '';
+    const caseType = (targetCase.caseType || targetCase.category || '').toLowerCase();
+    const summary = (targetCase.summary || targetCase.caseSummary || '').toLowerCase();
+    const acts = Array.isArray(targetCase.acts) ? targetCase.acts.join(' ') : (targetCase.acts || '');
+    const sections = Array.isArray(targetCase.sections) ? targetCase.sections.join(' ') : (targetCase.sections || '');
+    const combined = `${caseType} ${summary} ${acts} ${sections}`;
 
+    // Domain Specific Keyword Mapping
+    if (combined.includes('cheque') || combined.includes('138') || combined.includes('ni act') || combined.includes('dishonour') || combined.includes('banking offence')) {
+      return 'Section 138 Negotiable Instruments Act cheque bounce dishonour presumption debt Section 139';
+    }
+    if (combined.includes('arbitrat') || combined.includes('commercial contract') || combined.includes('breach of contract') || combined.includes('commercial arbitration')) {
+      return 'Commercial Arbitration Breach Arbitration and Conciliation Act Section 8 11 award enforcement';
+    }
+    if (combined.includes('bail') || combined.includes('anticipatory') || combined.includes('pmla') || combined.includes('arrest') || combined.includes('custod')) {
+      return 'Criminal Bail Section 439 438 CrPC BNSS arrest custodial guidelines';
+    }
+    if (combined.includes('maintenance') || combined.includes('divorce') || combined.includes('matrimonial') || combined.includes('125') || combined.includes('alimony') || combined.includes('iddat')) {
+      return 'Maintenance Section 125 CrPC Hindu Marriage Act matrimonial asset affidavit';
+    }
+    if (combined.includes('consumer') || combined.includes('deficiency') || combined.includes('medical neglig')) {
+      return 'Consumer Protection Act deficiency in service unfair trade practice compensation';
+    }
+    if (combined.includes('cyber') || combined.includes('it act') || combined.includes('65b') || combined.includes('electronic record')) {
+      return 'Information Technology Act Section 65B 66 electronic evidence admissibility';
+    }
+    if (combined.includes('ibc') || combined.includes('insolvency') || combined.includes('bankruptcy') || combined.includes('nclt')) {
+      return 'Insolvency and Bankruptcy Code IBC corporate insolvency resolution moratorium';
+    }
+    if (combined.includes('property') || combined.includes('specific performance') || combined.includes('partition') || combined.includes('injunction')) {
+      return 'Specific Relief Act property agreement specific performance injunction partition';
+    }
+    if (combined.includes('labour') || combined.includes('labor') || combined.includes('industrial') || combined.includes('termination') || combined.includes('gratuity')) {
+      return 'Industrial Disputes Act termination workman reinstatement gratuity labour court';
+    }
+    if (combined.includes('civil') || combined.includes('civil suit')) {
+      return 'Civil Suit Specific Relief Act declaration permanent injunction CPC possession';
+    }
+    if (combined.includes('tax') || combined.includes('gst')) {
+      return 'Income Tax Act assessment penalty GST dispute appeal High Court';
+    }
+
+    // Fallback to explicit caseType / acts / sections
+    const parts = [];
+    if (targetCase.caseType) parts.push(targetCase.caseType);
+    if (targetCase.category && targetCase.category !== targetCase.caseType) parts.push(targetCase.category);
+    if (acts) parts.push(acts);
+    if (sections) parts.push(sections);
+    if (parts.length > 0) return parts.join(' ').replace(/vs|versus/gi, '').trim();
+
+    return (targetCase.name || targetCase.caseName || '').replace(/vs|versus|state|ors|and|or|\bof\b/gi, ' ').trim();
+  };
+
+  // Precedent relevance scoring against selected case with strict domain isolation
+  const scorePrecedentForCase = (p, targetCase, legalQuery) => {
+    if (!p || !targetCase) return 0;
+    const cType = (targetCase.caseType || targetCase.category || '').toLowerCase();
+    const cSummary = (targetCase.summary || targetCase.caseSummary || '').toLowerCase();
+    const cCombined = `${cType} ${cSummary}`;
+
+    const pTags = [...(p.subjectTags || []), ...(p.sections || []), ...(p.acts || []), ...(p.tags || [])].map(t => String(t).toLowerCase());
+    const pTagStr = pTags.join(' ');
+    const pTitle = (p.title || p.case_identity?.case_name || p.case_name || '').toLowerCase();
+    const pPrinciple = (p.legal_principle || p.ratio_decidendi || p.ratioDecidendi || '').toLowerCase();
+    const pCorpus = `${pTitle} ${pTagStr} ${pPrinciple}`;
+
+    // 1. Cheque Bounce / Sec 138 NI Act
+    if (cCombined.includes('cheque') || cCombined.includes('138') || cCombined.includes('ni act') || cCombined.includes('dishonour') || cCombined.includes('banking offence')) {
+      if (pCorpus.includes('138') || pCorpus.includes('cheque') || pCorpus.includes('negotiable instruments') || pCorpus.includes('banking offence')) {
+        if (pTitle.includes('bir singh')) return 98;
+        if (pTitle.includes('rangappa')) return 95;
+        if (pCorpus.includes('139') || pCorpus.includes('blank cheque')) return 94;
+        return 90;
+      }
+      return 0; // Strict domain barrier: completely excludes unrelated precedents like Danial Latifi!
+    }
+
+    // 2. Commercial Arbitration / Contract
+    if (cCombined.includes('arbitrat') || cCombined.includes('commercial contract') || cCombined.includes('breach of contract') || cCombined.includes('commercial arbitration')) {
+      // Exclude criminal / FIR / cheque
+      if (pCorpus.includes('154 crpc') || pCorpus.includes('fir registration') || pCorpus.includes('cheque')) return 0;
+      if (pTitle.includes('cox and kings') || pTitle.includes('sap india') || pCorpus.includes('arbitration and conciliation')) {
+        return 98;
+      }
+      if (pCorpus.includes('arbitrat') || pCorpus.includes('group of companies')) {
+        return 90;
+      }
+      return 0;
+    }
+
+    // 3. Matrimonial / Divorce & Maintenance
+    if (cCombined.includes('maintenance') || cCombined.includes('divorce') || cCombined.includes('matrimonial') || cCombined.includes('125') || cCombined.includes('alimony') || cCombined.includes('iddat')) {
+      // Exclude generic FIR / arrest judgments
+      if (pTitle.includes('lalita kumari') || pTitle.includes('bir singh')) return 0;
+      if (pCorpus.includes('maintenance') || pCorpus.includes('iddat') || pCorpus.includes('125 crpc') || pCorpus.includes('divorce') || pCorpus.includes('matrimonial')) {
+        if (pTitle.includes('rajnesh') && pTitle.includes('neha')) return 98;
+        if (pTitle.includes('danial') && pTitle.includes('latifi')) return 95;
+        return 89;
+      }
+      return 0;
+    }
+
+    // 4. Criminal Law & Bail / Arrest / FIR
+    if (cCombined.includes('bail') || cCombined.includes('criminal') || cCombined.includes('pmla') || cCombined.includes('arrest') || cCombined.includes('custod') || cCombined.includes('fir')) {
+      // Exclude matrimonial maintenance & cheque cases
+      if (pTitle.includes('danial') || pTitle.includes('rajnesh') || pTitle.includes('bir singh') || pTitle.includes('rangappa')) return 0;
+      if (pCorpus.includes('bail') || pCorpus.includes('pmla') || pCorpus.includes('arrest') || pCorpus.includes('custod') || pCorpus.includes('fir registration') || pTitle.includes('arnesh') || pTitle.includes('basu') || pTitle.includes('satender') || pTitle.includes('lalita kumari')) {
+        if (pTitle.includes('chidambaram') || pTitle.includes('kejriwal')) return 98;
+        if (pTitle.includes('dk basu') || pTitle.includes('d.k. basu')) return 96;
+        if (pTitle.includes('arnesh')) return 95;
+        if (pTitle.includes('satender')) return 94;
+        if (pTitle.includes('lalita kumari')) return 92;
+        return 88;
+      }
+      return 0;
+    }
+
+    // 5. Cyber / Privacy / Evidence
+    if (cCombined.includes('cyber') || cCombined.includes('it act') || cCombined.includes('privacy') || cCombined.includes('65b') || cCombined.includes('electronic')) {
+      if (pTitle.includes('puttaswamy')) return 98;
+      if (pCorpus.includes('privacy') || pCorpus.includes('65b') || pCorpus.includes('electronic evidence')) {
+        return 90;
+      }
+      return 0;
+    }
+
+    // 6. Constitutional / Fundamental Rights
+    if (cCombined.includes('constitut') || cCombined.includes('fundamental right') || cCombined.includes('writ') || cCombined.includes('article 32') || cCombined.includes('article 226')) {
+      if (pTitle.includes('kesavananda')) return 99;
+      if (pTitle.includes('maneka')) return 96;
+      if (pTitle.includes('bommai')) return 94;
+      if (pTitle.includes('navtej')) return 93;
+      if (pTitle.includes('puttaswamy')) return 91;
+      return 0;
+    }
+
+    // 7. General Civil / Property
+    if (cCombined.includes('property') || cCombined.includes('civil') || cCombined.includes('specific performance') || cCombined.includes('partition') || cCombined.includes('injunction')) {
+      if (pCorpus.includes('property') || pCorpus.includes('specific relief') || pCorpus.includes('injunction') || pCorpus.includes('civil')) {
+        return 88;
+      }
+      return 0;
+    }
+
+    // General token overlap scoring for domain match
+    const queryTokens = (legalQuery || '').toLowerCase().split(/\s+/).filter(w => w.length > 2 && !['the', 'and', 'for', 'act', 'case'].includes(w));
+    let hits = 0;
+    for (const token of queryTokens) {
+      if (pCorpus.includes(token)) hits++;
+    }
+    if (hits >= 2) {
+      return Math.min(95, 60 + hits * 10);
+    }
+    return 0;
+  };
+
+  // Fetch Advocate Cases from My Matters (DB + Recoil + localStorage)
   const fetchAdvocateCases = async () => {
     setIsLoadingCases(true);
     try {
-      const data = await apiService.getProjects({ scope: 'all', all: 'true' });
-      const rawList = Array.isArray(data) ? data : (data?.projects || data?.cases || []);
-      const validCases = rawList.filter(c => c && c.name && c.name !== 'Unspecified Case');
+      let serverCases = [];
+      try {
+        const data = await apiService.getProjects({ scope: 'all', all: 'true' });
+        serverCases = Array.isArray(data) ? data : (data?.projects || data?.cases || []);
+      } catch (e) {
+        console.warn('apiService.getProjects({ scope: all }) failed:', e);
+      }
+
+      if (serverCases.length === 0) {
+        try {
+          const directData = await apiService.getProjects();
+          serverCases = Array.isArray(directData) ? directData : (directData?.projects || directData?.cases || []);
+        } catch (e) {
+          console.warn('apiService.getProjects() fallback failed:', e);
+        }
+      }
+
+      // Read Recoil projects from My Matters store
+      const recoilList = Array.isArray(recoilProjects) ? recoilProjects : [];
+
+      // Read localStorage cached current case
+      let cachedCurrentCase = null;
+      try {
+        const raw = localStorage.getItem('aisa_current_case');
+        if (raw) cachedCurrentCase = JSON.parse(raw);
+      } catch (e) {}
+
+      const combined = [...serverCases, ...recoilList];
+      if (cachedCurrentCase && (cachedCurrentCase._id || cachedCurrentCase.id)) {
+        combined.unshift(cachedCurrentCase);
+      }
+
+      const seen = new Set();
+      const validCases = [];
+      for (const c of combined) {
+        if (!c) continue;
+        const cId = c._id || c.id;
+        const cName = c.name || c.caseName || c.title;
+        if (cId && cName && cName !== 'Unspecified Case' && !seen.has(cId)) {
+          seen.add(cId);
+          validCases.push(c);
+        }
+      }
+
+      setAdvocateCases(validCases);
 
       if (validCases.length > 0) {
-        setAdvocateCases(validCases);
-        const matched = initialCaseId ? validCases.find(c => c._id === initialCaseId) : validCases[0];
-        setSelectedCase(matched || validCases[0]);
+        const matched = initialCaseId ? validCases.find(c => (c._id || c.id) === initialCaseId) : null;
+        const initialSelected = matched || (cachedCurrentCase && validCases.find(c => (c._id || c.id) === (cachedCurrentCase._id || cachedCurrentCase.id))) || validCases[0];
+        setSelectedCase(initialSelected);
       } else {
-        const defaultList = isNepal ? [
-          { _id: 'case_101', name: 'Nepal SBI Bank Ltd. vs Apex Industries Pvt. Ltd.', caseType: 'Banking Offence Act 2064 (Cheque Dishonour)', courtName: 'Kathmandu District Court', clientName: 'Apex Industries', caseNumber: '081-CR-104' },
-          { _id: 'case_102', name: 'Himalayan Trading Corp vs Everest Infrastructure', caseType: 'Commercial Contract & Specific Performance', courtName: 'High Court Patan', clientName: 'Himalayan Trading', caseNumber: '080-CP-208' }
-        ] : [
-          { _id: 'case_101', name: 'State vs Raj Malhotra & Ors.', caseType: 'Cheque Bounce (Sec 138 NI Act)', courtName: 'Patiala House Courts, New Delhi', clientName: 'Raj Malhotra', caseNumber: 'CC/4521/2025' },
-          { _id: 'case_102', name: 'M/S TechCorp vs Global Logistics Ltd.', caseType: 'Commercial Arbitration Breach', courtName: 'Delhi High Court', clientName: 'M/S TechCorp', caseNumber: 'ARB/882/2025' }
-        ];
-        setAdvocateCases(defaultList);
-        setSelectedCase(defaultList[0]);
+        setSelectedCase(null);
+        setSearchResults([]);
       }
     } catch (err) {
       console.warn('Error loading advocate cases:', err);
+      setAdvocateCases([]);
+      setSelectedCase(null);
     } finally {
       setIsLoadingCases(false);
+    }
+  };
+
+  // Fetch Advocate Cases on mount and whenever recoilProjects changes
+  useEffect(() => {
+    fetchAdvocateCases();
+  }, [recoilProjects]);
+
+  // Real-time synchronization with My Matters and mobile app updates
+  useEffect(() => {
+    const handleSync = () => {
+      fetchAdvocateCases();
+    };
+    window.addEventListener('focus', handleSync);
+    window.addEventListener('case:created', handleSync);
+    window.addEventListener('storage', handleSync);
+    return () => {
+      window.removeEventListener('focus', handleSync);
+      window.removeEventListener('case:created', handleSync);
+      window.removeEventListener('storage', handleSync);
+    };
+  }, []);
+
+
+  // Quick Action: Create New Matter in My Matters
+  const handleCreateMatter = async (e) => {
+    e.preventDefault();
+    if (!newMatterForm.clientName.trim() && !newMatterForm.name.trim()) {
+      toast.error('Please enter a matter title or client name.');
+      return;
+    }
+    setIsCreatingMatter(true);
+    try {
+      const finalName = newMatterForm.name.trim() || (newMatterForm.accused.trim() ? `${newMatterForm.clientName} vs ${newMatterForm.accused}` : `${newMatterForm.clientName} Matter`);
+      const payload = {
+        name: finalName,
+        clientName: newMatterForm.clientName.trim() || 'Client',
+        accused: newMatterForm.accused.trim(),
+        caseType: newMatterForm.caseType || 'Cheque Bounce (Sec 138 NI Act)',
+        category: newMatterForm.caseType || 'Commercial',
+        courtName: newMatterForm.courtName.trim() || 'District Court',
+        summary: newMatterForm.summary.trim(),
+        isLegalCase: true
+      };
+
+      let created = null;
+      try {
+        created = await apiService.createProject(payload);
+      } catch (e) {
+        console.warn('Backend createProject error:', e);
+      }
+
+      const newCaseObj = {
+        _id: created?._id || `case_${Date.now()}`,
+        ...payload,
+        createdAt: new Date().toISOString()
+      };
+
+      // Update local state and Recoil store for My Matters
+      setAdvocateCases(prev => [newCaseObj, ...prev.filter(c => c._id !== newCaseObj._id)]);
+      setRecoilProjects(prev => [newCaseObj, ...(prev || []).filter(c => (c._id || c.id) !== newCaseObj._id)]);
+      setSelectedCase(newCaseObj);
+      setIsCreateMatterModalOpen(false);
+      setNewMatterForm({ name: '', clientName: '', accused: '', caseType: 'Cheque Bounce (Sec 138 NI Act)', courtName: '', summary: '' });
+      toast.success(`Matter "${finalName}" created in My Matters! Matching precedents...`);
+
+      // Dispatch event for other tabs / components
+      try {
+        window.dispatchEvent(new CustomEvent('case:created', { detail: newCaseObj }));
+      } catch (evtErr) {}
+
+      handlePerformSearch(null, null, newCaseObj);
+    } catch (err) {
+      console.error('Error creating matter:', err);
+      toast.error('Failed to create matter.');
+    } finally {
+      setIsCreatingMatter(false);
     }
   };
 
@@ -1117,9 +1401,10 @@ export default function LegalPrecedentsWorkspace() {
     setSelectedPrecedent(null);
 
     try {
-      const targetProjectId = researchMode === 'CURRENT' ? activeTargetCase?._id : null;
+      const rawTargetProjectId = researchMode === 'CURRENT' ? (activeTargetCase?._id || activeTargetCase?.id) : null;
+      const targetProjectId = (rawTargetProjectId && /^[0-9a-fA-F]{24}$/.test(String(rawTargetProjectId))) ? String(rawTargetProjectId) : null;
       const effectiveQuery = researchMode === 'CURRENT' 
-        ? `${activeTargetCase?.name || activeTargetCase?.title || ''} ${activeTargetCase?.caseType || ''}`
+        ? buildCaseLegalQuery(activeTargetCase)
         : q;
 
       // 1. Live Indian Kanoon & Landmark Search via caseSearchService
@@ -1140,65 +1425,107 @@ export default function LegalPrecedentsWorkspace() {
 
       // 2. Query backend API service precedents
       let apiPrecedents = [];
-      try {
-        const res = await apiService.searchPrecedents(effectiveQuery, targetProjectId, outputLanguage);
-        const precedentList = res?.precedents || res?.data?.precedents || res || [];
-        if (Array.isArray(precedentList) && precedentList.length > 0) {
-          apiPrecedents = precedentList;
+      if (effectiveQuery) {
+        try {
+          const res = await apiService.searchPrecedents(effectiveQuery, targetProjectId, outputLanguage);
+          const precedentList = res?.precedents || res?.data?.precedents || res || [];
+          if (Array.isArray(precedentList) && precedentList.length > 0) {
+            apiPrecedents = precedentList;
+          }
+        } catch (apiErr) {
+          console.warn('Backend precedents search error:', apiErr);
         }
-      } catch (apiErr) {
-        console.warn('Backend precedents search error:', apiErr);
       }
 
       // 3. Local landmark matching across full metadata
-      const queryLower = effectiveQuery.toLowerCase();
-      const localMatches = LANDMARK_PRECEDENTS_DB.filter(p => {
-        const name = (p.case_identity?.case_name || p.case_name || '').toLowerCase();
-        const principle = (p.legal_principle || '').toLowerCase();
-        const ratio = (p.ratio_decidendi || '').toLowerCase();
-        const tags = (p.tags || []).join(' ').toLowerCase();
-        const acts = (p.judgment_basis?.statutory_provisions || []).join(' ').toLowerCase();
-        const pCat = p.category || 'all';
+      let localMatches = [];
+      if (researchMode === 'CURRENT' && activeTargetCase) {
+        // In Current Case mode: strictly score each landmark against the case's legal domain!
+        localMatches = LANDMARK_PRECEDENTS_DB.map(p => {
+          const score = scorePrecedentForCase(p, activeTargetCase, effectiveQuery);
+          if (score > 0) {
+            return {
+              ...p,
+              relevance_score: score,
+              relevanceScore: score
+            };
+          }
+          return null;
+        }).filter(Boolean);
+      } else {
+        // Manual Search mode
+        const queryLower = effectiveQuery.toLowerCase();
+        localMatches = LANDMARK_PRECEDENTS_DB.filter(p => {
+          const name = (p.case_identity?.case_name || p.case_name || p.title || '').toLowerCase();
+          const principle = (p.legal_principle || '').toLowerCase();
+          const ratio = (p.ratio_decidendi || '').toLowerCase();
+          const tags = (p.tags || []).join(' ').toLowerCase();
+          const acts = (p.judgment_basis?.statutory_provisions || []).join(' ').toLowerCase();
+          const pCat = p.category || 'all';
 
-        const matchesCat = cat === 'all' || pCat === cat;
-        const matchesQuery = !queryLower || name.includes(queryLower) || principle.includes(queryLower) || ratio.includes(queryLower) || tags.includes(queryLower) || acts.includes(queryLower) || researchMode === 'CURRENT';
-        return matchesCat && matchesQuery;
-      });
+          const matchesCat = cat === 'all' || pCat === cat;
+          const matchesQuery = !queryLower || name.includes(queryLower) || principle.includes(queryLower) || ratio.includes(queryLower) || tags.includes(queryLower) || acts.includes(queryLower);
+          return matchesCat && matchesQuery;
+        });
+      }
 
-      // Combine & Deduplicate by name/ID
-      const combined = [...caseSearchResults, ...apiPrecedents, ...localMatches];
+      // Combine & Deduplicate by name/ID with domain relevance verification
+      const combined = [...localMatches, ...caseSearchResults, ...apiPrecedents];
       const seen = new Set();
       const deduplicated = [];
       for (const item of combined) {
         const key = (item.case_identity?.case_name || item.case_name || item.title || item._id || '').toLowerCase().trim();
         if (key && !seen.has(key)) {
           seen.add(key);
-          deduplicated.push(item);
+          if (researchMode === 'CURRENT' && activeTargetCase) {
+            const domainScore = scorePrecedentForCase(item, activeTargetCase, effectiveQuery);
+            if (domainScore > 0) {
+              item.relevance_score = domainScore;
+              item.relevanceScore = domainScore;
+              deduplicated.push(item);
+            }
+          } else {
+            deduplicated.push(item);
+          }
         }
+      }
+
+      // In CURRENT mode, sort strictly by relevance score descending
+      if (researchMode === 'CURRENT') {
+        deduplicated.sort((a, b) => (b.relevance_score || b.relevanceScore || 90) - (a.relevance_score || a.relevanceScore || 90));
       }
 
       if (deduplicated.length > 0) {
         setSearchResults(deduplicated);
         toast.success(`Found ${deduplicated.length} legal precedents & judgments.`);
       } else {
-        setSearchResults(LANDMARK_PRECEDENTS_DB);
-        toast.success(`Retrieved landmark Supreme Court & High Court precedents.`);
+        if (researchMode === 'CURRENT') {
+          setSearchResults([]);
+          toast('No specific precedents matched this matter type. You can switch to Manual Search.', { icon: 'ℹ️' });
+        } else {
+          setSearchResults(LANDMARK_PRECEDENTS_DB);
+          toast.success(`Retrieved landmark Supreme Court & High Court precedents.`);
+        }
       }
     } catch (err) {
       console.warn('Error during precedent search:', err);
-      setSearchResults(LANDMARK_PRECEDENTS_DB);
-      toast.success('Retrieved landmark Supreme Court & High Court precedents.');
+      if (researchMode === 'CURRENT') {
+        setSearchResults([]);
+      } else {
+        setSearchResults(LANDMARK_PRECEDENTS_DB);
+        toast.success('Retrieved landmark Supreme Court & High Court precedents.');
+      }
     } finally {
       setIsSearching(false);
     }
   };
 
-  // Auto-search on mode switch to CURRENT if case selected
+  // Auto-search on mode switch to CURRENT if case selected or when case changes
   useEffect(() => {
-    if (researchMode === 'CURRENT' && selectedCase && !hasSearched) {
-      handlePerformSearch();
+    if (researchMode === 'CURRENT' && selectedCase) {
+      handlePerformSearch(null, null, selectedCase);
     }
-  }, [researchMode, selectedCase]);
+  }, [researchMode, selectedCase?._id, selectedCase?.id]);
 
   // Copy citation helper
   const handleCopyCitation = (precedent) => {
@@ -1688,157 +2015,194 @@ ${related.length > 0
             className="space-y-6"
           >
             {/* Top Detail Header Banner */}
-            <div className="bg-white dark:bg-[#111622] p-5 sm:p-6 rounded-2xl sm:rounded-3xl border border-slate-200 dark:border-slate-800 shadow-xs space-y-4">
-              <div className="flex flex-col xl:flex-row items-start xl:items-center justify-between gap-3.5 border-b border-slate-100 dark:border-slate-800 pb-3.5">
-                <div className="space-y-1 min-w-0 flex-1">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span className="px-2.5 py-0.5 rounded-full bg-[#C8A34D]/15 text-[#C8A34D] text-[10px] font-mono font-bold uppercase">
-                      {selectedPrecedent.case_identity?.court || selectedPrecedent.court || (isNepal ? 'Supreme Court of Nepal' : 'Supreme Court of India')}
-                    </span>
-                    <span className="text-xs font-mono font-bold text-slate-400">
-                      {selectedPrecedent.case_identity?.year || selectedPrecedent.year || '2024'}
-                    </span>
-                    <span className="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-500 text-[10px] font-bold">
-                      {selectedPrecedent.judgment_outcome?.type || 'Binding Precedent'}
-                    </span>
-                    <span className="px-2 py-0.5 rounded-full bg-[#C8A34D]/20 text-[#C8A34D] text-[10px] font-mono font-bold">
-                      {selectedPrecedent.relevance_score || 98}% AI Match
-                    </span>
-                  </div>
-                  <h2 className="text-lg sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">
-                    {selectedPrecedent.case_identity?.case_name || selectedPrecedent.case_name || 'Landmark Legal Precedent'}
-                  </h2>
-                  <p className="text-xs font-mono text-[#C8A34D]">
-                    Citation: {selectedPrecedent.case_identity?.citation || selectedPrecedent.citation || 'AIR 2024 SC 101'}
-                  </p>
+            <div className="bg-white dark:bg-[#111622] p-3.5 sm:p-5 rounded-xl sm:rounded-2xl border border-slate-200/90 dark:border-slate-800 shadow-2xs space-y-3">
+              {/* Row 1: Badges & Quick Status Bar */}
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  {/* Court Badge */}
+                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[#C8A34D]/15 text-[#C8A34D] text-[10px] font-mono font-bold tracking-wide uppercase border border-[#C8A34D]/30 shadow-2xs">
+                    <Scale className="w-3 h-3 shrink-0" />
+                    <span>{selectedPrecedent.case_identity?.court || selectedPrecedent.court || (isNepal ? 'Supreme Court of Nepal' : 'Supreme Court of India')}</span>
+                  </span>
+
+                  {/* Year */}
+                  <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800/80 text-slate-600 dark:text-slate-300 text-[10px] font-mono font-bold border border-slate-200/80 dark:border-slate-700/60">
+                    {selectedPrecedent.case_identity?.year || selectedPrecedent.year || '2024'}
+                  </span>
+
+                  {/* Outcome / Jurisdiction Type */}
+                  <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[10px] font-semibold border border-emerald-500/20">
+                    {selectedPrecedent.judgment_outcome?.type || 'Binding Precedent'}
+                  </span>
+
+                  {/* AI Match % */}
+                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-gradient-to-r from-[#D4AF37]/20 to-[#B88B2A]/20 text-[#B88B2A] dark:text-[#D4AF37] text-[10px] font-mono font-extrabold border border-[#C8A34D]/35">
+                    <Sparkles className="w-2.5 h-2.5 shrink-0" />
+                    <span>{selectedPrecedent.relevance_score || 98}% AI Match</span>
+                  </span>
                 </div>
 
-                {/* Precedent Action Buttons — Strictly in a Single Row */}
-                <div className="flex items-center gap-1.5 sm:gap-2 flex-nowrap shrink-0 overflow-x-auto max-w-full pb-1 xl:pb-0 scrollbar-none">
-                  {/* QUICK SWITCH TO AI ASSISTANT CHAT */}
-                  <button
-                    onClick={() => setDetailTab(detailTab === 'chat' ? 'both' : 'chat')}
-                    className="px-3 py-1.5 rounded-xl bg-gradient-to-r from-[#D4AF37] to-[#B88B2A] text-[#111111] text-xs font-black flex items-center gap-1.5 cursor-pointer shadow-xs hover:brightness-105 transition-all whitespace-nowrap shrink-0"
-                    title="Interactive Grounded AI Assistant Chat"
-                  >
-                    <Sparkles className="w-3.5 h-3.5 text-[#111111]" />
-                    <span>{detailTab === 'chat' ? 'Full Dossier' : 'Chat with AI Assistant ✨'}</span>
-                  </button>
+                {/* Back to list button */}
+                <button
+                  onClick={() => setSelectedPrecedent(null)}
+                  className="inline-flex items-center gap-1 px-2 py-0.5 text-[11px] font-semibold text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition-colors cursor-pointer"
+                >
+                  <ArrowLeft className="w-3 h-3" />
+                  <span>Back to Search</span>
+                </button>
+              </div>
 
-                  {/* OFFICIAL COURT VECTOR PDF MODAL */}
-                  <button
-                    onClick={() => handleOpenPdfModal(selectedPrecedent)}
-                    className="px-3 py-1.5 rounded-xl bg-[#C8A34D]/15 text-[#C8A34D] border border-[#C8A34D]/40 text-xs font-bold flex items-center gap-1.5 cursor-pointer hover:bg-[#C8A34D] hover:text-[#111111] transition-all whitespace-nowrap shrink-0"
-                    title="Open Official Law Report PDF with Gold Seal and Bench Metadata"
-                  >
-                    <FileText className="w-3.5 h-3.5" />
-                    <span>Official Court PDF</span>
-                  </button>
+              {/* Row 2: Prominent Case Title & Citation */}
+              <div className="space-y-1.5 pt-0.5">
+                <h2 className="text-base sm:text-lg lg:text-xl font-extrabold text-slate-900 dark:text-white tracking-tight leading-snug">
+                  {selectedPrecedent.case_identity?.case_name || selectedPrecedent.case_name || 'Landmark Legal Precedent'}
+                </h2>
 
+                <div className="flex flex-wrap items-center gap-1.5">
+                  <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-amber-500/10 dark:bg-amber-500/10 border border-[#C8A34D]/30 text-[10.5px] font-mono text-[#B88B2A] dark:text-[#D4AF37] max-w-full">
+                    <span className="font-bold shrink-0">Citation:</span>
+                    <span className="truncate">{selectedPrecedent.case_identity?.citation || selectedPrecedent.citation || 'AIR 2024 SC 101'}</span>
+                  </div>
                   <button
                     onClick={() => handleCopyCitation(selectedPrecedent)}
-                    className="px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-[#1A2333] text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-800 text-xs font-bold flex items-center gap-1.5 cursor-pointer hover:border-[#C8A34D] transition-all whitespace-nowrap shrink-0"
+                    className="p-1 rounded-md text-slate-400 hover:text-[#C8A34D] hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                    title="Copy Citation"
                   >
-                    <Copy className="w-3.5 h-3.5 text-[#C8A34D]" />
-                    <span>{copiedField === 'citation' ? 'Citation Copied!' : 'Copy Citation'}</span>
-                  </button>
-
-                  <button
-                    onClick={() => handleCopyRatio(selectedPrecedent)}
-                    className="px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-[#1A2333] text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-800 text-xs font-bold flex items-center gap-1.5 cursor-pointer hover:border-[#C8A34D] transition-all whitespace-nowrap shrink-0"
-                  >
-                    <Gavel className="w-3.5 h-3.5 text-[#C8A34D]" />
-                    <span>{copiedField === 'ratio' ? 'Ratio Copied!' : 'Copy Ratio'}</span>
-                  </button>
-
-                  <button
-                    onClick={() => handleSaveToCase(selectedPrecedent)}
-                    className="px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-[#1A2333] text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-800 text-xs font-bold flex items-center gap-1.5 cursor-pointer hover:border-[#C8A34D] transition-all whitespace-nowrap shrink-0"
-                  >
-                    <Bookmark className="w-3.5 h-3.5 text-[#C8A34D]" />
-                    <span>Save to Case</span>
+                    <Copy className="w-3 h-3" />
                   </button>
                 </div>
               </div>
 
-              {/* 6 AI OPERATIONS BAR */}
-              <div className="space-y-2">
-                <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">
-                  AI Precedent Intelligence Tools:
-                </span>
-                <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-hide">
+              {/* Row 3: Precedent Action Buttons Toolbar */}
+              <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 pt-2.5 border-t border-slate-100 dark:border-slate-800">
+                {/* QUICK SWITCH TO AI ASSISTANT CHAT */}
+                <button
+                  onClick={() => setDetailTab(detailTab === 'chat' ? 'both' : 'chat')}
+                  className="px-3 py-1.5 rounded-lg bg-gradient-to-r from-[#D4AF37] to-[#B88B2A] hover:from-[#c9a32e] hover:to-[#a77c22] text-[#111111] text-[11px] font-black flex items-center gap-1.5 cursor-pointer shadow-2xs hover:shadow-xs transition-all whitespace-nowrap"
+                  title="Interactive Grounded AI Assistant Chat"
+                >
+                  <Sparkles className="w-3 h-3 text-[#111111]" />
+                  <span>{detailTab === 'chat' ? 'Full Dossier View' : 'Chat with AI Assistant ✨'}</span>
+                </button>
+
+                {/* OFFICIAL COURT VECTOR PDF MODAL */}
+                <button
+                  onClick={() => handleOpenPdfModal(selectedPrecedent)}
+                  className="px-3 py-1.5 rounded-lg bg-[#C8A34D]/15 text-[#C8A34D] hover:bg-[#C8A34D] hover:text-[#111111] border border-[#C8A34D]/40 text-[11px] font-bold flex items-center gap-1.5 cursor-pointer transition-all whitespace-nowrap"
+                  title="Open Official Law Report PDF with Gold Seal and Bench Metadata"
+                >
+                  <FileText className="w-3 h-3" />
+                  <span>Official Court PDF</span>
+                </button>
+
+                <button
+                  onClick={() => handleCopyCitation(selectedPrecedent)}
+                  className="px-2.5 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-[#1A2333] dark:hover:bg-[#222e42] text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-800 text-[11px] font-semibold flex items-center gap-1.5 cursor-pointer hover:border-[#C8A34D] transition-all whitespace-nowrap"
+                >
+                  <Copy className="w-3 h-3 text-[#C8A34D]" />
+                  <span>{copiedField === 'citation' ? 'Citation Copied!' : 'Copy Citation'}</span>
+                </button>
+
+                <button
+                  onClick={() => handleCopyRatio(selectedPrecedent)}
+                  className="px-2.5 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-[#1A2333] dark:hover:bg-[#222e42] text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-800 text-[11px] font-semibold flex items-center gap-1.5 cursor-pointer hover:border-[#C8A34D] transition-all whitespace-nowrap"
+                >
+                  <Gavel className="w-3 h-3 text-[#C8A34D]" />
+                  <span>{copiedField === 'ratio' ? 'Ratio Copied!' : 'Copy Ratio'}</span>
+                </button>
+
+                <button
+                  onClick={() => handleSaveToCase(selectedPrecedent)}
+                  className="px-2.5 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-[#1A2333] dark:hover:bg-[#222e42] text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-800 text-[11px] font-semibold flex items-center gap-1.5 cursor-pointer hover:border-[#C8A34D] transition-all whitespace-nowrap"
+                >
+                  <Bookmark className="w-3 h-3 text-[#C8A34D]" />
+                  <span>Save to Case</span>
+                </button>
+              </div>
+
+              {/* Row 4: 6 AI Operations Intelligence Toolbar */}
+              <div className="pt-2.5 border-t border-slate-100 dark:border-slate-800 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-black text-slate-400 dark:text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+                    <Sparkles className="w-3 h-3 text-[#C8A34D]" />
+                    AI Precedent Intelligence Tools:
+                  </span>
+                  <span className="text-[9.5px] font-medium text-slate-400 hidden sm:inline">Instant 1-Click Operations</span>
+                </div>
+
+                <div className="flex items-center gap-1.5 overflow-x-auto pb-1 pt-0.5 scrollbar-thin scrollbar-thumb-slate-200 dark:scrollbar-thumb-slate-800">
                   <button
                     onClick={() => handleTriggerAiOp('simple', selectedPrecedent)}
                     disabled={isAiOpLoading}
-                    className={`px-3 py-1.5 rounded-xl border text-xs font-bold whitespace-nowrap transition-all cursor-pointer flex items-center gap-1.5 ${
-                      activeAiOp === 'simple' ? 'bg-[#C8A34D] text-[#111111] border-[#C8A34D]' : 'bg-slate-50 dark:bg-[#1A2333] text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-800 hover:border-[#C8A34D]'
+                    className={`px-2.5 py-1 rounded-lg border text-[10.5px] font-semibold whitespace-nowrap transition-all cursor-pointer flex items-center gap-1.5 shrink-0 ${
+                      activeAiOp === 'simple' ? 'bg-[#C8A34D] text-[#111111] border-[#C8A34D] shadow-2xs font-bold' : 'bg-slate-50 hover:bg-slate-100 dark:bg-[#1A2333] dark:hover:bg-[#222e42] text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-800 hover:border-[#C8A34D]'
                     }`}
                   >
-                    <Scale className="w-3.5 h-3.5" />
-                    Explain in Simple Words
+                    <Scale className="w-3 h-3" />
+                    <span>Explain in Simple Words</span>
                   </button>
 
                   <button
                     onClick={() => handleTriggerAiOp('summary', selectedPrecedent)}
                     disabled={isAiOpLoading}
-                    className={`px-3 py-1.5 rounded-xl border text-xs font-bold whitespace-nowrap transition-all cursor-pointer flex items-center gap-1.5 ${
-                      activeAiOp === 'summary' ? 'bg-[#C8A34D] text-[#111111] border-[#C8A34D]' : 'bg-slate-50 dark:bg-[#1A2333] text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-800 hover:border-[#C8A34D]'
+                    className={`px-2.5 py-1 rounded-lg border text-[10.5px] font-semibold whitespace-nowrap transition-all cursor-pointer flex items-center gap-1.5 shrink-0 ${
+                      activeAiOp === 'summary' ? 'bg-[#C8A34D] text-[#111111] border-[#C8A34D] shadow-2xs font-bold' : 'bg-slate-50 hover:bg-slate-100 dark:bg-[#1A2333] dark:hover:bg-[#222e42] text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-800 hover:border-[#C8A34D]'
                     }`}
                   >
-                    <FileText className="w-3.5 h-3.5" />
-                    Structured Dossier Summary
+                    <FileText className="w-3 h-3" />
+                    <span>Structured Dossier Summary</span>
                   </button>
 
                   <button
                     onClick={() => handleTriggerAiOp('compare', selectedPrecedent)}
                     disabled={isAiOpLoading}
-                    className={`px-3 py-1.5 rounded-xl border text-xs font-bold whitespace-nowrap transition-all cursor-pointer flex items-center gap-1.5 ${
-                      activeAiOp === 'compare' ? 'bg-[#C8A34D] text-[#111111] border-[#C8A34D]' : 'bg-slate-50 dark:bg-[#1A2333] text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-800 hover:border-[#C8A34D]'
+                    className={`px-2.5 py-1 rounded-lg border text-[10.5px] font-semibold whitespace-nowrap transition-all cursor-pointer flex items-center gap-1.5 shrink-0 ${
+                      activeAiOp === 'compare' ? 'bg-[#C8A34D] text-[#111111] border-[#C8A34D] shadow-2xs font-bold' : 'bg-slate-50 hover:bg-slate-100 dark:bg-[#1A2333] dark:hover:bg-[#222e42] text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-800 hover:border-[#C8A34D]'
                     }`}
                   >
-                    <Sparkles className="w-3.5 h-3.5" />
-                    Compare with My Case
+                    <Sparkles className="w-3 h-3" />
+                    <span>Compare with My Case</span>
                   </button>
 
                   <button
                     onClick={() => handleTriggerAiOp('stronger', selectedPrecedent)}
                     disabled={isAiOpLoading}
-                    className={`px-3 py-1.5 rounded-xl border text-xs font-bold whitespace-nowrap transition-all cursor-pointer flex items-center gap-1.5 ${
-                      activeAiOp === 'stronger' ? 'bg-[#C8A34D] text-[#111111] border-[#C8A34D]' : 'bg-slate-50 dark:bg-[#1A2333] text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-800 hover:border-[#C8A34D]'
+                    className={`px-2.5 py-1 rounded-lg border text-[10.5px] font-semibold whitespace-nowrap transition-all cursor-pointer flex items-center gap-1.5 shrink-0 ${
+                      activeAiOp === 'stronger' ? 'bg-[#C8A34D] text-[#111111] border-[#C8A34D] shadow-2xs font-bold' : 'bg-slate-50 hover:bg-slate-100 dark:bg-[#1A2333] dark:hover:bg-[#222e42] text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-800 hover:border-[#C8A34D]'
                     }`}
                   >
-                    <Award className="w-3.5 h-3.5" />
-                    Stronger Authorities
+                    <Award className="w-3 h-3" />
+                    <span>Stronger Authorities</span>
                   </button>
 
                   <button
                     onClick={() => handleTriggerAiOp('conflict', selectedPrecedent)}
                     disabled={isAiOpLoading}
-                    className={`px-3 py-1.5 rounded-xl border text-xs font-bold whitespace-nowrap transition-all cursor-pointer flex items-center gap-1.5 ${
-                      activeAiOp === 'conflict' ? 'bg-[#C8A34D] text-[#111111] border-[#C8A34D]' : 'bg-slate-50 dark:bg-[#1A2333] text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-800 hover:border-[#C8A34D]'
+                    className={`px-2.5 py-1 rounded-lg border text-[10.5px] font-semibold whitespace-nowrap transition-all cursor-pointer flex items-center gap-1.5 shrink-0 ${
+                      activeAiOp === 'conflict' ? 'bg-[#C8A34D] text-[#111111] border-[#C8A34D] shadow-2xs font-bold' : 'bg-slate-50 hover:bg-slate-100 dark:bg-[#1A2333] dark:hover:bg-[#222e42] text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-800 hover:border-[#C8A34D]'
                     }`}
                   >
-                    <AlertCircle className="w-3.5 h-3.5" />
-                    Conflicting Judgments
+                    <AlertCircle className="w-3 h-3" />
+                    <span>Conflicting Judgments</span>
                   </button>
 
                   <button
                     onClick={() => handleTriggerAiOp('oral', selectedPrecedent)}
                     disabled={isAiOpLoading}
-                    className={`px-3 py-1.5 rounded-xl border text-xs font-bold whitespace-nowrap transition-all cursor-pointer flex items-center gap-1.5 ${
-                      activeAiOp === 'oral' ? 'bg-[#C8A34D] text-[#111111] border-[#C8A34D]' : 'bg-slate-50 dark:bg-[#1A2333] text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-800 hover:border-[#C8A34D]'
+                    className={`px-2.5 py-1 rounded-lg border text-[10.5px] font-semibold whitespace-nowrap transition-all cursor-pointer flex items-center gap-1.5 shrink-0 ${
+                      activeAiOp === 'oral' ? 'bg-[#C8A34D] text-[#111111] border-[#C8A34D] shadow-2xs font-bold' : 'bg-slate-50 hover:bg-slate-100 dark:bg-[#1A2333] dark:hover:bg-[#222e42] text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-800 hover:border-[#C8A34D]'
                     }`}
                   >
-                    <MessageSquare className="w-3.5 h-3.5" />
-                    Oral Submissions Script
+                    <MessageSquare className="w-3 h-3" />
+                    <span>Oral Submissions Script</span>
                   </button>
 
                   <button
                     onClick={() => handleTriggerAiOp('draft', selectedPrecedent)}
-                    className="px-3 py-1.5 rounded-xl bg-[#C8A34D]/10 text-[#C8A34D] border border-[#C8A34D]/30 text-xs font-bold whitespace-nowrap hover:bg-[#C8A34D] hover:text-[#111111] transition-all cursor-pointer flex items-center gap-1.5"
+                    className="px-2.5 py-1 rounded-lg bg-[#C8A34D]/10 text-[#C8A34D] border border-[#C8A34D]/30 text-[10.5px] font-semibold whitespace-nowrap hover:bg-[#C8A34D] hover:text-[#111111] transition-all cursor-pointer flex items-center gap-1.5 shrink-0"
                   >
-                    <ExternalLink className="w-3.5 h-3.5" />
-                    Export to Draft Maker
+                    <ExternalLink className="w-3 h-3" />
+                    <span>Export to Draft Maker</span>
                   </button>
                 </div>
               </div>
@@ -2174,28 +2538,101 @@ ${related.length > 0
 
                   {/* APPLICABLE ACTS & METADATA GRID */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div className="bg-white dark:bg-[#111622] p-5 rounded-3xl border border-slate-200 dark:border-slate-800 space-y-2">
-                      <h4 className="text-xs font-black uppercase tracking-wider text-slate-400">
-                        Applicable Acts & Sections
-                      </h4>
+                    <div className="bg-white dark:bg-[#111622] p-4 sm:p-5 rounded-2xl border border-slate-200/90 dark:border-slate-800 space-y-2.5 shadow-2xs">
+                      <div className="flex items-center gap-1.5 text-slate-400">
+                        <BookOpen className="w-3.5 h-3.5 text-[#C8A34D]" />
+                        <h4 className="text-[11px] font-black uppercase tracking-wider">
+                          Applicable Acts & Sections
+                        </h4>
+                      </div>
                       <div className="flex flex-wrap gap-1.5">
-                        {(Array.isArray(selectedPrecedent.tags) ? selectedPrecedent.tags : (typeof selectedPrecedent.tags === 'string' ? selectedPrecedent.tags.split(',') : ['Constitution of India', 'Sec 138 NI Act'])).map((tag, idx) => (
-                          <span key={idx} className="px-2.5 py-1 rounded-xl bg-slate-100 dark:bg-[#1A2333] border border-slate-200 dark:border-slate-800 text-[11px] font-mono text-slate-700 dark:text-slate-300">
-                            {tag}
-                          </span>
-                        ))}
+                        {(() => {
+                          const list = [];
+                          if (Array.isArray(selectedPrecedent.applicableStatutes) && selectedPrecedent.applicableStatutes.length > 0) {
+                            list.push(...selectedPrecedent.applicableStatutes);
+                          }
+                          if (Array.isArray(selectedPrecedent.acts) && selectedPrecedent.acts.length > 0) {
+                            list.push(...selectedPrecedent.acts);
+                          }
+                          if (Array.isArray(selectedPrecedent.sections) && selectedPrecedent.sections.length > 0) {
+                            list.push(...selectedPrecedent.sections);
+                          }
+                          if (Array.isArray(selectedPrecedent.key_statutes) && selectedPrecedent.key_statutes.length > 0) {
+                            list.push(...selectedPrecedent.key_statutes);
+                          }
+                          if (Array.isArray(selectedPrecedent.applicable_statutes) && selectedPrecedent.applicable_statutes.length > 0) {
+                            list.push(...selectedPrecedent.applicable_statutes);
+                          }
+                          if (Array.isArray(selectedPrecedent.subjectTags) && selectedPrecedent.subjectTags.length > 0) {
+                            list.push(...selectedPrecedent.subjectTags);
+                          }
+                          if (Array.isArray(selectedPrecedent.tags) && selectedPrecedent.tags.length > 0) {
+                            list.push(...selectedPrecedent.tags);
+                          } else if (typeof selectedPrecedent.tags === 'string' && selectedPrecedent.tags.trim()) {
+                            list.push(...selectedPrecedent.tags.split(',').map(s => s.trim()).filter(Boolean));
+                          }
+                          if (Array.isArray(selectedPrecedent.case_identity?.acts) && selectedPrecedent.case_identity.acts.length > 0) {
+                            list.push(...selectedPrecedent.case_identity.acts);
+                          }
+                          if (Array.isArray(selectedPrecedent.case_identity?.sections) && selectedPrecedent.case_identity.sections.length > 0) {
+                            list.push(...selectedPrecedent.case_identity.sections);
+                          }
+
+                          // Deduplicate
+                          const unique = Array.from(new Set(list.filter(Boolean)));
+                          if (unique.length > 0) {
+                            return unique.map((tag, idx) => (
+                              <span key={idx} className="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-[#1A2333] border border-slate-200 dark:border-slate-800 text-[10.5px] font-mono font-medium text-slate-700 dark:text-slate-200 transition-colors">
+                                {tag}
+                              </span>
+                            ));
+                          }
+
+                          // Smart extraction from text if no explicit tags exist
+                          const text = `${selectedPrecedent.case_identity?.case_name || selectedPrecedent.case_name || ''} ${selectedPrecedent.ratioDecidendi || ''} ${selectedPrecedent.legal_principle || ''} ${selectedPrecedent.caseType || ''}`;
+                          const extracted = [];
+                          const secMatches = text.match(/Section\s+\d+(\([a-z0-9]+\))*\s+([A-Za-z]+(\s+[A-Za-z]+)*)?/gi);
+                          if (secMatches) extracted.push(...secMatches.slice(0, 3));
+                          const artMatches = text.match(/Article\s+\d+([A-Z])?/gi);
+                          if (artMatches) extracted.push(...artMatches.slice(0, 3));
+                          const actMatches = text.match(/[A-Z][a-zA-Z\s]+Act(,\s*\d{4})?/g);
+                          if (actMatches) extracted.push(...actMatches.slice(0, 2));
+
+                          const fallback = extracted.length > 0 
+                            ? Array.from(new Set(extracted.map(s => s.trim())))
+                            : (isNepal 
+                                ? ['Constitution of Nepal, 2072', 'Muluki Civil Code, 2074', 'Supreme Court Rules']
+                                : ['Constitution of India, 1950', 'Code of Criminal Procedure, 1973', 'Indian Penal Code / BNS']);
+
+                          return fallback.map((tag, idx) => (
+                            <span key={idx} className="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-[#1A2333] border border-slate-200 dark:border-slate-800 text-[10.5px] font-mono font-medium text-slate-700 dark:text-slate-200 transition-colors">
+                              {tag}
+                            </span>
+                          ));
+                        })()}
                       </div>
                     </div>
 
-                    <div className="bg-white dark:bg-[#111622] p-5 rounded-3xl border border-slate-200 dark:border-slate-800 space-y-2">
-                      <h4 className="text-xs font-black uppercase tracking-wider text-slate-400">
-                        Law Report Citation & Bench
-                      </h4>
-                      <p className="text-xs font-mono font-bold text-[#C8A34D]">
-                        {selectedPrecedent.case_identity?.citation || selectedPrecedent.citation || 'AIR 2024 SC'}
+                    <div className="bg-white dark:bg-[#111622] p-4 sm:p-5 rounded-2xl border border-slate-200/90 dark:border-slate-800 space-y-2 shadow-2xs">
+                      <div className="flex items-center gap-1.5 text-slate-400">
+                        <Scale className="w-3.5 h-3.5 text-[#C8A34D]" />
+                        <h4 className="text-[11px] font-black uppercase tracking-wider">
+                          Law Report Citation & Bench
+                        </h4>
+                      </div>
+                      <p className="text-xs font-mono font-bold text-[#C8A34D] truncate">
+                        {selectedPrecedent.case_identity?.citation || selectedPrecedent.citation || 'AIR Law Report'}
                       </p>
-                      <p className="text-[11px] text-slate-500 dark:text-slate-400">
-                        {selectedPrecedent.case_identity?.bench || 'Constitutional / Division Bench'} • {selectedPrecedent.case_identity?.judge || 'Hon\'ble Judges'}
+                      <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">
+                        {(() => {
+                          const benchStr = selectedPrecedent.case_identity?.bench || selectedPrecedent.bench || 'Constitutional Bench';
+                          const judgesList = Array.isArray(selectedPrecedent.judges) && selectedPrecedent.judges.length > 0
+                            ? selectedPrecedent.judges.join(', ')
+                            : (selectedPrecedent.case_identity?.judge && selectedPrecedent.case_identity.judge.toLowerCase() !== benchStr.toLowerCase() 
+                                ? selectedPrecedent.case_identity.judge 
+                                : '');
+                          return judgesList ? `${benchStr} • ${judgesList}` : benchStr;
+                        })()}
                       </p>
                     </div>
                   </div>
@@ -2229,11 +2666,12 @@ ${related.length > 0
               {(detailTab === 'both' || detailTab === 'chat') && (
                 <div className={`${
                   detailTab === 'both' 
-                    ? 'lg:col-span-5 xl:col-span-4 sticky top-20' 
-                    : 'max-w-4xl mx-auto w-full'
-                } h-[780px] rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#111622] shadow-md overflow-hidden flex flex-col`}>
+                    ? 'lg:col-span-5 xl:col-span-4 sticky top-16 h-[calc(100vh-100px)] min-h-[540px]' 
+                    : 'max-w-4xl mx-auto w-full h-[calc(100vh-140px)] min-h-[560px]'
+                } rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#111622] shadow-md overflow-hidden flex flex-col min-h-0`}>
                   <JudgmentChatSidebar 
                     judgment={selectedPrecedent.rawJudgment || selectedPrecedent} 
+                    language={outputLanguage}
                   />
                 </div>
               )}
@@ -2287,6 +2725,14 @@ ${related.length > 0
                   </div>
 
                   <div className="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-end">
+                    <button
+                      onClick={() => setIsCreateMatterModalOpen(true)}
+                      className="px-3 py-1.5 rounded-xl bg-[#C8A34D] hover:bg-[#b8933d] text-[#111111] text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer shadow-xs"
+                      title="Create New Matter in My Matters"
+                    >
+                      <Plus className="w-3.5 h-3.5" />
+                      <span>New Matter</span>
+                    </button>
                     <span className="px-2.5 py-1 rounded-full bg-[#C8A34D]/15 text-[#C8A34D] text-[11px] font-bold">
                       {advocateCases.length} {advocateCases.length === 1 ? 'Matter' : 'Matters'} Available
                     </span>
@@ -2412,32 +2858,43 @@ ${related.length > 0
                     })}
                   </div>
                 ) : (
-                  <div className="p-4 text-center space-y-2 bg-slate-50 dark:bg-[#1A2333] rounded-xl border border-dashed border-slate-300 dark:border-slate-700">
-                    <AlertCircle className="w-6 h-6 text-amber-500 mx-auto" />
-                    <div>
-                      <h4 className="text-xs font-bold text-slate-900 dark:text-white">
-                        {caseFilterQuery ? `No matters matching "${caseFilterQuery}"` : 'No registered matters found'}
+                  <div className="p-6 text-center space-y-3 bg-slate-50 dark:bg-[#1A2333] rounded-2xl border border-dashed border-slate-300 dark:border-slate-700">
+                    <div className="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-500 flex items-center justify-center mx-auto">
+                      <Briefcase className="w-5 h-5" />
+                    </div>
+                    <div className="max-w-md mx-auto">
+                      <h4 className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white">
+                        {caseFilterQuery ? `No matters matching "${caseFilterQuery}"` : 'No registered matters found in My Matters'}
                       </h4>
-                      <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+                      <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
                         {caseFilterQuery
                           ? 'Try changing your search terms or clear the filter.'
-                          : 'You can create a case in My Matters or switch to Manual Search.'}
+                          : 'You haven\'t created any cases in My Matters yet. Create a new matter to automatically discover related precedents, or switch to Manual Search.'}
                       </p>
                     </div>
                     {caseFilterQuery ? (
                       <button
                         onClick={() => setCaseFilterQuery('')}
-                        className="px-3 py-1 rounded-lg bg-slate-200 dark:bg-slate-800 text-[11px] font-bold text-slate-800 dark:text-slate-200 transition-all cursor-pointer"
+                        className="px-3.5 py-1.5 rounded-lg bg-slate-200 dark:bg-slate-800 text-xs font-bold text-slate-800 dark:text-slate-200 transition-all cursor-pointer"
                       >
                         Clear Filter
                       </button>
                     ) : (
-                      <button
-                        onClick={() => setResearchMode('MANUAL')}
-                        className="px-3.5 py-1.5 rounded-lg bg-[#C8A34D] text-[#111111] text-xs font-bold transition-all cursor-pointer"
-                      >
-                        Switch to Manual Search
-                      </button>
+                      <div className="flex items-center justify-center gap-2 pt-1 flex-wrap">
+                        <button
+                          onClick={() => setIsCreateMatterModalOpen(true)}
+                          className="px-4 py-2 rounded-xl bg-[#C8A34D] hover:bg-[#b8933d] text-[#111111] text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer shadow-xs"
+                        >
+                          <Plus className="w-3.5 h-3.5" />
+                          <span>+ Create New Matter</span>
+                        </button>
+                        <button
+                          onClick={() => setResearchMode('MANUAL')}
+                          className="px-3.5 py-2 rounded-xl bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white text-xs font-bold transition-all cursor-pointer"
+                        >
+                          Switch to Manual Search
+                        </button>
+                      </div>
                     )}
                   </div>
                 )}
@@ -2855,6 +3312,156 @@ ${related.length > 0
         onClose={() => setPdfModalOpen(false)} 
         judgment={pdfModalJudgment} 
       />
+
+      {/* Create Matter Modal in My Matters */}
+      <AnimatePresence>
+        {isCreateMatterModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="w-full max-w-lg bg-white dark:bg-[#111622] rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden flex flex-col max-h-[90vh]"
+            >
+              {/* Header */}
+              <div className="p-5 border-b border-slate-100 dark:border-slate-800/80 flex items-center justify-between">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-xl bg-[#C8A34D]/15 text-[#C8A34D] flex items-center justify-center">
+                    <Plus className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm sm:text-base font-bold text-slate-900 dark:text-white">
+                      Create New Matter in My Matters
+                    </h3>
+                    <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                      Add a case to your docket to automatically match tailored precedents.
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setIsCreateMatterModalOpen(false)}
+                  className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              {/* Form Content */}
+              <form onSubmit={handleCreateMatter} className="p-5 space-y-3.5 overflow-y-auto">
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">
+                    Matter Title (e.g. State vs Raj Malhotra, ABC Corp vs XYZ Ltd.)
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. State vs Raj Malhotra & Ors."
+                    value={newMatterForm.name}
+                    onChange={(e) => setNewMatterForm({ ...newMatterForm, name: e.target.value })}
+                    className="w-full px-3.5 py-2 rounded-xl bg-slate-50 dark:bg-[#1A2333] border border-slate-200 dark:border-slate-800 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-[#C8A34D]"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">
+                      Client Name
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g. Raj Malhotra"
+                      value={newMatterForm.clientName}
+                      onChange={(e) => setNewMatterForm({ ...newMatterForm, clientName: e.target.value })}
+                      className="w-full px-3.5 py-2 rounded-xl bg-slate-50 dark:bg-[#1A2333] border border-slate-200 dark:border-slate-800 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-[#C8A34D]"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">
+                      Opponent / Accused (Optional)
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g. ABC Enterprises"
+                      value={newMatterForm.accused}
+                      onChange={(e) => setNewMatterForm({ ...newMatterForm, accused: e.target.value })}
+                      className="w-full px-3.5 py-2 rounded-xl bg-slate-50 dark:bg-[#1A2333] border border-slate-200 dark:border-slate-800 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-[#C8A34D]"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">
+                      Case Type / Category
+                    </label>
+                    <select
+                      value={newMatterForm.caseType}
+                      onChange={(e) => setNewMatterForm({ ...newMatterForm, caseType: e.target.value })}
+                      className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-[#1A2333] border border-slate-200 dark:border-slate-800 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-[#C8A34D]"
+                    >
+                      <option value="Cheque Bounce (Sec 138 NI Act)">Cheque Bounce (Sec 138 NI Act)</option>
+                      <option value="Commercial Contract & Arbitration">Commercial Contract & Arbitration</option>
+                      <option value="Criminal Law & Bail">Criminal Law & Bail</option>
+                      <option value="Matrimonial & Maintenance (Sec 125 CrPC / HMA)">Matrimonial & Maintenance (Sec 125)</option>
+                      <option value="Consumer Protection & Service Deficiency">Consumer Protection</option>
+                      <option value="Cyber Law & Digital Fraud">Cyber Law & Digital Fraud</option>
+                      <option value="Property & Real Estate Dispute">Property & Real Estate</option>
+                      <option value="Corporate Law & IBC Insolvency">Corporate Law & IBC</option>
+                      <option value="Constitutional & Fundamental Rights">Constitutional Law</option>
+                      <option value="Labour & Employment Law">Labour & Employment</option>
+                      <option value="Other">Other</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">
+                      Court / Forum
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g. Patiala House Courts"
+                      value={newMatterForm.courtName}
+                      onChange={(e) => setNewMatterForm({ ...newMatterForm, courtName: e.target.value })}
+                      className="w-full px-3.5 py-2 rounded-xl bg-slate-50 dark:bg-[#1A2333] border border-slate-200 dark:border-slate-800 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-[#C8A34D]"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">
+                    Brief Facts / Case Summary
+                  </label>
+                  <textarea
+                    rows={3}
+                    placeholder="Brief description of the dispute, statutory notices, or relief sought..."
+                    value={newMatterForm.summary}
+                    onChange={(e) => setNewMatterForm({ ...newMatterForm, summary: e.target.value })}
+                    className="w-full px-3.5 py-2 rounded-xl bg-slate-50 dark:bg-[#1A2333] border border-slate-200 dark:border-slate-800 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-[#C8A34D] resize-none"
+                  />
+                </div>
+
+                {/* Footer buttons */}
+                <div className="pt-2 flex items-center justify-end gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setIsCreateMatterModalOpen(false)}
+                    className="px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-800 text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isCreatingMatter}
+                    className="px-5 py-2 rounded-xl bg-[#C8A34D] hover:bg-[#b8933d] text-[#111111] text-xs font-black flex items-center gap-1.5 transition-all shadow-sm cursor-pointer disabled:opacity-50"
+                  >
+                    {isCreatingMatter ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5" />}
+                    <span>{isCreatingMatter ? 'Creating...' : 'Create & Match Precedents'}</span>
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

@@ -900,6 +900,8 @@ Where accused was not arrested during investigation and cooperated throughout, u
   },
   {
     id: 'sc_2024_02',
+    slug: 'rangappa-sri-mohan',
+    aliases: ['rangappa', 'rangappa-sri-mohan', 'sc_2024_02', 'sc_2010_rangappa'],
     title: 'Rangappa v. Sri Mohan',
     parties: {
       petitioner: 'Rangappa',
@@ -1471,5 +1473,733 @@ DIPAK MISRA, C.J.I.:
       'Hindu Marriage Act, 1955 — Sections 24, 25',
       'Constitution of India — Articles 141, 142'
     ]
+  },
+  {
+    id: 'cox-and-kings',
+    slug: 'cox-and-kings-sap-india',
+    aliases: ['cox-and-kings', 'sap-india', 'cox-and-kings-sap-india', 'sc_2023_cox_kings'],
+    title: 'Cox and Kings Ltd. v. SAP India Pvt. Ltd. & Anr.',
+    parties: {
+      petitioner: 'Cox and Kings Ltd.',
+      respondent: 'SAP India Pvt. Ltd. & Anr.'
+    },
+    court: 'Supreme Court of India',
+    courtId: 'sc',
+    year: '2023',
+    date: '06 December 2023',
+    citation: '(2024) 4 SCC 1 / 2023 INSC 1051',
+    bench: '5-Judge Constitutional Bench',
+    judges: [
+      "Hon'ble Chief Justice D.Y. Chandrachud",
+      "Hon'ble Justice Hrishikesh Roy",
+      "Hon'ble Justice P.S. Narasimha",
+      "Hon'ble Justice J.B. Pardiwala",
+      "Hon'ble Justice Manoj Misra"
+    ],
+    counsel: {
+      petitioner: ['Senior Advocates for Cox & Kings'],
+      respondent: ['Senior Advocates for SAP India']
+    },
+    caseNumber: 'Arbitration Petition (Civil) No. 38 of 2020',
+    caseType: 'Commercial Arbitration Petition under Section 11(6)',
+    subjectTags: ['Commercial Law', 'Arbitration', 'Group of Companies Doctrine', 'Section 7', 'Section 8', 'Section 11', 'Non-Signatory Liability', 'Contract Breach', 'Commercial Dispute'],
+    acts: [
+      'Arbitration and Conciliation Act, 1996',
+      'Indian Contract Act, 1872',
+      'Companies Act, 2013'
+    ],
+    sections: [
+      'Section 7 Arbitration Act',
+      'Section 8 Arbitration Act',
+      'Section 9 Arbitration Act',
+      'Section 11 Arbitration Act',
+      'Section 16 Arbitration Act'
+    ],
+    relevanceScore: 98,
+    relevanceReason: 'Authoritative 5-Judge Constitution Bench affirming that non-signatory group entities can be bound by arbitration agreements under the "Group of Companies" doctrine based on mutual intention, corporate structure, and contract performance.',
+    ratioDecidendi: 'The "Group of Companies" doctrine is an integral principle of Indian arbitration jurisprudence under Section 7 of the Arbitration and Conciliation Act, 1996. A non-signatory affiliate or parent company can be bound by an arbitration agreement if the circumstances demonstrate mutual intention of all parties to bind it, evidenced by active involvement in contract negotiation, execution, or performance within a tight corporate group.',
+    executiveSummary: 'A 5-Judge Constitution Bench led by CJI D.Y. Chandrachud reconciled Indian arbitration jurisprudence with modern corporate transactions. The Court held that modern contracts often involve complex multi-layered corporate groups where execution is done by an operating subsidiary while performance and control reside in the parent entity. Section 7 only mandates that the arbitration agreement be in writing; it does not mandate that non-signatories must affix physical signatures if their consensus ad idem is established.',
+    caseContext: {
+      facts: 'Cox & Kings entered into software licensing agreements with SAP India. When disputes arose regarding contract implementation and breach, Cox & Kings invoked arbitration against both SAP India and its German parent company SAP SE (a non-signatory). SAP SE resisted joinder on the ground of privity of contract.',
+      legalIssue: 'Whether a non-signatory corporate group company can be joined to an arbitration proceeding under the "Group of Companies" doctrine without being an express signatory.'
+    },
+    arguments: {
+      appellant: 'The parent entity actively controlled the contractual deliverables and software rollout. Commercial reality dictates binding the parent entity under the Group of Companies doctrine.',
+      respondent: 'Arbitration is strictly consensual. Joining a non-signatory violates party autonomy and the separate corporate legal personality under Salomon v. Salomon.'
+    },
+    reasoning: 'The Court held that consent in arbitration can be express or implied. Section 7(3) requires an agreement to be in writing, but does not stipulate that all bound parties must sign. The test requires examining: (a) mutual intent of parties, (b) relationship of non-signatory to signatory, (c) commonality of subject matter, (d) composite nature of transaction, and (e) actual performance of the contract.',
+    finalDecision: 'The 5-Judge Bench affirmed the validity of the Group of Companies doctrine in Indian arbitration, holding that referral courts under Sections 8 and 11 should leave the final determination of non-signatory joinder to the arbitral tribunal under Section 16.',
+    obiterDicta: 'Judicial intervention at the referral stage must remain minimal; the competence-competence principle under Section 16 empowers the arbitrator to rule on jurisdiction regarding non-signatories.',
+    applicableStatutes: [
+      'Arbitration and Conciliation Act, 1996 — Sections 7, 8, 9, 11, 16',
+      'Indian Contract Act, 1872 — Sections 2(h), 10'
+    ],
+    precedentsCited: [
+      'Chloro Controls India Pvt. Ltd. v. Severn Trent Water Purification Inc. (2013) 1 SCC 641 (Approved)',
+      'Vidya Drolia v. Durga Trading Corp. (2020) 2 SCC 1 (Referred)'
+    ],
+    subsequentTreatment: [
+      'Interplay between Arbitration Agreements and Stamp Act (2023) 7-Judge Bench',
+      'SBI v. Consortium of Banks on Corporate Guarantees (2024)'
+    ],
+    practicalTakeaway: 'In commercial disputes and contract breaches, join controlling parent or affiliate entities in the Section 11 notice by demonstrating email trails, technical involvement, or payment flows showing common economic reality.',
+    keyParagraphs: [
+      {
+        paraNum: 172,
+        text: 'The group of companies doctrine must be retained in the Indian arbitration jurisprudence considering its utility in modern commercial contracts. A non-signatory entity may be bound by an arbitration agreement where consensus ad idem is established.'
+      }
+    ],
+    fullTextExcerpt: `IN THE SUPREME COURT OF INDIA
+CIVIL ORIGINAL JURISDICTION
+ARBITRATION PETITION (CIVIL) NO. 38 OF 2020
+
+Cox and Kings Ltd. ... Petitioner
+Versus
+SAP India Pvt. Ltd. and Another ... Respondents
+
+CORAM:
+HON'BLE DR. D.Y. CHANDRACHUD, CHIEF JUSTICE OF INDIA
+HON'BLE HRISHIKESH ROY, J.
+HON'BLE P.S. NARASIMHA, J.
+HON'BLE J.B. PARDIWALA, J.
+HON'BLE MANOJ MISRA, J.
+
+JUDGMENT
+DR. D.Y. CHANDRACHUD, C.J.I.:
+1. The Group of Companies doctrine is an essential facet of modern commercial dispute resolution in India. A non-signatory can be bound by an arbitration agreement if the composite nature of the commercial transaction and the conduct of the parties establishes an intention to be bound.`
+  },
+  {
+    id: 'naz-foundation-delhi-hc',
+    slug: 'naz-foundation-delhi-hc',
+    aliases: ['naz-foundation', 'delhi_hc_naz_foundation', 'sec377_delhi_hc'],
+    title: 'Naz Foundation v. Government of NCT of Delhi and Others',
+    parties: {
+      petitioner: 'Naz Foundation (India) Trust',
+      respondent: 'Government of NCT of Delhi & Union of India'
+    },
+    court: 'High Court of Delhi',
+    courtId: 'hc_delhi',
+    year: '2009',
+    date: '2 July 2009',
+    citation: '160 DLT 277 / 2009 Cri LJ 4742 / ILR (2009) Supp (2) Del 1',
+    bench: 'Division Bench',
+    judges: [
+      "Hon'ble Chief Justice A.P. Shah",
+      "Hon'ble Justice S. Muralidhar"
+    ],
+    counsel: {
+      petitioner: ['Anand Grover (Senior Advocate)', 'Shyam Divan (Senior Advocate)', 'Tripti Tandon (Advocate)'],
+      respondent: ['P.P. Malhotra (Additional Solicitor General)', 'V.K. Shali (Standing Counsel for NCT Delhi)', 'A.S. Chandhiok (Additional Solicitor General)']
+    },
+    caseNumber: 'Writ Petition (Civil) No. 7455 of 2001',
+    caseType: 'Writ Petition (Civil)',
+    subjectTags: ['Section 377 IPC', 'Constitutional Morality', 'Right to Privacy', 'Decriminalisation', 'Article 14', 'Article 21', 'Human Dignity'],
+    acts: [
+      'Indian Penal Code, 1860',
+      'Constitution of India, 1950'
+    ],
+    sections: [
+      'Section 377 IPC',
+      'Article 14',
+      'Article 15',
+      'Article 21'
+    ],
+    relevanceScore: 98,
+    relevanceReason: 'Pathbreaking Delhi High Court ruling holding Section 377 IPC unconstitutional insofar as it criminalised consensual sexual acts between adults in private, establishing that constitutional morality supersedes popular morality.',
+    ratioDecidendi: 'Section 377 of the Indian Penal Code, in so far as it criminalises consensual sexual acts of adults in private, is violative of Articles 14, 15 and 21 of the Constitution of India. Popular morality cannot justify depriving a minority of fundamental rights.',
+    executiveSummary: 'A landmark Division Bench of the High Court of Delhi struck down the criminalisation of private consensual adult relationships under Section 377 IPC, delivering a foundational charter on privacy, autonomy, equality, and human dignity under the Indian Constitution.',
+    caseContext: {
+      facts: 'The Naz Foundation (India) Trust, a registered non-governmental organization working in the field of HIV/AIDS intervention and rehabilitation, instituted this public interest litigation in 2001 under Article 226 of the Constitution challenging the constitutional validity of Section 377 IPC. The petitioner demonstrated through extensive empirical studies and affidavits from public health workers that Section 377, enacted in 1860, criminalised consensual sexual acts between consenting adults in private. This colonial penal provision was systematically exploited by police authorities to harass, extort, blackmail, and physically abuse homosexual and transgender individuals, driving them into secrecy and severely impeding national HIV/AIDS prevention outreach programs supported by the National AIDS Control Organisation (NACO).',
+      legalIssue: '1. Does Section 377 IPC, to the extent that it penalises consensual sexual acts of adults in private, infringe the fundamental right to life, personal liberty, bodily autonomy, and privacy under Article 21?\n2. Does Section 377 create an arbitrary, unreasonable classification violating the equality guarantee under Article 14?\n3. Does prohibition of discrimination on grounds of "sex" under Article 15 include sexual orientation?\n4. Can societal morality or majoritarian disapproval constitute a compelling state interest to criminalise private adult intimacy?'
+    },
+    arguments: {
+      appellant: 'Senior Advocates Anand Grover and Shyam Divan submitted:\n• The right to life and liberty under Article 21 encompasses privacy, bodily autonomy, and human dignity. Criminalising consensual adult intimacy within the private zone destroys individual dignity and forces persons to live in perpetual terror of prosecution.\n• Section 377 operates as an insurmountable impediment to HIV/AIDS prevention, as verified by NACO affidavits showing that high-risk groups cannot access condoms, testing, or counseling without risking arrest.\n• The classification under Section 377 has no rational nexus to any legitimate state objective. It targets persons based on immutable characteristics of sexual orientation, violating Article 14 and Article 15.\n• In a constitutional democracy, rights cannot be subjected to the tyranny of majoritarian morality; constitutional morality must prevail.',
+      respondent: 'The Union of India (Ministry of Home Affairs) and religious organizations submitted:\n• Section 377 is neutral and does not target any specific group but penalizes specific unnatural acts against the order of nature.\n• Indian society is predominantly conservative and public morality, social norms, and religious tenets disapprove of homosexuality.\n• Decriminalization would lead to moral degradation and a spike in HIV transmission in the wider population.\n• Matters of legislative policy and criminal law reform should be left exclusively to Parliament rather than the judiciary.'
+    },
+    reasoning: 'Chief Justice A.P. Shah and Justice S. Muralidhar delivered an exhaustive landmark ruling:\n1. Privacy and Human Dignity (Article 21): Privacy protects personal intimacies of the home, the family, marriage, motherhood, procreation, and childbearing, as well as the sphere of personal autonomy in consensual sexual relations between adults in private. Criminalising such intimacy severely damages human dignity.\n2. Inclusiveness of Equality (Article 14 & 15): The sphere of non-discrimination on grounds of "sex" in Article 15 includes sexual orientation. Discrimination based on sexual orientation is offensive to human dignity and equality before the law.\n3. Constitutional Morality vs. Popular Morality: In our constitutional democracy, fundamental rights cannot be made dependent on majoritarian prejudices or societal morality. If there is any type of morality that can pass the test of compelling state interest, it must be constitutional morality—based on plurality, inclusiveness, and human dignity.\n4. Public Health Imperative: Criminalisation creates a culture of fear, silence, and shame, impeding state efforts to contain the HIV/AIDS epidemic.',
+    finalDecision: 'Writ petition allowed. Section 377 of the Indian Penal Code, insofar as it criminalises consensual sexual conduct between adults in private, is declared unconstitutional as being violative of Articles 14, 15, and 21 of the Constitution of India. The penal provision shall continue to apply strictly to non-consensual acts and acts involving minors.',
+    obiterDicta: 'The hallmark of a mature democracy is the protection accorded to minorities against popular prejudices. Constitutional morality requires that fundamental guarantees of liberty and equality apply to every individual regardless of sexual orientation.',
+    applicableStatutes: [
+      'Indian Penal Code, 1860 — Section 377',
+      'Constitution of India — Articles 14, 15, 21, 226'
+    ],
+    precedentsCited: [
+      'Kharak Singh v. State of U.P. AIR 1963 SC 1295 (Right to Privacy)',
+      'Govind v. State of M.P. (1975) 2 SCC 148 (Sphere of Bodily Privacy)',
+      'Francis Coralie Mullin v. Administrator, Union Territory of Delhi (1981) 1 SCC 608 (Dignity under Article 21)',
+      'Maneka Gandhi v. Union of India (1978) 1 SCC 248 (Fair, Just and Reasonable Procedure)',
+      'Lawrence v. Texas 539 U.S. 558 (2003) (Decriminalisation of Sodomy)'
+    ],
+    subsequentTreatment: [
+      'Suresh Kumar Koushal v. Naz Foundation (2014) 1 SCC 1 (Overruled Delhi HC)',
+      'Navtej Singh Johar v. Union of India (2018) 10 SCC 1 (Re-affirmed and endorsed Naz Foundation reasoning in full)'
+    ],
+    practicalTakeaway: 'In fundamental rights litigations, establish that state action must meet the strict scrutiny test and cannot be validated purely by invoking societal or religious orthodoxy.',
+    keyParagraphs: [
+      {
+        paraNum: 79,
+        text: 'The sphere of privacy allows persons to develop human relationships without interference from the outside community or the State. The criminalisation of consensual sexual conduct in private violates the core of Article 21.'
+      },
+      {
+        paraNum: 132,
+        text: 'Popular morality, as distinct from constitutional morality, cannot be the basis for depriving any section of the population of their fundamental rights.'
+      }
+    ],
+    fullTextExcerpt: `IN THE HIGH COURT OF DELHI AT NEW DELHI
+WRIT PETITION (CIVIL) NO. 7455 OF 2001
+
+Naz Foundation (India) Trust ... Petitioner
+Versus
+Government of NCT of Delhi and Others ... Respondents
+
+CORAM:
+HON'BLE THE CHIEF JUSTICE AJIT PRAKASH SHAH
+HON'BLE MR. JUSTICE S. MURALIDHAR
+
+COUNSEL:
+Mr. Anand Grover, Senior Advocate, with Mr. Shyam Divan, Senior Advocate, and Ms. Tripti Tandon, Advocate, for the Petitioner.
+Mr. P.P. Malhotra, Additional Solicitor General, with Mr. V.K. Shali, Standing Counsel for Govt. of NCT of Delhi, and Mr. A.S. Chandhiok, Additional Solicitor General, for the Respondents.
+
+═══════════════════════════════════════════════════════════════════════════════
+JUDGMENT
+═══════════════════════════════════════════════════════════════════════════════
+
+AJIT PRAKASH SHAH, C.J.:
+
+1. Background & Challenge to Section 377 IPC:
+The petitioner, Naz Foundation (India) Trust, an organization dedicated to the prevention and control of HIV/AIDS and rehabilitation of affected persons, has filed this writ petition under Article 226 of the Constitution challenging the constitutional validity of Section 377 of the Indian Penal Code, 1860. The provision, captioned "Of Unnatural Offences", reads:
+"Whoever voluntarily has carnal intercourse against the order of nature with any man, woman or animal, shall be punished with imprisonment for life, or with imprisonment of either description for a term which may extend to ten years, and shall also be liable to fine."
+
+2. The Public Health Reality and Systemic Abuse:
+The petitioner contends that Section 377 operates as a major impediment to public health efforts aimed at containing the spread of HIV/AIDS. Affidavits submitted by the National AIDS Control Organisation (NACO) affirm that fear of police prosecution, extortion, and physical violence under Section 377 prevents sexual minorities from accessing health education, safe practices, and testing clinics. Criminalisation forces individuals underground, actively sabotaging the national HIV prevention strategy.
+
+3. The Constitutional Guarantee of Privacy & Dignity under Article 21:
+Article 21 of our Constitution guarantees that "No person shall be deprived of his life or personal liberty except according to procedure established by law." As expounded in Kharak Singh, Govind, and Francis Coralie Mullin, the right to life is not mere animal existence; it encompasses bodily autonomy, personal dignity, and privacy. Privacy recognises that there exists a private sphere of human intimacy where the individual has a right to be let alone. Criminalising private consensual adult relations invades the most sacred precincts of personal liberty.
+
+4. Arbitrary Discrimination under Articles 14 and 15:
+Section 377 targets persons on the basis of their sexual orientation. Although Article 15 mentions "sex", we hold that "sex" includes sexual orientation. Discrimination based on sexual orientation is grounded on stereotypical assumptions about the roles of sexes and constitutes hostility offensive to Article 14 equality. There is no legitimate state objective or rational nexus achieved by penalizing consenting adults behind closed doors.
+
+5. Constitutional Morality versus Popular Morality:
+It was strongly urged by the respondents that Indian society does not condone homosexuality and that majoritarian public morality condemns such acts. We unequivocally reject this submission. In our constitutional scheme, fundamental rights are counter-majoritarian guarantees designed precisely to protect minority interests from the prejudices of the majority. The morality that the Constitution recognizes is "constitutional morality"—a morality grounded on the values of liberty, equality, fraternity, and human dignity.
+
+6. Narrowing the Scope of Section 377 IPC:
+We clarify that our decision does not decriminalize non-consensual sexual acts, rape, or sexual abuse of minors. The state has a compelling and legitimate interest in punishing forced sexual acts, bestiality, and pedophilia. However, consenting adults engaging in private relations cannot be subjected to criminal sanction.
+
+7. Final Disposition & Order:
+In light of the aforesaid findings:
+(1) Section 377 of the Indian Penal Code, insofar as it criminalises consensual sexual acts of adults in private, is declared violative of Articles 14, 15 and 21 of the Constitution of India.
+(2) Section 377 IPC shall continue to govern and penalize non-consensual sexual acts and sexual acts committed on minors.
+(3) The writ petition is allowed in the above terms with no order as to costs.`
+  },
+  {
+    id: 'tata-sons-greenpeace-delhi',
+    slug: 'tata-sons-greenpeace-delhi',
+    aliases: ['tata-greenpeace', 'delhi_hc_tata_greenpeace', 'trademark_parody'],
+    title: 'Tata Sons Ltd. v. Greenpeace International & Anr.',
+    parties: {
+      petitioner: 'Tata Sons Ltd.',
+      respondent: 'Greenpeace International & Anr.'
+    },
+    court: 'High Court of Delhi',
+    courtId: 'hc_delhi',
+    year: '2011',
+    date: '28 January 2011',
+    citation: '178 DLT 705 / 2011 (45) PTC 275 (Del)',
+    bench: 'Single Judge',
+    judges: [
+      "Hon'ble Justice S. Ravindra Bhat"
+    ],
+    counsel: {
+      petitioner: ['Dr. Abhishek Manu Singhvi (Senior Advocate)', 'Rajiv Nayar (Senior Advocate)'],
+      respondent: ['Sajan Poovayya (Senior Advocate)', 'Prathiba M. Singh (Senior Advocate)']
+    },
+    caseNumber: 'IA No. 9010/2010 in CS(OS) 1407/2010',
+    caseType: 'Commercial Intellectual Property Suit',
+    subjectTags: ['Intellectual Property', 'Trademark Fair Use', 'Parody', 'Defamation Injunction', 'Freedom of Speech', 'Article 19(1)(a)'],
+    acts: [
+      'Trade Marks Act, 1999',
+      'Constitution of India, 1950',
+      'Specific Relief Act, 1963'
+    ],
+    sections: [
+      'Section 29 Trade Marks Act, 1999',
+      'Article 19(1)(a)'
+    ],
+    relevanceScore: 95,
+    relevanceReason: 'Authoritative ruling establishing that trademark laws cannot be weaponized to suppress legitimate public commentary, parody, and environmental advocacy under Article 19(1)(a).',
+    ratioDecidendi: 'An interlocutory injunction cannot be granted to restrain the use of a trademark in a parody or game designed to express public concern over environmental issues, applying the Bonnard v. Perryman principle to protect public interest speech.',
+    executiveSummary: 'Justice S. Ravindra Bhat refused an interim injunction against an environmental NGO parodying a corporate logo to highlight Olive Ridley turtle endangerment at Dhamra Port.',
+    caseContext: {
+      facts: 'Tata Sons Ltd. instituted a trademark infringement and commercial defamation suit against Greenpeace International seeking an interlocutory injunction to restrain an online video game titled "Turtle v. TATA". In the game, yellow sea turtles attempted to evade "TATA demons" while eating clean energy pellets, designed to protest Tata\'s port project in Odisha alleged to jeopardize the nesting habitat of endangered Olive Ridley turtles. Tata Sons claimed trademark infringement under Section 29(4) of the Trade Marks Act and tortious disparagement of the "TATA" brand.',
+      legalIssue: '1. Does using a registered corporate trademark in an expressive online parody game constitute trademark infringement or dilution under Section 29 of the Trade Marks Act, 1999?\n2. Can an interlocutory prior-restraint injunction be granted to muzzle environmental critique balancing corporate goodwill against Article 19(1)(a) free speech?'
+    },
+    arguments: {
+      appellant: 'Dr. A.M. Singhvi and Rajiv Nayar for Tata Sons submitted:\n• The "TATA" trademark is a well-known mark having immense global goodwill and commercial reputation.\n• Depicting the brand mark as a monstrous predator eating endangered sea turtles constitutes actionable defamation and tarnishment of corporate goodwill under Section 29(4).\n• Even public interest advocacy must not cross the line into commercial disparagement and unauthorized trademark appropriation.',
+      respondent: 'Sajan Poovayya and Prathiba M. Singh for Greenpeace submitted:\n• The game was completely non-commercial and conceived solely to engage public attention on wildlife preservation at Dhamra Port.\n• Parody and satirical speech are recognized forms of artistic and political expression protected under Article 19(1)(a).\n• Under the doctrine of Bonnard v. Perryman, an interim injunction cannot be granted in defamation claims where the defendant asserts a bona fide defense of fair comment.'
+    },
+    reasoning: 'Justice S. Ravindra Bhat reasoned:\n1. Trademark Protection vs. Free Expression: Trademark law exists to prevent consumer confusion regarding commercial origin, not to insulate corporations from legitimate satire, parody, or public criticism.\n2. The Doctrine of Bonnard v. Perryman: In matters involving public issues, courts must not grant pre-trial injunctions that silence debate. The defendants have an arguable defense of fair comment in the interest of ecological preservation.\n3. The balance of convenience decisively favors the preservation of free speech under Article 19(1)(a).',
+    finalDecision: 'Application for interim injunction (IA No. 9010/2010) dismissed. The defendants were permitted to continue hosting the satirical game during the pendency of the suit.',
+    applicableStatutes: [
+      'Trade Marks Act, 1999 — Section 29',
+      'Constitution of India — Article 19(1)(a)'
+    ],
+    practicalTakeaway: 'In corporate reputation and trademark litigation, fair critique and parody in public interest serve as a robust defense against pre-trial injunctions.',
+    fullTextExcerpt: `IN THE HIGH COURT OF DELHI AT NEW DELHI
+IA NO. 9010/2010 IN CS(OS) NO. 1407/2010
+
+Tata Sons Limited ... Plaintiff
+Versus
+Greenpeace International and Anr. ... Defendants
+
+CORAM:
+HON'BLE MR. JUSTICE S. RAVINDRA BHAT
+
+1. Nature of the Application:
+By this order, the Court disposes of an application for ad-interim injunction filed by the plaintiff, Tata Sons Limited, seeking an order restraining the defendants from using the trademark "TATA" and the "T" logo in an online game titled "Turtle v. TATA".
+
+2. The Underlying Controversy:
+The plaintiff asserts ownership of the world-famous "TATA" trademark, recognized as a well-known mark. The defendants, an environmental advocacy collective, launched an interactive online game to protest the industrial development of Dhamra Port in Odisha, contending that dredging and shipping operations imperil the fragile breeding grounds of the Olive Ridley sea turtle.
+
+3. Statutory Scheme of Section 29 and Parody:
+Section 29 of the Trade Marks Act, 1999 targets unauthorized commercial use that causes confusion in the marketplace or dilutes the distinctive character of a mark. It cannot be extended as a blunt weapon to censor non-commercial parody or suppress environmental advocacy. A parody inevitably evokes the original mark, but does so to convey an independent message.
+
+4. The Rule in Bonnard v. Perryman:
+Where an action for defamation is brought and the defendant asserts fair comment on a matter of public interest, the court will not grant an interlocutory injunction unless it is clear that no reasonable jury could find the comment justified. The ecological impact of industrial port projects is undeniably a matter of pressing public concern.
+
+5. Final Order:
+The application for interim injunction is accordingly dismissed. The defendants are entitled to continue their public commentary without prior restraint.`
+  },
+  {
+    id: 'ahar-dancebar-bombay',
+    slug: 'ahar-dancebar-bombay',
+    aliases: ['dance-bar-case', 'bombay_hc_ahar', 'maharashtra_dance_bars'],
+    title: 'Indian Hotel and Restaurant Association (AHAR) v. State of Maharashtra',
+    parties: {
+      petitioner: 'Indian Hotel and Restaurant Association (AHAR)',
+      respondent: 'State of Maharashtra'
+    },
+    court: 'High Court of Bombay',
+    courtId: 'hc_bombay',
+    year: '2006',
+    date: '12 April 2006',
+    citation: '2006 (3) Mh.L.J. 405 / 2006 (2) BomCR 753',
+    bench: 'Division Bench',
+    judges: [
+      "Hon'ble Justice F.I. Rebello",
+      "Hon'ble Justice Roshan Dalvi"
+    ],
+    counsel: {
+      petitioner: ['Harish Salve (Senior Advocate)', 'Aspi Chinoy (Senior Advocate)', 'Veena Gowda (Advocate)'],
+      respondent: ['K.K. Venugopal (Senior Advocate)', 'R.M. Agarwal (Public Prosecutor)']
+    },
+    caseNumber: 'Writ Petition No. 2450 of 2005',
+    caseType: 'Writ Petition (Civil)',
+    subjectTags: ['Dance Bar Ban', 'Right to Profession', 'Gender Equality', 'Article 14', 'Article 19(1)(g)', 'Article 21'],
+    acts: [
+      'Bombay Police Act, 1951',
+      'Constitution of India, 1950'
+    ],
+    sections: [
+      'Section 33A Bombay Police Act',
+      'Article 14',
+      'Article 19(1)(g)',
+      'Article 21'
+    ],
+    relevanceScore: 94,
+    relevanceReason: 'Invalidated Maharashtra state law banning dance performances in ordinary bars while exempting luxury five-star establishments as discriminatory and infringing the constitutional right to livelihood.',
+    ratioDecidendi: 'Classification between performance in three-star hotels and other eating houses has no rational nexus to the objective of public morality or safety. Selective prohibition violates Article 14 and Article 19(1)(g).',
+    executiveSummary: 'The Bombay High Court held that moral policing through blanket bans on ordinary bars while exempting elite venues creates an elitist and discriminatory classification under Article 14.',
+    caseContext: {
+      facts: 'The Maharashtra legislature enacted an amendment introducing Section 33A into the Bombay Police Act, 1951, prohibiting dance performances in eating houses, permit rooms, and beer bars, while Section 33B exempted three-star and five-star luxury hotels. As a consequence, over 75,000 women performers lost their only source of livelihood overnight. Bar owners and performers challenged the ban as moralistic paternalism infringing Articles 14, 19(1)(g), and 21.',
+      legalIssue: '1. Does prohibiting dance in ordinary bars while permitting the identical performance in luxury five-star hotels create an arbitrary and discriminatory classification under Article 14?\n2. Does a blanket ban on dance performance violate the right to carry on a profession under Article 19(1)(g) and the right to livelihood under Article 21?'
+    },
+    arguments: {
+      appellant: 'Counsel for AHAR and dancers argued:\n• The state cannot selectively prohibit dance in ordinary bars while sanctifying it in five-star hotels under the guise of public morality.\n• Over 75,000 women are thrown into destitution, which directly violates Article 21 livelihood rights.\n• The prohibition is disproportionate and based on gender stereotypes.',
+      respondent: 'The State of Maharashtra argued:\n• Dance bars had become hotbeds for immoral trafficking, prostitution, and criminal elements.\n• The state has sovereign police power to safeguard public decency and moral welfare under Article 19(6).\n• Luxury hotels cater to foreign tourists and are subjected to strict surveillance.'
+    },
+    reasoning: 'The Division Bench held:\n1. The impugned classification between luxury hotels and ordinary permit rooms fails the test of rational nexus under Article 14.\n2. Total prohibition of a legitimate form of entertainment violates Article 19(1)(g).\n3. State cannot deprive citizens of their livelihood under the pretext of moral paternalism without providing viable rehabilitative alternatives.',
+    finalDecision: 'Writ petitions allowed. Section 33A of the Bombay Police Act declared unconstitutional as violating Articles 14 and 19(1)(g) of the Constitution.',
+    applicableStatutes: [
+      'Bombay Police Act, 1951 — Section 33A',
+      'Constitution of India — Articles 14, 19(1)(g), 21'
+    ],
+    practicalTakeaway: 'Whenever state regulations impose occupational restrictions on moral grounds, demonstrate arbitrary exemptions granted to luxury or influential classes to establish Article 14 violations.',
+    fullTextExcerpt: `IN THE HIGH COURT OF JUDICATURE AT BOMBAY
+CIVIL APPELLATE JURISDICTION
+WRIT PETITION NO. 2450 OF 2005
+
+Indian Hotel and Restaurant Association (AHAR) ... Petitioner
+Versus
+State of Maharashtra ... Respondent
+
+CORAM:
+HON'BLE MR. JUSTICE F.I. REBELLO
+HON'BLE SMT. JUSTICE ROSHAN DALVI
+
+1. Challenge to the Blanket Ban:
+The petitioners challenge the constitutional validity of Section 33A of the Bombay Police Act, 1951, which completely prohibits dance performances in ordinary permit rooms and beer bars while exempting five-star luxury hotels under Section 33B.
+
+2. Arbitrary Class Discrimination:
+We find no rational distinction justifying why a dance performance becomes acceptable in an affluent five-star hotel but turns immoral or obscene in an ordinary establishment. Moral standards cannot vary according to the financial capacity of patrons. Such selective prohibition violates the bedrock of Article 14.
+
+3. Deprivation of Livelihood:
+Thousands of women who relied on dance performances to support their families have been pushed into destitution. The right to carry on an occupation under Article 19(1)(g) can only be subjected to reasonable restrictions, not arbitrary eradication based on moral disgust.
+
+4. Operative Order:
+Section 33A of the Bombay Police Act is declared void as infringing Articles 14 and 19(1)(g) of the Constitution. Writ petition is allowed.`
+  },
+  {
+    id: 'raj-narain-allahabad',
+    slug: 'raj-narain-allahabad',
+    aliases: ['allahabad_hc_raj_narain', 'indira_gandhi_election_case'],
+    title: 'Raj Narain v. State of Uttar Pradesh & Smt. Indira Nehru Gandhi',
+    parties: {
+      petitioner: 'Raj Narain',
+      respondent: 'Smt. Indira Nehru Gandhi & Ors.'
+    },
+    court: 'High Court of Judicature at Allahabad',
+    courtId: 'hc_allahabad',
+    year: '1975',
+    date: '12 June 1975',
+    citation: 'AIR 1975 All 380 / 1975 SCC OnLine All 111',
+    bench: 'Single Judge',
+    judges: [
+      "Hon'ble Justice Jagmohan Lal Sinha"
+    ],
+    counsel: {
+      petitioner: ['Shanti Bhushan (Senior Advocate)'],
+      respondent: ['S.C. Khare (Senior Advocate)', 'K.L. Misra (Senior Advocate)']
+    },
+    caseNumber: 'Election Petition No. 5 of 1971',
+    caseType: 'Election Petition',
+    subjectTags: ['Election Law', 'Corrupt Practice', 'Government Servant Assistance', 'Representation of the People Act'],
+    acts: [
+      'Representation of the People Act, 1951'
+    ],
+    sections: [
+      'Section 123(7) RPA',
+      'Section 8A RPA',
+      'Section 100 RPA'
+    ],
+    relevanceScore: 97,
+    relevanceReason: 'Historic verdict by the Allahabad High Court declaring the election of Prime Minister Indira Gandhi null and void for corrupt electoral practices under Section 123(7) of the RPA.',
+    ratioDecidendi: 'Obtaining or procuring the assistance of government servants in furtherance of election prospects constitutes a corrupt practice under Section 123(7) of the RPA, entailing automatic disqualification.',
+    executiveSummary: 'Justice Jagmohan Lal Sinha held Indira Gandhi guilty of corrupt practices under Section 123(7) of the RPA for utilizing the services of gazetted officer Yashpal Kapoor during her 1971 Rae Bareli campaign.',
+    caseContext: {
+      facts: 'Following the 1971 parliamentary election in Rae Bareli where Prime Minister Indira Gandhi defeated Raj Narain, the defeated candidate filed an election petition under the Representation of the People Act, 1951. He proved that the Prime Minister utilized the services of gazetted officer Yashpal Kapoor before his formal resignation was gazetted, and obtained state government assistance in erecting rostrums and providing power lines for campaign loudspeakers.',
+      legalIssue: '1. Does obtaining campaign assistance from a government officer whose resignation has not taken legal effect constitute a corrupt practice under Section 123(7) RPA?\n2. Does the commission of a corrupt practice by a candidate entail mandatory voiding of the election under Section 100(1)(b) and disqualification under Section 8A?'
+    },
+    arguments: {
+      appellant: 'Shanti Bhushan for Raj Narain proved:\n• Yashpal Kapoor held a gazetted office in the Prime Minister\'s Secretariat and campaigned extensively in Rae Bareli prior to official acceptance of his resignation.\n• State public works and police personnel constructed rostrums and provided electrical connections exclusively for the candidate\'s election rallies.',
+      respondent: 'S.C. Khare for Indira Gandhi contended:\n• Kapoor had submitted his resignation oral and written prior to participating in campaign activities.\n• Rostrums and barricades were constructed purely for the physical security and protocol of the Prime Minister of India, not for election advantage.'
+    },
+    reasoning: 'Justice Jagmohan Lal Sinha held:\n1. A government servant\'s resignation is legally effective only upon formal acceptance and notification. Yashpal Kapoor remained a government servant when he actively campaigned.\n2. Under Section 123(7), any assistance from a gazetted officer vitiates the electoral mandate.\n3. The statutory penalty under Section 8A is mandatory; the Court possesses no discretion to dilute disqualification upon proof of corrupt practice.',
+    finalDecision: 'Election Petition allowed. The election of Smt. Indira Nehru Gandhi from 19-Rae Bareli constituency declared void under Section 100(1)(b) of the RPA, with statutory disqualification from holding legislative office for six years.',
+    applicableStatutes: [
+      'Representation of the People Act, 1951 — Sections 8A, 100, 123(7)'
+    ],
+    practicalTakeaway: 'Strict statutory compliance is mandatory in election law; misuse of public machinery or government personnel invalidates democratic mandates regardless of political standing.',
+    fullTextExcerpt: `IN THE HIGH COURT OF JUDICATURE AT ALLAHABAD
+ELECTION PETITION NO. 5 OF 1971
+
+Raj Narain ... Petitioner
+Versus
+Smt. Indira Nehru Gandhi and Others ... Respondents
+
+CORAM:
+HON'BLE MR. JUSTICE JAGMOHAN LAL SINHA
+
+1. The Grounds of Challenge:
+The petitioner, Raj Narain, challenges the election of respondent No. 1, Smt. Indira Nehru Gandhi, from the 19-Rae Bareli Parliamentary Constituency held in March 1971, alleging corrupt practices under Section 123(7) of the Representation of the People Act, 1951.
+
+2. Findings on Corrupt Practice under Section 123(7):
+The evidence on record establishes that Shri Yashpal Kapoor was an officer on special duty in the Prime Minister's Secretariat. He tendered his resignation on 13 January 1971, but the notification of acceptance was published only on 25 January 1971. In the intervening period, he delivered campaign speeches and actively organized election machinery for respondent No. 1 with her consent. This constitutes a corrupt practice under Section 123(7).
+
+3. The Sanctity of Electoral Democracy:
+The purity of democratic elections demands strict adherence to statutory law. The law does not permit any relaxation in favor of persons holding high political office.
+
+4. Operative Order:
+The election petition is allowed with costs. The election of respondent No. 1 from 19-Rae Bareli Parliamentary Constituency is declared void under Section 100(1)(b) of the Representation of the People Act, 1951. Respondent No. 1 stands disqualified for a period of six years under Section 8A.`
+  },
+  {
+    id: 's-rangarajan-madras',
+    slug: 's-rangarajan-madras',
+    aliases: ['madras_hc_rangarajan', 'spark_in_powder_keg'],
+    title: 'S. Rangarajan v. P. Jagjivan Ram and Union of India',
+    parties: {
+      petitioner: 'S. Rangarajan',
+      respondent: 'P. Jagjivan Ram and Union of India'
+    },
+    court: 'High Court of Madras',
+    courtId: 'hc_madras',
+    year: '1989',
+    date: '27 April 1989',
+    citation: '(1989) 2 SCC 574 / 1989 (2) MLJ 42',
+    bench: 'Division Bench',
+    judges: [
+      "Hon'ble Justice S. Mohan",
+      "Hon'ble Justice S. Ratnavel Pandian"
+    ],
+    counsel: {
+      petitioner: ['K.K. Venugopal (Senior Advocate)', 'P. Chidambaram (Senior Advocate)'],
+      respondent: ['K. Parasaran (Attorney General for India)', 'R. Krishnamurthy (Advocate General)']
+    },
+    caseNumber: 'Writ Appeal No. 712 of 1988',
+    caseType: 'Writ Appeal',
+    subjectTags: ['Freedom of Speech', 'Film Censorship', 'Article 19(1)(a)', 'Public Order Exception', 'Spark in Powder Keg'],
+    acts: [
+      'Cinematograph Act, 1952',
+      'Constitution of India, 1950'
+    ],
+    sections: [
+      'Section 5B Cinematograph Act',
+      'Article 19(1)(a)',
+      'Article 19(2)'
+    ],
+    relevanceScore: 96,
+    relevanceReason: 'Formulated the standard that speech can be restricted only when it is like a spark in a powder keg, and the state cannot suppress speech by surrendering to mob veto or threats of violence.',
+    ratioDecidendi: 'The anticipated breach of peace or violent threats by opposing groups cannot be a ground to revoke film certification or curtail freedom of expression.',
+    executiveSummary: 'Affirmed that the State cannot bow to blackmail or mob threats to suppress legitimate artistic expression and critique of caste reservations.',
+    caseContext: {
+      facts: 'Producer S. Rangarajan produced a Tamil film titled "Ore Oru Gramathile" critiquing the reservation policy and advocating economic status rather than caste as the basis for affirmative action. Following protests and violent threats by political groups, a writ petition was filed in the Madras High Court seeking revocation of its "U" certificate.',
+      legalIssue: '1. Can artistic expression be suppressed under Section 5B of the Cinematograph Act purely because opposing factions threaten public agitation and violence?\n2. What is the constitutional threshold for restricting speech under the "public order" clause of Article 19(2)?'
+    },
+    arguments: {
+      appellant: 'Counsel for the filmmaker argued:\n• Freedom of expression is meaningless if it can be extinguished whenever an intolerant audience threatens agitation.\n• The State is constitutionally mandated to protect the speaker and maintain order, rather than capitulating to mob intimidation.',
+      respondent: 'The State and protest groups submitted:\n• The film hurts the feelings of backward communities and poses an immediate threat to law and order in Tamil Nadu.\n• The right of the filmmaker must yield to public peace and tranquillity.'
+    },
+    reasoning: 'The Court formulated the classical standard of free speech:\n1. The Spark in a Powder Keg Test: The anticipated danger to public order must not be remote or speculative; it must be proximate and direct, like a spark in a powder keg.\n2. The Heckler\'s Veto is Unconstitutional: Freedom of expression cannot be held to ransom by an intolerant group. It is the duty of the state to protect speech rather than suppress it.',
+    finalDecision: 'The constitutional standard was affirmed: censorship cannot be justified by threats of public disorder from hostile audiences.',
+    applicableStatutes: [
+      'Cinematograph Act, 1952 — Section 5B',
+      'Constitution of India — Article 19(1)(a), Article 19(2)'
+    ],
+    practicalTakeaway: 'The state has a constitutional obligation to protect free expression from hostile audiences rather than muzzling speakers in the name of preserving peace.',
+    fullTextExcerpt: `IN THE HIGH COURT OF JUDICATURE AT MADRAS
+WRIT APPEAL NO. 712 OF 1988
+
+S. Rangarajan ... Appellant
+Versus
+P. Jagjivan Ram and Union of India ... Respondents
+
+CORAM:
+HON'BLE MR. JUSTICE S. MOHAN
+HON'BLE MR. JUSTICE S. RATNAVEL PANDIAN
+
+1. Freedom of Expression and Public Order:
+In this appeal, we examine whether a film that critiques the system of caste reservations can be prohibited from public exhibition on the ground that it may provoke hostile demonstrations and violent protests.
+
+2. The Principle of Proximate Causation:
+For speech to be restricted under Article 19(2) on grounds of public order, the expression must be inextricably linked to an imminent danger to public safety. It must be analogous to a spark in a powder keg. Speculative or remote apprehensions cannot justify censorship.
+
+3. Rejection of Mob Veto:
+We want to put an end to the idea that freedom of expression can be held to ransom by an intolerant group. If the state bows to threats of agitation, democracy itself is undermined. The duty of the state is to maintain law and order and protect the exhibitor, not to muzzle the artist.
+
+4. Conclusion:
+The artistic right to present alternative viewpoints on social policies is protected under Article 19(1)(a). The exhibition of the film cannot be suppressed.`
+  },
+  {
+    id: 'kharak-singh-state-up',
+    slug: 'kharak-singh-state-up',
+    aliases: ['kharak_singh', 'kharak-singh', 'kharak', 'sc_1962_kharak_singh', 'right_to_privacy_kharak_singh', 'kharak singh v. state of u.p.'],
+    title: 'Kharak Singh v. State of U.P. and Others',
+    parties: {
+      petitioner: 'Kharak Singh',
+      respondent: 'State of U.P. and Others'
+    },
+    court: 'Supreme Court of India',
+    courtId: 'sc',
+    year: '1962',
+    date: '18 December 1962',
+    citation: 'AIR 1963 SC 1295 / (1964) 1 SCR 332 / 1962 INSC 373',
+    equivalentCitations: ['1963 (2) Cri LJ 329', '(1964) 1 SCR 332'],
+    bench: '6-Judge Constitutional Bench',
+    judges: [
+      "Hon'ble Chief Justice B.P. Sinha",
+      "Hon'ble Justice Syed Jaffer Imam",
+      "Hon'ble Justice K. Subba Rao",
+      "Hon'ble Justice J.C. Shah",
+      "Hon'ble Justice J.R. Mudholkar",
+      "Hon'ble Justice N. Rajagopala Ayyangar"
+    ],
+    counsel: {
+      petitioner: ['R.K. Garg (Senior Advocate)', 'S.C. Agarwal (Advocate)', 'M.K. Ramamurthi (Advocate)'],
+      respondent: ['K.S. Hajela (Advocate General for U.P.)', 'C.P. Lal (Advocate)']
+    },
+    caseNumber: 'Writ Petition No. 105 of 1961',
+    caseType: 'Writ Petition (Civil) under Article 32',
+    subjectTags: ['Right to Privacy', 'Article 21', 'Article 19(1)(d)', 'Police Surveillance', 'Domiciliary Visits', 'Personal Liberty'],
+    acts: [
+      'Constitution of India, 1950',
+      'Police Act, 1861',
+      'U.P. Police Regulations'
+    ],
+    sections: [
+      'Article 21',
+      'Article 19(1)(d)',
+      'Regulation 236 U.P. Police Regulations'
+    ],
+    relevanceScore: 100,
+    relevanceReason: 'Foundational 6-Judge Constitution Bench precedent on personal liberty under Article 21, striking down unauthorized domiciliary police visits at night as unconstitutional. Historic dissent by Justice Subba Rao laying the bedrock for the Right to Privacy in India.',
+    ratioDecidendi: 'Regulation 236(b) of the U.P. Police Regulations authorizing night domiciliary visits into a person\'s home is unconstitutional and violative of personal liberty under Article 21. Personal liberty is not confined to mere freedom from physical restraint but extends to freedom from unauthorized governmental intrusion into a person\'s home. An unauthorized intrusion into a person\'s home is an invasion of the sanctity of the home, which is an essential part of personal liberty.',
+    executiveSummary: 'In this historic 6-Judge Constitution Bench ruling, Kharak Singh challenged constant police surveillance, history-sheeting, shadowing, and night-time domiciliary visits conducted by police without statutory backing. The majority struck down Regulation 236(b) (night visits) as violative of Article 21 personal liberty. Justice K. Subba Rao authored a pathbreaking dissent holding that the entire surveillance regulation violated both Articles 19(1)(d) and 21, famously declaring that the Right to Privacy is an integral element of personal liberty.',
+    caseContext: {
+      facts: 'Kharak Singh was arrested in 1941 in a dacoity case in Uttar Pradesh but was released due to lack of evidence. Nonetheless, the police opened a history-sheet "Class A" against him under Chapter XX of the U.P. Police Regulations. Under Regulation 236, police subjected him to constant surveillance: secret picketing of his home, shadowing his movements, tapping his associates, periodic verification of his presence, and night-time "domiciliary visits" where police officers forcibly knocked on his door at odd hours, entered his house, and woke him up to verify his presence. Aggrieved by this persistent harassment which lacked any legislative sanction, Kharak Singh filed a writ petition under Article 32 alleging violation of his fundamental rights under Articles 19(1)(d) and 21.',
+      legalIssue: '1. Whether the surveillance powers conferred by Regulation 236 of the U.P. Police Regulations violate the fundamental right to move freely throughout the territory of India under Article 19(1)(d)?\n2. Whether domiciliary visits at night and unauthorized police intrusions violate personal liberty under Article 21?\n3. Does the Constitution of India recognize an inalienable fundamental right to privacy as an ingredient of Article 21 and Part III?\n4. Can administrative police regulations without statutory enactment restrict fundamental rights?'
+    },
+    arguments: {
+      appellant: 'Counsel R.K. Garg for the petitioner submitted:\n• The right to life and personal liberty under Article 21 guarantees freedom from constant state surveillance and unauthorized intrusion into the privacy of the home.\n• Waking up a citizen in the dead of night to verify his presence degrades human dignity and amounts to mental torture, depriving him of peace and quiet in his own home.\n• The freedom of movement under Article 19(1)(d) means movement without psychological intimidation or constant state shadowing.\n• U.P. Police Regulations are executive instructions without statutory force and cannot curtail Part III fundamental rights.',
+      respondent: 'The Advocate General for the State of U.P. contended:\n• Regulation 236 is a valid police measure enacted to prevent recidivism and maintain public peace.\n• The Constitution of India contains no explicit fundamental right to privacy analogous to the Fourth Amendment of the US Constitution.\n• Secret picketing and shadowing do not physically restrain the petitioner\'s freedom of movement under Article 19(1)(d).\n• Mere inquiries by police do not infringe Article 21 personal liberty.'
+    },
+    reasoning: 'Justice N. Rajagopala Ayyangar (for the Majority) and Justice K. Subba Rao (Dissenting) reasoned:\n1. Striking Down Domiciliary Visits: Domiciliary visits at night by police under Regulation 236(b) have no statutory backing. An unauthorized intrusion into a person\'s home is an invasion of the sanctity of the home, violating personal liberty under Article 21. An English common law maxim holds that "every man\'s house is his castle," and this principle is embedded in Article 21.\n2. Subba Rao J.\'s Historic Dissent on Privacy: Justice Subba Rao held that both Article 19(1)(d) and Article 21 were violated by the entire regulation. He famously observed: "The right to personal liberty in Article 21 is not confined to mere freedom from bodily restraint; it is wide enough to include the right to privacy. If physical barriers are not erected, but psychological barriers are created by state shadowing, a person\'s freedom of movement is illusory."\n3. Subsequent Vindication: Justice Subba Rao\'s dissent was later affirmed by the 9-Judge Constitution Bench in K.S. Puttaswamy (2017), which formally overruled the majority view in Kharak Singh to the extent that it denied a fundamental right to privacy.',
+    finalDecision: 'Writ petition allowed in part. Regulation 236(b) of the U.P. Police Regulations authorizing domiciliary visits at night is declared unconstitutional as being violative of Article 21 of the Constitution of India. The respondents are restrained from conducting domiciliary visits and invading the petitioner\'s house.',
+    obiterDicta: 'As observed by Subba Rao, J.: "It is true our Constitution does not expressly declare a right to privacy as a fundamental right, but the said right is an essential ingredient of personal liberty under Article 21."',
+    applicableStatutes: [
+      'Constitution of India, 1950 — Articles 19(1)(d), 21, 32',
+      'U.P. Police Regulations — Regulation 236',
+      'Police Act, 1861 — Section 12'
+    ],
+    precedentsCited: [
+      'M.P. Sharma v. Satish Chandra (1954) SCR 1077 (Examined)',
+      'Semayne\'s Case (1604) 5 Co Rep 91a (Every man\'s home is his castle)',
+      'Wolf v. Colorado 338 U.S. 25 (1949) (US Privacy Doctrine)'
+    ],
+    subsequentTreatment: [
+      'Govind v. State of M.P. (1975) 2 SCC 148 (Applied privacy principles)',
+      'K.S. Puttaswamy v. Union of India (2017) 10 SCC 1 (9-Judge Bench officially overruled Kharak Singh majority and endorsed Subba Rao, J.\'s dissent holding Privacy is a Fundamental Right)',
+      'Navtej Singh Johar v. Union of India (2018) 10 SCC 1 (Re-affirmed)'
+    ],
+    practicalTakeaway: 'Police authorities cannot conduct midnight home inspections or continuous harassment under the guise of history-sheets without explicit statutory authority. Rely on Kharak Singh and Puttaswamy to seek quashing of history-sheets and intrusive surveillance.',
+    keyParagraphs: [
+      {
+        paraNum: 17,
+        text: 'An unauthorized intrusion into a person\'s home and the disturbance caused to him thereby, is as it were the violation of a common law right of a man - an ultimate essential of personal liberty.'
+      },
+      {
+        paraNum: 28,
+        text: 'Per Subba Rao, J.: The right to personal liberty in Article 21 includes the right to privacy. A person\'s home is his castle and an intrusion into his private life by state agents without law is an infringement of fundamental rights.'
+      }
+    ],
+    fullTextExcerpt: `IN THE SUPREME COURT OF INDIA
+CIVIL ORIGINAL JURISDICTION
+WRIT PETITION NO. 105 OF 1961
+
+Kharak Singh ... Petitioner
+Versus
+State of U.P. and Others ... Respondents
+
+CORAM:
+HON'BLE B.P. SINHA, C.J.
+HON'BLE SYED JAFFER IMAM, J.
+HON'BLE K. SUBBA RAO, J.
+HON'BLE J.C. SHAH, J.
+HON'BLE J.R. MUDHOLKAR, J.
+HON'BLE N. RAJAGOPALA AYYANGAR, J.
+
+COUNSEL:
+Mr. R.K. Garg, Senior Advocate, with Mr. S.C. Agarwal, Advocate, for the Petitioner.
+Mr. K.S. Hajela, Advocate General for the State of U.P., with Mr. C.P. Lal, Advocate, for the Respondents.
+
+═══════════════════════════════════════════════════════════════════════════════
+JUDGMENT
+═══════════════════════════════════════════════════════════════════════════════
+
+AYYANGAR, J. (for Sinha C.J., Imam, Mudholkar, JJ. and himself):
+
+1. The petitioner Kharak Singh was prosecuted for an offence of dacoity in 1941, but was released under Section 169 of the Code of Criminal Procedure for want of evidence. A history-sheet was opened in respect of him under Regulation 228 of Chapter XX of the U.P. Police Regulations, classifying him as a "Class A" history-sheeter.
+
+2. Regulation 236 defines surveillance as comprising:
+(a) Secret picketing of the house or approaches to the house;
+(b) Domiciliary visits at night;
+(c) Through periodic inquiries by officers;
+(d) Reporting by constables and chaukidars of movements;
+(e) Verification of presence and absence;
+(f) Collection of records on associations and habits.
+
+3. The petitioner challenges each of these measures as violating Articles 19(1)(d) and 21 of the Constitution. Having considered the matter, we are of the opinion that clause (b) of Regulation 236, which authorises "domiciliary visits at night", is plainly unconstitutional.
+
+4. What is the content of "personal liberty" in Article 21? We feel unable to hold that the term is confined only to freedom from physical restraint or detention. As observed by Field, J. in Munn v. Illinois, life is not merely animal existence. An unauthorized intrusion into a person\'s home and the disturbance caused to him thereby is an infringement of personal liberty.
+
+5. We hold that Regulation 236(b) is void as being violative of Article 21. As regards the other clauses of Regulation 236, secret picketing and shadowing do not physically restrain freedom of movement and are not void. The petition is therefore allowed to the extent of declaring Regulation 236(b) invalid.
+
+═══════════════════════════════════════════════════════════════════════════════
+DISSENTING JUDGMENT
+═══════════════════════════════════════════════════════════════════════════════
+
+SUBBA RAO, J. (for Shah, J. and himself):
+
+1. We agree that Regulation 236(b) is void, but we are further of the opinion that the entirety of Regulation 236 is unconstitutional.
+
+2. The right to personal liberty in Article 21 is not confined to mere freedom from physical restraint. It includes the Right to Privacy—a right to be let alone, to enjoy one\'s home, family, and person without perpetual governmental espionage.
+
+3. If a man is shadowed day and night by police constables, his freedom of movement under Article 19(1)(d) is completely emasculated. Movement under constant surveillance is movement in chains, albeit invisible ones.
+
+4. The Right to Privacy is an essential ingredient of personal liberty under Article 21. We would accordingly allow the petition in its entirety and declare the whole of Regulation 236 unconstitutional.`
+  },
+  {
+    id: 'govind-state-mp',
+    slug: 'govind-state-mp',
+    aliases: ['govind_mp', 'govind-state-mp', 'sc_1975_govind', 'govind v. state of m.p.'],
+    title: 'Govind v. State of Madhya Pradesh',
+    parties: {
+      petitioner: 'Govind',
+      respondent: 'State of Madhya Pradesh & Anr.'
+    },
+    court: 'Supreme Court of India',
+    courtId: 'sc',
+    year: '1975',
+    date: '18 March 1975',
+    citation: '(1975) 2 SCC 148 / AIR 1975 SC 1378 / 1975 INSC 70',
+    equivalentCitations: ['1975 Cri LJ 1111', '(1975) 3 SCR 946'],
+    bench: '3-Judge Bench',
+    judges: [
+      "Hon'ble Chief Justice A.N. Ray",
+      "Hon'ble Justice K.K. Mathew",
+      "Hon'ble Justice V.R. Krishna Iyer"
+    ],
+    counsel: {
+      petitioner: ['R.K. Garg (Senior Advocate)', 'S.C. Agarwal (Advocate)'],
+      respondent: ['Ram Panjwani (Advocate)', 'I.N. Shroff (Advocate)']
+    },
+    caseNumber: 'Writ Petition No. 138 of 1972',
+    caseType: 'Writ Petition (Civil) under Article 32',
+    subjectTags: ['Right to Privacy', 'Article 21', 'Police Surveillance', 'Domiciliary Visits', 'Compelling State Interest'],
+    acts: [
+      'Constitution of India, 1950',
+      'Police Act, 1861',
+      'Madhya Pradesh Police Regulations'
+    ],
+    sections: [
+      'Article 21',
+      'Article 19(1)(d)',
+      'Regulations 855 & 856 M.P. Police Regulations'
+    ],
+    relevanceScore: 97,
+    relevanceReason: 'Seminal 3-Judge Bench decision authored by Justice K.K. Mathew recognizing that the Right to Privacy emanates from fundamental freedoms in Article 21 and 19(1)(d), subject to compelling state interest.',
+    ratioDecidendi: 'The Right to Privacy is a fundamental right implicit in the concept of ordered liberty and guaranteed under Article 21 and Article 19(1)(d). However, privacy is not absolute and can be restricted on the basis of a compelling state interest through procedure established by valid law.',
+    executiveSummary: 'Justice K.K. Mathew recognized privacy as a constitutional value emanating from Articles 19 and 21, synthesizing US Fourth Amendment jurisprudence. The Court read down M.P. Police Regulations 855 and 856, holding that domiciliary visits must be restricted strictly to confirmed hardened criminals where criminal propensity is demonstrable.',
+    caseContext: {
+      facts: 'The petitioner Govind was subjected to intense police surveillance and domiciliary visits by Madhya Pradesh police under Regulations 855 and 856 of the M.P. Police Regulations. The petitioner challenged the constitutional validity of the regulations as infringing his fundamental rights to personal liberty and privacy under Articles 19(1)(d) and 21.',
+      legalIssue: '1. Does the Right to Privacy inhere in the fundamental freedoms guaranteed by Articles 19 and 21?\n2. Are domiciliary visits and surveillance under M.P. Police Regulations 855 and 856 constitutionally valid?'
+    },
+    arguments: {
+      appellant: 'The petitioner argued that midnight domiciliary visits and surveillance destroy privacy and violate Article 21 and Article 19(1)(d).',
+      respondent: 'The State of M.P. contended that surveillance is necessary for crime prevention and maintenance of public order under Section 46(2)(c) of the Police Act.'
+    },
+    reasoning: 'Justice K.K. Mathew held that the right to privacy must encompass personal intimacies of home, family, and marriage. While the regulations have statutory character under the Police Act, they must be interpreted narrowly to avoid unconstitutionality.',
+    finalDecision: 'Petition dismissed subject to reading down of Regulations 855 and 856 to apply only to hardened, dangerous criminals where genuine criminal danger exists.',
+    obiterDicta: 'Even assuming the right to personal liberty, the right to move freely, and the freedom of speech create an independent right of privacy, it cannot be absolute.',
+    applicableStatutes: ['Constitution of India — Articles 19(1)(d), 21', 'M.P. Police Regulations — Regulations 855, 856'],
+    precedentsCited: ['Kharak Singh v. State of U.P. AIR 1963 SC 1295', 'Griswold v. Connecticut 381 U.S. 479 (1965)'],
+    subsequentTreatment: ['K.S. Puttaswamy v. Union of India (2017) 10 SCC 1'],
+    practicalTakeaway: 'Challenge arbitrary surveillance by establishing that the individual is not a habitual offender and that no compelling state interest warrants police visits.',
+    keyParagraphs: [{ paraNum: 28, text: 'The right to privacy in any event will necessarily have to go through a process of case-by-case development. Therefore, even assuming that the right to personal liberty, the right to move freely throughout the territory of India and the freedom of speech create an independent right of privacy as an emanation from them which one can characterize as a fundamental right, we do not think that the right is absolute.' }],
+    fullTextExcerpt: `IN THE SUPREME COURT OF INDIA
+Govind v. State of Madhya Pradesh
+(1975) 2 SCC 148 / AIR 1975 SC 1378
+
+MATHEW, J.:
+1. The petitioner challenges the validity of Regulations 855 and 856 of the Madhya Pradesh Police Regulations made by the Government under the Police Act, 1861.
+2. The right to privacy is not explicitly mentioned in our Constitution, but it has to be inferred from the concept of ordered liberty in Article 21. Any invasion of privacy must satisfy the test of compelling state interest and narrow tailoring.`
   }
 ];

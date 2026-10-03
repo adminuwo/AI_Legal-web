@@ -42,6 +42,10 @@ export default function AdminDownloadsSection() {
   const [selectedCountryDetail, setSelectedCountryDetail] = useState(null);
   const [countryDetailData, setCountryDetailData] = useState(null);
   const [loadingCountryDetail, setLoadingCountryDetail] = useState(false);
+  const [stateViewMode, setStateViewMode] = useState('cards'); // 'cards' | 'table'
+  const [stateDaysFilter, setStateDaysFilter] = useState('7d'); // '7d' | '30d' | 'today'
+  const [countryDaysFilter, setCountryDaysFilter] = useState('7d'); // '7d' | '30d' | 'today'
+  const [kpiPeriod, setKpiPeriod] = useState('today'); // 'today' | 'yesterday' | '7d' | '30d'
 
   // Data States
   const [loading, setLoading] = useState(true);
@@ -415,21 +419,39 @@ export default function AdminDownloadsSection() {
           { Metric: "First-time Installers", Value: summary.firstTimeInstallers },
           { Metric: "Reported Uninstalls", Value: summary.uninstalls }
         ];
-        const wsSummary = XLSX.utils.json_to_sheet(summaryRows);
+        wsSummary['!cols'] = [{ wch: 32 }, { wch: 20 }];
         XLSX.utils.book_append_sheet(workbook, wsSummary, "Overview KPIs");
 
         // Sheet 2: Countries Breakdown
         if (countriesList.length > 0) {
           const wsCountries = XLSX.utils.json_to_sheet(countriesList);
+          wsCountries['!cols'] = [{ wch: 25 }, { wch: 10 }, { wch: 15 }, { wch: 15 }, { wch: 12 }, { wch: 12 }, { wch: 12 }, { wch: 12 }];
           XLSX.utils.book_append_sheet(workbook, wsCountries, "Country Breakdown");
         }
 
-        // Sheet 3: Raw Telemetry Records
+        // Sheet 3: State / Regional Breakdown
+        if (filteredStates.length > 0) {
+          const stateRows = filteredStates.map(st => ({
+            "Region / State": st.state,
+            "Total Installs": st.totalInstalls,
+            "Market Share (%)": `${st.percentageOfCountry || 0}%`,
+            "Android Installs": st.android || 0,
+            "iOS Installs": st.ios || 0,
+            "Last 7 Days": st.last7Days || 0,
+            "Last 30 Days": st.last30Days || 0
+          }));
+          const wsStates = XLSX.utils.json_to_sheet(stateRows);
+          wsStates['!cols'] = [{ wch: 30 }, { wch: 15 }, { wch: 18 }, { wch: 18 }, { wch: 15 }, { wch: 15 }, { wch: 15 }];
+          XLSX.utils.book_append_sheet(workbook, wsStates, "Regional Breakdown");
+        }
+
+        // Sheet 4: Raw Telemetry Records
         const wsRaw = XLSX.utils.json_to_sheet(rows);
+        wsRaw['!cols'] = [{ wch: 25 }, { wch: 25 }, { wch: 15 }, { wch: 20 }, { wch: 20 }, { wch: 20 }];
         XLSX.utils.book_append_sheet(workbook, wsRaw, "Detailed Records");
 
         XLSX.writeFile(workbook, `AI_Legal_Installs_Analytics_${new Date().toISOString().split('T')[0]}.xlsx`);
-        toast.success("Excel report downloaded!", { id: 'export-excel' });
+        toast.success("Excel report downloaded with auto-formatted columns!", { id: 'export-excel' });
       }
     } catch (err) {
       console.error("Excel Export failed:", err);
@@ -541,11 +563,41 @@ export default function AdminDownloadsSection() {
     setExportOpen(false);
   };
 
-  // Filtered states in country detail
+  // Filtered states in country detail (Unified Delhi, Central / Capital Region & Delhi (NCT) into one entry)
   const filteredStates = useMemo(() => {
     if (!countryDetailData?.states) return [];
-    if (!stateSearch.trim()) return countryDetailData.states;
-    return countryDetailData.states.filter(s => 
+    
+    // Group and merge Central / Capital Region, Delhi, and Delhi (NCT) into one unified entry
+    const map = new Map();
+    countryDetailData.states.forEach(st => {
+      const raw = (st.state || '').trim();
+      const isDelhiOrCapital = /delhi|capital region|nct/i.test(raw);
+      const key = isDelhiOrCapital ? 'Delhi (NCT)' : (raw || 'General Territory');
+
+      if (map.has(key)) {
+        const ex = map.get(key);
+        ex.totalInstalls = (ex.totalInstalls || 0) + (st.totalInstalls || 0);
+        ex.totalDownloads = (ex.totalDownloads || 0) + (st.totalDownloads || 0);
+        ex.today = (ex.today || 0) + (st.today || 0);
+        ex.last7Days = (ex.last7Days || 0) + (st.last7Days || 0);
+        ex.last30Days = (ex.last30Days || 0) + (st.last30Days || 0);
+        ex.android = (ex.android || 0) + (st.android || 0);
+        ex.ios = (ex.ios || 0) + (st.ios || 0);
+      } else {
+        map.set(key, { ...st, state: key });
+      }
+    });
+
+    const countryTotal = countryDetailData?.countryMetrics?.total || 1;
+    const list = Array.from(map.values()).map(item => ({
+      ...item,
+      percentageOfCountry: ((item.totalInstalls / countryTotal) * 100).toFixed(1)
+    }));
+
+    list.sort((a, b) => (b.totalInstalls || 0) - (a.totalInstalls || 0));
+
+    if (!stateSearch.trim()) return list;
+    return list.filter(s => 
       s.state?.toLowerCase().includes(stateSearch.toLowerCase())
     );
   }, [countryDetailData, stateSearch]);
@@ -572,42 +624,12 @@ export default function AdminDownloadsSection() {
           </div>
         </div>
 
-        {/* Global Action Buttons - Full width grid on phones, flex on larger screens */}
-        <div className="grid grid-cols-2 sm:flex items-center gap-1.5 sm:gap-2 w-full md:w-auto shrink-0">
-          <button
-            onClick={handleSyncHistorical}
-            disabled={syncingHistorical}
-            title="Sync all registered database users into device telemetry records"
-            className="flex items-center justify-center space-x-1 sm:space-x-1.5 px-2.5 sm:px-3 py-1.5 text-xs font-bold text-slate-700 dark:text-zinc-200 bg-slate-100 hover:bg-slate-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 border border-slate-200 dark:border-zinc-700 rounded-xl transition-all disabled:opacity-50 cursor-pointer"
-          >
-            <RotateCw className={`w-3.5 h-3.5 shrink-0 ${syncingHistorical ? 'animate-spin text-[#B88B2A]' : 'text-slate-500'}`} />
-            <span className="truncate">{syncingHistorical ? 'Syncing...' : 'Sync DB'}</span>
-          </button>
-
-          <button
-            onClick={handleSyncGa4}
-            disabled={syncingGa4}
-            title="Sync mobile app uninstalls from Google Analytics (GA4)"
-            className="flex items-center justify-center space-x-1 sm:space-x-1.5 px-2.5 sm:px-3 py-1.5 text-xs font-bold text-slate-700 dark:text-zinc-200 bg-slate-100 hover:bg-slate-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 border border-slate-200 dark:border-zinc-700 rounded-xl transition-all disabled:opacity-50 cursor-pointer"
-          >
-            <BarChart3 className={`w-3.5 h-3.5 shrink-0 ${syncingGa4 ? 'animate-spin text-[#B88B2A]' : 'text-amber-600 dark:text-amber-400'}`} />
-            <span className="truncate">{syncingGa4 ? 'Syncing GA4...' : 'Sync GA4'}</span>
-          </button>
-
-          <button
-            onClick={handleSyncSilent}
-            disabled={syncingSilent}
-            title="Real-time same-day mobile uninstall detection via silent push ping"
-            className="flex items-center justify-center space-x-1 sm:space-x-1.5 px-2.5 sm:px-3 py-1.5 text-xs font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/40 dark:hover:bg-emerald-900/60 border border-emerald-300/80 dark:border-emerald-800/60 rounded-xl transition-all disabled:opacity-50 cursor-pointer shadow-xs"
-          >
-            <Radio className={`w-3.5 h-3.5 shrink-0 ${syncingSilent ? 'animate-spin text-emerald-600' : 'text-emerald-600 dark:text-emerald-400'}`} />
-            <span className="truncate">{syncingSilent ? 'Pinging...' : 'Sync Live'}</span>
-          </button>
-
+        {/* Global Action Buttons: Refresh and Export */}
+        <div className="flex items-center gap-2 w-full sm:w-auto justify-end shrink-0">
           <button
             onClick={() => fetchAnalytics(true)}
             disabled={refreshing}
-            className="flex items-center justify-center space-x-1 sm:space-x-1.5 px-2.5 sm:px-3 py-1.5 text-xs font-bold text-slate-700 dark:text-zinc-200 bg-slate-100 hover:bg-slate-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 border border-slate-200 dark:border-zinc-700 rounded-xl transition-all disabled:opacity-50 cursor-pointer"
+            className="flex items-center justify-center space-x-1 sm:space-x-1.5 px-3 py-1.5 text-xs font-bold text-slate-700 dark:text-zinc-200 bg-slate-100 hover:bg-slate-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 border border-slate-200 dark:border-zinc-700 rounded-xl transition-all disabled:opacity-50 cursor-pointer shadow-2xs"
           >
             <RefreshCw className={`w-3.5 h-3.5 shrink-0 ${refreshing ? 'animate-spin text-[#B88B2A]' : 'text-slate-500'}`} />
             <span className="truncate">{refreshing ? 'Refreshing...' : 'Refresh'}</span>
@@ -617,7 +639,7 @@ export default function AdminDownloadsSection() {
           <div className="relative">
             <button
               onClick={() => setExportOpen(!exportOpen)}
-              className="w-full sm:w-auto flex items-center justify-center space-x-1 sm:space-x-1.5 px-2.5 sm:px-3.5 py-1.5 text-xs font-bold text-white bg-[#B88B2A] hover:bg-[#a67c24] rounded-xl shadow-xs transition-all cursor-pointer"
+              className="flex items-center justify-center space-x-1 sm:space-x-1.5 px-3.5 py-1.5 text-xs font-bold text-white bg-[#B88B2A] hover:bg-[#a67c24] rounded-xl shadow-xs transition-all cursor-pointer"
             >
               <FileDown className="w-3.5 h-3.5 shrink-0" />
               <span>Export</span>
@@ -665,153 +687,10 @@ export default function AdminDownloadsSection() {
         </div>
       </div>
 
-      {/* 2. Global Filters Bar (Phone Responsive) */}
-      <div className="bg-white dark:bg-[#1E293B] border border-slate-200/80 dark:border-zinc-800 rounded-2xl p-3 sm:p-3.5 shadow-xs flex flex-col md:flex-row md:items-center md:justify-between gap-2.5">
-        <div className="flex flex-wrap items-center gap-2 sm:gap-2.5 w-full md:w-auto">
-          {/* Range Dropdown */}
-          <div className="flex items-center space-x-2 bg-slate-50 dark:bg-zinc-900 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-zinc-700 flex-1 xs:flex-initial min-w-[130px]">
-            <Calendar className="w-3.5 h-3.5 text-[#B88B2A] shrink-0" />
-            <span className="text-[11px] font-bold text-slate-500 dark:text-zinc-400 shrink-0">Range:</span>
-            <select
-              value={dateRange}
-              onChange={(e) => setDateRange(e.target.value)}
-              className="bg-transparent text-xs font-bold text-slate-800 dark:text-zinc-200 focus:outline-none cursor-pointer pr-1 w-full"
-            >
-              {DATE_PRESETS.map((p) => (
-                <option key={p.id} value={p.id} className="bg-white dark:bg-zinc-800 text-slate-800 dark:text-zinc-200">
-                  {p.label}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* Country Dropdown */}
-          <div className="flex items-center space-x-2 bg-slate-50 dark:bg-zinc-900 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-zinc-700 flex-1 xs:flex-initial min-w-[140px]">
-            <Globe className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-            <select
-              value={countryFilter}
-              onChange={(e) => {
-                setCountryFilter(e.target.value);
-                setStateFilter('');
-              }}
-              className="bg-transparent text-xs font-bold text-slate-800 dark:text-zinc-200 focus:outline-none cursor-pointer pr-1 w-full"
-            >
-              <option value="" className="bg-white dark:bg-zinc-800 text-slate-800 dark:text-zinc-200">All Countries</option>
-              {COUNTRIES.map(c => (
-                <option key={c.code} value={c.name} className="bg-white dark:bg-zinc-800 text-slate-800 dark:text-zinc-200">
-                  {c.flag} {c.name}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* State Dropdown (Conditional when country selected) */}
-          {countryFilter && availableStates.length > 0 && (
-            <div className="flex items-center space-x-2 bg-slate-50 dark:bg-zinc-900 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-zinc-700 flex-1 xs:flex-initial min-w-[140px]">
-              <Layers className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-              <select
-                value={stateFilter}
-                onChange={(e) => setStateFilter(e.target.value)}
-                className="bg-transparent text-xs font-bold text-slate-800 dark:text-zinc-200 focus:outline-none cursor-pointer pr-1 w-full"
-              >
-                <option value="" className="bg-white dark:bg-zinc-800 text-slate-800 dark:text-zinc-200">All States / Regions</option>
-                {availableStates.map(st => (
-                  <option key={st} value={st} className="bg-white dark:bg-zinc-800 text-slate-800 dark:text-zinc-200">
-                    {st}
-                  </option>
-                ))}
-              </select>
-            </div>
-          )}
-
-          {/* Custom Date Pickers (if dateRange === 'custom') */}
-          {dateRange === 'custom' && (
-            <div className="flex flex-wrap xs:flex-nowrap items-center space-x-2 bg-slate-50 dark:bg-zinc-900 px-3 py-1 rounded-xl border border-slate-200 dark:border-zinc-700 w-full sm:w-auto">
-              <span className="text-[11px] text-slate-500 font-semibold">From:</span>
-              <input
-                type="date"
-                value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
-                className="bg-transparent text-xs text-slate-800 dark:text-zinc-200 focus:outline-none"
-              />
-              <span className="text-[11px] text-slate-500 font-semibold">To:</span>
-              <input
-                type="date"
-                value={endDate}
-                onChange={(e) => setEndDate(e.target.value)}
-                className="bg-transparent text-xs text-slate-800 dark:text-zinc-200 focus:outline-none"
-              />
-            </div>
-          )}
-
-          {(countryFilter || stateFilter || (dateRange !== 'all')) && (
-            <button
-              onClick={() => {
-                setCountryFilter('');
-                setStateFilter('');
-                setDateRange('all');
-                setStartDate('');
-                setEndDate('');
-              }}
-              className="text-xs text-[#B88B2A] hover:underline font-bold transition-colors cursor-pointer px-1 py-1"
-            >
-              Reset Filters
-            </button>
-          )}
-        </div>
-
-        {/* Platform Toggle (Equal width on mobile) */}
-        <div className="grid grid-cols-4 sm:flex items-center bg-slate-100 dark:bg-zinc-900 p-1 rounded-xl border border-slate-200/60 dark:border-zinc-800 w-full md:w-auto shrink-0">
-          <button
-            onClick={() => setPlatformFilter('all')}
-            className={`px-2.5 py-1 text-xs font-bold rounded-lg transition-all cursor-pointer text-center ${
-              platformFilter === 'all'
-                ? 'bg-white dark:bg-zinc-800 text-slate-900 dark:text-white shadow-xs'
-                : 'text-slate-500 hover:text-slate-900 dark:text-zinc-400'
-            }`}
-          >
-            All
-          </button>
-          <button
-            onClick={() => setPlatformFilter('android')}
-            className={`flex items-center justify-center gap-1 px-2.5 py-1 text-xs font-bold rounded-lg transition-all cursor-pointer ${
-              platformFilter === 'android'
-                ? 'bg-white dark:bg-zinc-800 text-emerald-600 dark:text-emerald-400 shadow-xs'
-                : 'text-slate-500 hover:text-slate-900 dark:text-zinc-400'
-            }`}
-          >
-            <Smartphone className="w-3 h-3 text-emerald-600 shrink-0" />
-            <span>Android</span>
-          </button>
-          <button
-            onClick={() => setPlatformFilter('ios')}
-            className={`flex items-center justify-center gap-1 px-2.5 py-1 text-xs font-bold rounded-lg transition-all cursor-pointer ${
-              platformFilter === 'ios'
-                ? 'bg-white dark:bg-zinc-800 text-sky-600 dark:text-sky-400 shadow-xs'
-                : 'text-slate-500 hover:text-slate-900 dark:text-zinc-400'
-            }`}
-          >
-            <Apple className="w-3 h-3 text-sky-600 shrink-0" />
-            <span>iOS</span>
-          </button>
-          <button
-            onClick={() => setPlatformFilter('web')}
-            className={`flex items-center justify-center gap-1 px-2.5 py-1 text-xs font-bold rounded-lg transition-all cursor-pointer ${
-              platformFilter === 'web'
-                ? 'bg-white dark:bg-zinc-800 text-indigo-600 dark:text-indigo-400 shadow-xs'
-                : 'text-slate-500 hover:text-slate-900 dark:text-zinc-400'
-            }`}
-          >
-            <Globe className="w-3 h-3 text-indigo-600 shrink-0" />
-            <span>Web</span>
-          </button>
-        </div>
-      </div>
-
-      {/* 3. COMPACT SUMMARY KPI CARDS (Balanced on Mobile - Total Installs spans 2 cols, remaining 10 in pairs) */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2 sm:gap-2.5">
-        {/* Total Downloads - Featured on Mobile */}
-        <div className="col-span-2 sm:col-span-1 bg-white dark:bg-[#1E293B] border border-amber-200/60 dark:border-amber-500/20 rounded-xl p-2.5 sm:p-3 shadow-xs flex flex-col justify-between hover:border-slate-300 dark:hover:border-zinc-700 transition-all">
+      {/* 3. COMPACT SUMMARY KPI CARDS (6 Essential Cards: Total Installs, Android, iOS, Web, Velocity Dropdown, Uninstall Rate) */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 sm:gap-2.5">
+        {/* Card 1: Total Installs */}
+        <div className="bg-white dark:bg-[#1E293B] border border-amber-200/60 dark:border-amber-500/20 rounded-xl p-2.5 sm:p-3 shadow-xs flex flex-col justify-between hover:border-slate-300 dark:hover:border-zinc-700 transition-all">
           <div className="flex items-center justify-between">
             <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-zinc-400">Total Installs</span>
             <div className="p-1 rounded-md bg-[#B88B2A]/10 text-[#B88B2A] border border-[#B88B2A]/20">
@@ -819,7 +698,7 @@ export default function AdminDownloadsSection() {
             </div>
           </div>
           <div className="mt-1">
-            <p className="text-xl sm:text-xl font-black text-slate-900 dark:text-white tracking-tight">
+            <p className="text-xl font-black text-slate-900 dark:text-white tracking-tight">
               {loading ? '...' : (summary.total || 0).toLocaleString()}
             </p>
             <p className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold mt-0.5 truncate flex items-center gap-1">
@@ -829,103 +708,7 @@ export default function AdminDownloadsSection() {
           </div>
         </div>
 
-        {/* Today */}
-        <div className="bg-white dark:bg-[#1E293B] border border-slate-200/80 dark:border-zinc-800 rounded-xl p-2.5 sm:p-3 shadow-xs flex flex-col justify-between hover:border-slate-300 dark:hover:border-zinc-700 transition-all">
-          <div className="flex items-center justify-between">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Today</span>
-            <div className="p-1 rounded-md bg-emerald-500/10 text-emerald-600 border border-emerald-500/20">
-              <TrendingUp className="w-3 h-3" />
-            </div>
-          </div>
-          <div className="mt-1">
-            <p className="text-base sm:text-lg md:text-xl font-black text-slate-900 dark:text-white tracking-tight">
-              {loading ? '...' : (summary.today || 0).toLocaleString()}
-            </p>
-            <p className="text-[10px] text-slate-400 font-medium mt-0.5 truncate">First 24 hrs</p>
-          </div>
-        </div>
-
-        {/* Yesterday */}
-        <div className="bg-white dark:bg-[#1E293B] border border-slate-200/80 dark:border-zinc-800 rounded-xl p-2.5 sm:p-3 shadow-xs flex flex-col justify-between hover:border-slate-300 dark:hover:border-zinc-700 transition-all">
-          <div className="flex items-center justify-between">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Yesterday</span>
-            <div className="p-1 rounded-md bg-blue-500/10 text-blue-600 border border-blue-500/20">
-              <Calendar className="w-3 h-3" />
-            </div>
-          </div>
-          <div className="mt-1">
-            <p className="text-base sm:text-lg md:text-xl font-black text-slate-900 dark:text-white tracking-tight">
-              {loading ? '...' : (summary.yesterday || 0).toLocaleString()}
-            </p>
-            <p className="text-[10px] text-slate-400 font-medium mt-0.5 truncate">Previous day</p>
-          </div>
-        </div>
-
-        {/* Last 7 Days */}
-        <div className="bg-white dark:bg-[#1E293B] border border-slate-200/80 dark:border-zinc-800 rounded-xl p-2.5 sm:p-3 shadow-xs flex flex-col justify-between hover:border-slate-300 dark:hover:border-zinc-700 transition-all">
-          <div className="flex items-center justify-between">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Last 7 Days</span>
-            <div className="p-1 rounded-md bg-violet-500/10 text-violet-600 border border-violet-500/20">
-              <TrendingUp className="w-3 h-3" />
-            </div>
-          </div>
-          <div className="mt-1">
-            <p className="text-base sm:text-lg md:text-xl font-black text-slate-900 dark:text-white tracking-tight">
-              {loading ? '...' : (summary.last7Days || 0).toLocaleString()}
-            </p>
-            <p className="text-[10px] text-slate-400 font-medium mt-0.5 truncate">Weekly total</p>
-          </div>
-        </div>
-
-        {/* Last 30 Days */}
-        <div className="bg-white dark:bg-[#1E293B] border border-slate-200/80 dark:border-zinc-800 rounded-xl p-2.5 sm:p-3 shadow-xs flex flex-col justify-between hover:border-slate-300 dark:hover:border-zinc-700 transition-all">
-          <div className="flex items-center justify-between">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Last 30 Days</span>
-            <div className="p-1 rounded-md bg-cyan-500/10 text-cyan-600 border border-cyan-500/20">
-              <TrendingUp className="w-3 h-3" />
-            </div>
-          </div>
-          <div className="mt-1">
-            <p className="text-base sm:text-lg md:text-xl font-black text-slate-900 dark:text-white tracking-tight">
-              {loading ? '...' : (summary.last30Days || 0).toLocaleString()}
-            </p>
-            <p className="text-[10px] text-slate-400 font-medium mt-0.5 truncate">Monthly run-rate</p>
-          </div>
-        </div>
-
-        {/* Last 90 Days */}
-        <div className="bg-white dark:bg-[#1E293B] border border-slate-200/80 dark:border-zinc-800 rounded-xl p-2.5 sm:p-3 shadow-xs flex flex-col justify-between hover:border-slate-300 dark:hover:border-zinc-700 transition-all">
-          <div className="flex items-center justify-between">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Last 90 Days</span>
-            <div className="p-1 rounded-md bg-amber-500/10 text-amber-600 border border-amber-500/20">
-              <Calendar className="w-3 h-3" />
-            </div>
-          </div>
-          <div className="mt-1">
-            <p className="text-base sm:text-lg md:text-xl font-black text-slate-900 dark:text-white tracking-tight">
-              {loading ? '...' : (summary.last90Days || 0).toLocaleString()}
-            </p>
-            <p className="text-[10px] text-slate-400 font-medium mt-0.5 truncate">Quarterly</p>
-          </div>
-        </div>
-
-        {/* Last 2 Years */}
-        <div className="bg-white dark:bg-[#1E293B] border border-slate-200/80 dark:border-zinc-800 rounded-xl p-2.5 sm:p-3 shadow-xs flex flex-col justify-between hover:border-slate-300 dark:hover:border-zinc-700 transition-all">
-          <div className="flex items-center justify-between">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Last 2 Years</span>
-            <div className="p-1 rounded-md bg-purple-500/10 text-purple-600 border border-purple-500/20">
-              <Calendar className="w-3 h-3" />
-            </div>
-          </div>
-          <div className="mt-1">
-            <p className="text-base sm:text-lg md:text-xl font-black text-slate-900 dark:text-white tracking-tight">
-              {loading ? '...' : (summary.last2Years || 0).toLocaleString()}
-            </p>
-            <p className="text-[10px] text-slate-400 font-medium mt-0.5 truncate">Cumulative</p>
-          </div>
-        </div>
-
-        {/* Android Installs */}
+        {/* Card 2: Android */}
         <div className="bg-white dark:bg-[#1E293B] border border-slate-200/80 dark:border-zinc-800 rounded-xl p-2.5 sm:p-3 shadow-xs flex flex-col justify-between hover:border-emerald-300 dark:hover:border-emerald-800 transition-all">
           <div className="flex items-center justify-between">
             <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">Android</span>
@@ -934,7 +717,7 @@ export default function AdminDownloadsSection() {
             </div>
           </div>
           <div className="mt-1">
-            <p className="text-base sm:text-lg md:text-xl font-black text-slate-900 dark:text-white tracking-tight">
+            <p className="text-xl font-black text-slate-900 dark:text-white tracking-tight">
               {loading ? '...' : (summary.android || 0).toLocaleString()}
             </p>
             <p className="text-[10px] text-emerald-600 font-semibold mt-0.5 truncate">
@@ -943,7 +726,7 @@ export default function AdminDownloadsSection() {
           </div>
         </div>
 
-        {/* iOS Installs */}
+        {/* Card 3: iOS */}
         <div className="bg-white dark:bg-[#1E293B] border border-slate-200/80 dark:border-zinc-800 rounded-xl p-2.5 sm:p-3 shadow-xs flex flex-col justify-between hover:border-sky-300 dark:hover:border-sky-800 transition-all">
           <div className="flex items-center justify-between">
             <span className="text-[10px] font-bold uppercase tracking-wider text-sky-600 dark:text-sky-400">iOS</span>
@@ -952,7 +735,7 @@ export default function AdminDownloadsSection() {
             </div>
           </div>
           <div className="mt-1">
-            <p className="text-base sm:text-lg md:text-xl font-black text-slate-900 dark:text-white tracking-tight">
+            <p className="text-xl font-black text-slate-900 dark:text-white tracking-tight">
               {loading ? '...' : (summary.ios || 0).toLocaleString()}
             </p>
             <p className="text-[10px] text-sky-600 font-semibold mt-0.5 truncate">
@@ -961,16 +744,16 @@ export default function AdminDownloadsSection() {
           </div>
         </div>
 
-        {/* Web Portal Users */}
+        {/* Card 4: Web */}
         <div className="bg-white dark:bg-[#1E293B] border border-slate-200/80 dark:border-zinc-800 rounded-xl p-2.5 sm:p-3 shadow-xs flex flex-col justify-between hover:border-indigo-300 dark:hover:border-indigo-800 transition-all">
           <div className="flex items-center justify-between">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400">Web Portal</span>
+            <span className="text-[10px] font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400">Web</span>
             <div className="p-1 rounded-md bg-indigo-500/10 text-indigo-600 border border-indigo-500/20">
               <Globe className="w-3 h-3" />
             </div>
           </div>
           <div className="mt-1">
-            <p className="text-base sm:text-lg md:text-xl font-black text-slate-900 dark:text-white tracking-tight">
+            <p className="text-xl font-black text-slate-900 dark:text-white tracking-tight">
               {loading ? '...' : (summary.web || 0).toLocaleString()}
             </p>
             <p className="text-[10px] text-indigo-600 font-semibold mt-0.5 truncate">
@@ -979,23 +762,53 @@ export default function AdminDownloadsSection() {
           </div>
         </div>
 
-        {/* First-time Users */}
+        {/* Card 5: Days Dropdown (Today / Yesterday / 7 Days / 30 Days) */}
         <div className="bg-white dark:bg-[#1E293B] border border-slate-200/80 dark:border-zinc-800 rounded-xl p-2.5 sm:p-3 shadow-xs flex flex-col justify-between hover:border-slate-300 dark:hover:border-zinc-700 transition-all">
-          <div className="flex items-center justify-between">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">First Time</span>
-            <div className="p-1 rounded-md bg-indigo-500/10 text-indigo-600 border border-indigo-500/20">
-              <Users className="w-3 h-3" />
+          <div className="flex items-center justify-between gap-1">
+            <select
+              value={kpiPeriod}
+              onChange={(e) => setKpiPeriod(e.target.value)}
+              className="bg-slate-100 dark:bg-zinc-800 text-[10px] font-extrabold uppercase tracking-wider text-slate-700 dark:text-zinc-200 rounded-md px-1.5 py-0.5 border border-slate-200 dark:border-zinc-700 focus:outline-none cursor-pointer"
+            >
+              <option value="today">Today</option>
+              <option value="yesterday">Yesterday</option>
+              <option value="7d">Last 7 Days</option>
+              <option value="30d">Last 30 Days</option>
+              <option value="all">All Time</option>
+            </select>
+            <div className="p-1 rounded-md bg-emerald-500/10 text-emerald-600 border border-emerald-500/20 shrink-0">
+              <TrendingUp className="w-3 h-3" />
             </div>
           </div>
           <div className="mt-1">
-            <p className="text-base sm:text-lg md:text-xl font-black text-slate-900 dark:text-white tracking-tight">
-              {loading ? '...' : (summary.firstTimeInstallers || 0).toLocaleString()}
+            <p className="text-xl font-black text-slate-900 dark:text-white tracking-tight">
+              {loading ? '...' : (
+                kpiPeriod === 'all'
+                  ? (summary.totalAllTime || summary.total || 0).toLocaleString()
+                  : kpiPeriod === 'yesterday'
+                  ? (summary.yesterday || 0).toLocaleString()
+                  : kpiPeriod === '7d'
+                  ? (summary.last7Days || 0).toLocaleString()
+                  : kpiPeriod === '30d'
+                  ? (summary.last30Days || 0).toLocaleString()
+                  : (summary.today || 0).toLocaleString()
+              )}
             </p>
-            <p className="text-[10px] text-slate-400 font-medium mt-0.5 truncate">Unique devices</p>
+            <p className="text-[10px] text-slate-400 font-medium mt-0.5 truncate">
+              {kpiPeriod === 'all'
+                ? 'All-time cumulative'
+                : kpiPeriod === 'yesterday'
+                ? 'Previous day installs'
+                : kpiPeriod === '7d'
+                ? 'Weekly installs'
+                : kpiPeriod === '30d'
+                ? 'Monthly run-rate'
+                : 'First 24 hrs installs'}
+            </p>
           </div>
         </div>
 
-        {/* Uninstalls */}
+        {/* Card 6: Uninstall Rate */}
         <div 
           onClick={handleOpenUninstallsModal}
           className="bg-white dark:bg-[#1E293B] border border-slate-200/80 dark:border-zinc-800 rounded-xl p-2.5 sm:p-3 shadow-xs flex flex-col justify-between hover:border-rose-400 dark:hover:border-rose-500 hover:shadow-md transition-all cursor-pointer group relative overflow-hidden"
@@ -1004,9 +817,6 @@ export default function AdminDownloadsSection() {
           <div className="flex items-center justify-between">
             <span className="text-[10px] font-bold uppercase tracking-wider text-rose-500 group-hover:text-rose-600 flex items-center gap-1">
               Uninstall Rate
-              <span className="text-[9px] font-semibold text-rose-400 opacity-0 group-hover:opacity-100 transition-opacity hidden xs:inline">
-                • View list
-              </span>
             </span>
             <div className="p-1 rounded-md bg-rose-500/10 text-rose-600 border border-rose-500/20 group-hover:bg-rose-500 group-hover:text-white transition-all shadow-xs">
               <ArrowLeft className="w-3 h-3 rotate-45 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
@@ -1014,7 +824,7 @@ export default function AdminDownloadsSection() {
           </div>
           <div className="mt-1">
             <div className="flex items-baseline justify-between">
-              <p className="text-base sm:text-lg md:text-xl font-black text-slate-900 dark:text-white tracking-tight">
+              <p className="text-xl font-black text-slate-900 dark:text-white tracking-tight">
                 {loading ? '...' : (summary.total > 0 ? `${((summary.uninstalls / summary.total) * 100).toFixed(1)}%` : '0%')}
               </p>
               <span className="text-[10px] text-rose-500 font-bold group-hover:underline flex items-center gap-0.5">
@@ -1257,36 +1067,140 @@ export default function AdminDownloadsSection() {
             </div>
           )}
 
-          {/* Swipe indicator for mobile */}
-          <div className="sm:hidden text-[10px] text-slate-400 dark:text-zinc-500 flex items-center justify-between px-1">
-            <span>← Swipe table horizontally</span>
-            <span>All columns →</span>
+          {/* Mobile view controls: Toggle between Card View and Excel Table */}
+          <div className="flex sm:hidden items-center justify-between gap-2 px-1">
+            <span className="text-[10px] text-slate-500 dark:text-zinc-400 font-bold">
+              {filteredStates.length} Regions Recorded
+            </span>
+            <div className="flex items-center bg-slate-100 dark:bg-zinc-800 p-0.5 rounded-lg border border-slate-200 dark:border-zinc-700/60">
+              <button
+                type="button"
+                onClick={() => setStateViewMode('cards')}
+                className={`px-2.5 py-1 text-[10px] font-extrabold rounded-md transition-all cursor-pointer ${
+                  stateViewMode === 'cards'
+                    ? 'bg-white dark:bg-[#1E293B] text-slate-900 dark:text-white shadow-xs'
+                    : 'text-slate-500 dark:text-zinc-400'
+                }`}
+              >
+                Cards (No Cutoff)
+              </button>
+              <button
+                type="button"
+                onClick={() => setStateViewMode('table')}
+                className={`px-2.5 py-1 text-[10px] font-extrabold rounded-md transition-all cursor-pointer ${
+                  stateViewMode === 'table'
+                    ? 'bg-white dark:bg-[#1E293B] text-slate-900 dark:text-white shadow-xs'
+                    : 'text-slate-500 dark:text-zinc-400'
+                }`}
+              >
+                Excel Table
+              </button>
+            </div>
           </div>
 
-          {/* State/Region Table with minimum width for clean mobile scrolling */}
-          <div className="overflow-x-auto rounded-xl border border-slate-200/80 dark:border-zinc-800">
-            <table className="w-full text-left border-collapse text-xs min-w-[580px]">
+          {/* Swipe indicator for mobile when in table view */}
+          <div className={`${stateViewMode === 'table' ? 'flex' : 'hidden'} sm:hidden text-[10px] text-slate-400 dark:text-zinc-500 items-center justify-between px-1`}>
+            <span>← Swipe horizontally (State pinned on left)</span>
+            <span>All metrics →</span>
+          </div>
+
+          {/* Responsive Mobile Cards View (100% width, No Cutoff) */}
+          <div className={`${stateViewMode === 'cards' ? 'block sm:hidden' : 'hidden'} space-y-2`}>
+            {loadingCountryDetail ? (
+              <div className="py-6 text-center text-slate-400 font-semibold bg-slate-50 dark:bg-zinc-900 rounded-xl">
+                <RefreshCw className="w-4 h-4 animate-spin mx-auto mb-1 text-[#B88B2A]" />
+                Loading regions...
+              </div>
+            ) : filteredStates.length === 0 ? (
+              <div className="py-6 text-center text-slate-400 bg-slate-50 dark:bg-zinc-900 rounded-xl">
+                No state telemetry recorded for {selectedCountryDetail}.
+              </div>
+            ) : (
+              filteredStates.map((st, idx) => {
+                const countryTotal = countryDetailData?.countryMetrics?.total || 1;
+                const pct = Math.round(((st.totalInstalls || 0) / countryTotal) * 100);
+                return (
+                  <div
+                    key={st.state || idx}
+                    className="p-3 bg-slate-50 dark:bg-zinc-900/70 border border-slate-200/80 dark:border-zinc-800 rounded-xl space-y-2"
+                  >
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center space-x-1.5 min-w-0">
+                        <span className="w-2 h-2 rounded-full bg-[#B88B2A] shrink-0" />
+                        <span className="font-extrabold text-xs text-slate-900 dark:text-white truncate">
+                          {st.state}
+                        </span>
+                      </div>
+                      <span className="text-xs font-black text-[#B88B2A] shrink-0">
+                        {(st.totalInstalls || 0).toLocaleString()} installs
+                      </span>
+                    </div>
+
+                    <div className="space-y-1">
+                      <div className="flex items-center justify-between text-[10px] text-slate-500 dark:text-zinc-400 font-medium">
+                        <span>Share: <strong className="text-slate-800 dark:text-zinc-200 font-bold">{pct}%</strong></span>
+                        <span>7d: <strong className="text-slate-800 dark:text-zinc-200 font-bold">{(st.last7Days || 0).toLocaleString()}</strong> · 30d: <strong className="text-slate-800 dark:text-zinc-200 font-bold">{(st.last30Days || 0).toLocaleString()}</strong></span>
+                      </div>
+                      <div className="w-full bg-slate-200 dark:bg-zinc-800 rounded-full h-1.5 overflow-hidden">
+                        <div
+                          className="bg-[#B88B2A] h-full rounded-full transition-all duration-300"
+                          style={{ width: `${Math.min(100, Math.max(5, pct))}%` }}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-between text-[10px] pt-1.5 border-t border-slate-200/60 dark:border-zinc-800/80">
+                      <span className="text-emerald-600 dark:text-emerald-400 font-bold">
+                        Android: {(st.android || 0).toLocaleString()}
+                      </span>
+                      <span className="text-sky-600 dark:text-sky-400 font-bold">
+                        iOS: {(st.ios || 0).toLocaleString()}
+                      </span>
+                    </div>
+                  </div>
+                );
+              })
+            )}
+          </div>
+
+          {/* State/Region Table with sticky first column so state never scrolls off */}
+          <div className={`${stateViewMode === 'table' ? 'block' : 'hidden sm:block'} overflow-x-auto rounded-xl border border-slate-200/80 dark:border-zinc-800 custom-scrollbar`}>
+            <table className="w-full text-left border-collapse text-xs min-w-[540px]">
               <thead>
                 <tr className="bg-slate-50 dark:bg-zinc-900 text-slate-500 dark:text-zinc-400 font-bold border-b border-slate-200 dark:border-zinc-800">
-                  <th className="py-2.5 px-3">State / Province / Region</th>
-                  <th className="py-2.5 px-3">Total Installs</th>
-                  <th className="py-2.5 px-3">Country Share</th>
-                  <th className="py-2.5 px-3">Android / iOS</th>
-                  <th className="py-2.5 px-3">Last 7 Days</th>
-                  <th className="py-2.5 px-3">Last 30 Days</th>
+                  <th className="py-2.5 px-3 sticky left-0 z-10 bg-slate-50 dark:bg-zinc-900 border-r border-slate-200/80 dark:border-zinc-800 shadow-xs whitespace-nowrap min-w-[160px]">
+                    State / Province / Region
+                  </th>
+                  <th className="py-2.5 px-3 whitespace-nowrap min-w-[95px]">Total Installs</th>
+                  <th className="py-2.5 px-3 whitespace-nowrap min-w-[90px]">Country Share</th>
+                  <th className="py-2.5 px-3 whitespace-nowrap min-w-[110px]">Android / iOS</th>
+                  <th className="py-2 px-3 whitespace-nowrap min-w-[130px]">
+                    <div className="inline-flex items-center gap-1.5">
+                      <select
+                        value={stateDaysFilter}
+                        onChange={(e) => setStateDaysFilter(e.target.value)}
+                        className="bg-white dark:bg-zinc-800 text-slate-800 dark:text-zinc-200 text-xs font-bold rounded-lg px-2 py-1 border border-slate-300 dark:border-zinc-700 shadow-2xs hover:border-[#B88B2A] focus:outline-none focus:ring-1 focus:ring-[#B88B2A] cursor-pointer"
+                        title="Select timeframe"
+                      >
+                        <option value="7d">Last 7 Days</option>
+                        <option value="30d">Last 30 Days</option>
+                        <option value="today">Today</option>
+                      </select>
+                    </div>
+                  </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-zinc-800 text-slate-700 dark:text-zinc-200">
                 {loadingCountryDetail ? (
                   <tr>
-                    <td colSpan={6} className="py-6 text-center text-slate-400 font-semibold">
+                    <td colSpan={5} className="py-6 text-center text-slate-400 font-semibold">
                       <RefreshCw className="w-4 h-4 animate-spin mx-auto mb-1 text-[#B88B2A]" />
                       Loading regions...
                     </td>
                   </tr>
                 ) : filteredStates.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="py-6 text-center text-slate-400">
+                    <td colSpan={5} className="py-6 text-center text-slate-400">
                       No state telemetry recorded for {selectedCountryDetail}.
                     </td>
                   </tr>
@@ -1296,34 +1210,43 @@ export default function AdminDownloadsSection() {
                     const pct = Math.round(((st.totalInstalls || 0) / countryTotal) * 100);
                     return (
                       <tr key={st.state || idx} className="hover:bg-slate-50/80 dark:hover:bg-zinc-800/40 transition-colors">
-                        <td className="py-2 px-3 font-bold text-slate-900 dark:text-white flex items-center space-x-1.5">
-                          <span className="w-1.5 h-1.5 rounded-full bg-[#B88B2A] shrink-0" />
-                          <span className="truncate">{st.state || 'General Territory'}</span>
+                        <td className="py-2 px-3 font-bold text-slate-900 dark:text-white sticky left-0 z-10 bg-white dark:bg-[#1E293B] border-r border-slate-100 dark:border-zinc-800 shadow-xs whitespace-nowrap min-w-[160px]">
+                          <div className="flex items-center space-x-1.5 whitespace-nowrap">
+                            <span className="w-1.5 h-1.5 rounded-full bg-[#B88B2A] shrink-0" />
+                            <span className="truncate max-w-[220px]">{st.state || 'General Territory'}</span>
+                          </div>
                         </td>
-                        <td className="py-2 px-3 font-black text-slate-900 dark:text-white">
+                        <td className="py-2 px-3 font-black text-slate-900 dark:text-white whitespace-nowrap min-w-[95px]">
                           {(st.totalInstalls || 0).toLocaleString()}
                         </td>
-                        <td className="py-2 px-3">
-                          <div className="flex items-center space-x-1.5">
-                            <div className="w-14 sm:w-16 bg-slate-100 dark:bg-zinc-800 rounded-full h-1.5 overflow-hidden">
+                        <td className="py-2 px-3 whitespace-nowrap min-w-[90px]">
+                          <div className="inline-flex items-center gap-1.5 whitespace-nowrap">
+                            <div className="w-12 sm:w-14 bg-slate-100 dark:bg-zinc-800 rounded-full h-1.5 overflow-hidden shrink-0">
                               <div 
                                 className="bg-[#B88B2A] h-full rounded-full" 
                                 style={{ width: `${Math.min(100, Math.max(5, pct))}%` }}
                               />
                             </div>
-                            <span className="text-[11px] font-bold text-slate-600 dark:text-zinc-400">{pct}%</span>
+                            <span className="text-[11px] font-bold text-slate-600 dark:text-zinc-400 whitespace-nowrap shrink-0">{pct}%</span>
                           </div>
                         </td>
-                        <td className="py-2 px-3 text-xs">
-                          <span className="text-emerald-600 dark:text-emerald-400 font-bold">{st.android || 0}</span>
-                          <span className="text-slate-300 dark:text-zinc-700 mx-1">/</span>
-                          <span className="text-sky-600 dark:text-sky-400 font-bold">{st.ios || 0}</span>
+                        <td className="py-2 px-3 text-xs whitespace-nowrap min-w-[110px]">
+                          <div className="inline-flex items-center gap-1 font-bold whitespace-nowrap">
+                            <span className="text-emerald-600 dark:text-emerald-400 whitespace-nowrap">
+                              {(st.android || 0).toLocaleString()}
+                            </span>
+                            <span className="text-slate-300 dark:text-zinc-700 select-none">/</span>
+                            <span className="text-sky-600 dark:text-sky-400 whitespace-nowrap">
+                              {(st.ios || 0).toLocaleString()}
+                            </span>
+                          </div>
                         </td>
-                        <td className="py-2 px-3 font-semibold text-slate-700 dark:text-zinc-300">
-                          {(st.last7Days || 0).toLocaleString()}
-                        </td>
-                        <td className="py-2 px-3 font-semibold text-slate-700 dark:text-zinc-300">
-                          {(st.last30Days || 0).toLocaleString()}
+                        <td className="py-2 px-3 font-semibold text-slate-700 dark:text-zinc-300 whitespace-nowrap min-w-[130px]">
+                          {stateDaysFilter === '30d'
+                            ? (st.last30Days || 0).toLocaleString()
+                            : stateDaysFilter === 'today'
+                            ? (st.today || 0).toLocaleString()
+                            : (st.last7Days || 0).toLocaleString()}
                         </td>
                       </tr>
                     );
@@ -1333,29 +1256,32 @@ export default function AdminDownloadsSection() {
               {filteredStates.length > 0 && (
                 <tfoot className="border-t-2 border-slate-200 dark:border-zinc-700 text-xs">
                   <tr className="bg-amber-50/40 dark:bg-amber-950/20 font-black text-slate-900 dark:text-white">
-                    <td className="py-2.5 px-3">
+                    <td className="py-2.5 px-3 sticky left-0 z-10 bg-amber-50/90 dark:bg-zinc-900 border-r border-slate-200/80 dark:border-zinc-800 shadow-xs whitespace-nowrap min-w-[160px]">
                       Total ({filteredStates.length} Regions in {selectedCountryDetail})
                     </td>
-                    <td className="py-2.5 px-3 text-[#B88B2A]">
+                    <td className="py-2.5 px-3 text-[#B88B2A] whitespace-nowrap font-black min-w-[95px]">
                       {(countryDetailData?.countryMetrics?.total ?? filteredStates.reduce((acc, s) => acc + (s.totalInstalls || 0), 0)).toLocaleString()}
                     </td>
-                    <td className="py-2.5 px-3 font-bold text-slate-700 dark:text-zinc-300">
+                    <td className="py-2.5 px-3 font-bold text-slate-700 dark:text-zinc-300 whitespace-nowrap min-w-[90px]">
                       100%
                     </td>
-                    <td className="py-2.5 px-3 text-xs">
-                      <span className="text-emerald-600 dark:text-emerald-400 font-bold">
-                        {(countryDetailData?.countryMetrics?.android ?? filteredStates.reduce((acc, s) => acc + (s.android || 0), 0)).toLocaleString()}
-                      </span>
-                      <span className="text-slate-300 dark:text-zinc-700 mx-1">/</span>
-                      <span className="text-sky-600 dark:text-sky-400 font-bold">
-                        {(countryDetailData?.countryMetrics?.ios ?? filteredStates.reduce((acc, s) => acc + (s.ios || 0), 0)).toLocaleString()}
-                      </span>
+                    <td className="py-2.5 px-3 text-xs whitespace-nowrap min-w-[110px]">
+                      <div className="inline-flex items-center gap-1 font-bold whitespace-nowrap">
+                        <span className="text-emerald-600 dark:text-emerald-400 whitespace-nowrap">
+                          {(countryDetailData?.countryMetrics?.android ?? filteredStates.reduce((acc, s) => acc + (s.android || 0), 0)).toLocaleString()}
+                        </span>
+                        <span className="text-slate-300 dark:text-zinc-700 select-none">/</span>
+                        <span className="text-sky-600 dark:text-sky-400 whitespace-nowrap">
+                          {(countryDetailData?.countryMetrics?.ios ?? filteredStates.reduce((acc, s) => acc + (s.ios || 0), 0)).toLocaleString()}
+                        </span>
+                      </div>
                     </td>
-                    <td className="py-2.5 px-3 font-bold text-slate-700 dark:text-zinc-300">
-                      {filteredStates.reduce((acc, s) => acc + (s.last7Days || 0), 0).toLocaleString()}
-                    </td>
-                    <td className="py-2.5 px-3 font-bold text-slate-700 dark:text-zinc-300">
-                      {(countryDetailData?.countryMetrics?.last30Days ?? filteredStates.reduce((acc, s) => acc + (s.last30Days || 0), 0)).toLocaleString()}
+                    <td className="py-2.5 px-3 font-bold text-slate-700 dark:text-zinc-300 whitespace-nowrap min-w-[130px]">
+                      {stateDaysFilter === '30d'
+                        ? (countryDetailData?.countryMetrics?.last30Days ?? filteredStates.reduce((acc, s) => acc + (s.last30Days || 0), 0)).toLocaleString()
+                        : stateDaysFilter === 'today'
+                        ? (countryDetailData?.countryMetrics?.today ?? filteredStates.reduce((acc, s) => acc + (s.today || 0), 0)).toLocaleString()
+                        : (filteredStates.reduce((acc, s) => acc + (s.last7Days || 0), 0)).toLocaleString()}
                     </td>
                   </tr>
                 </tfoot>
@@ -1435,30 +1361,41 @@ export default function AdminDownloadsSection() {
           </div>
 
           <div className="overflow-x-auto rounded-xl border border-slate-200/80 dark:border-zinc-800">
-            <table className="w-full text-left border-collapse text-xs min-w-[640px]">
+            <table className="w-full text-left border-collapse text-xs min-w-[580px]">
               <thead>
                 <tr className="bg-slate-50 dark:bg-zinc-900 text-slate-500 dark:text-zinc-400 font-bold border-b border-slate-200 dark:border-zinc-800">
-                  <th className="py-2.5 px-3"># & Country</th>
-                  <th className="py-2.5 px-3">Total Installs</th>
-                  <th className="py-2.5 px-3">% Share</th>
-                  <th className="py-2.5 px-3">Android / iOS</th>
-                  <th className="py-2.5 px-3">Today</th>
-                  <th className="py-2.5 px-3">7 Days</th>
-                  <th className="py-2.5 px-3">30 Days</th>
-                  <th className="py-2.5 px-3 text-right">Action</th>
+                  <th className="py-2.5 px-3 whitespace-nowrap min-w-[150px]"># & Country</th>
+                  <th className="py-2.5 px-3 whitespace-nowrap min-w-[95px]">Total Installs</th>
+                  <th className="py-2.5 px-3 whitespace-nowrap min-w-[90px]">% Share</th>
+                  <th className="py-2.5 px-3 whitespace-nowrap min-w-[110px]">Android / iOS</th>
+                  <th className="py-2 px-3 whitespace-nowrap min-w-[130px]">
+                    <div className="inline-flex items-center gap-1.5">
+                      <select
+                        value={countryDaysFilter}
+                        onChange={(e) => setCountryDaysFilter(e.target.value)}
+                        className="bg-white dark:bg-zinc-800 text-slate-800 dark:text-zinc-200 text-xs font-bold rounded-lg px-2 py-1 border border-slate-300 dark:border-zinc-700 shadow-2xs hover:border-[#B88B2A] focus:outline-none focus:ring-1 focus:ring-[#B88B2A] cursor-pointer"
+                        title="Select timeframe"
+                      >
+                        <option value="7d">Last 7 Days</option>
+                        <option value="30d">Last 30 Days</option>
+                        <option value="today">Today</option>
+                      </select>
+                    </div>
+                  </th>
+                  <th className="py-2.5 px-3 text-right whitespace-nowrap min-w-[70px]">Action</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-zinc-800 text-slate-700 dark:text-zinc-200">
                 {loading ? (
                   <tr>
-                    <td colSpan={8} className="py-6 text-center text-slate-400 font-semibold">
+                    <td colSpan={6} className="py-6 text-center text-slate-400 font-semibold">
                       <RefreshCw className="w-4 h-4 animate-spin mx-auto mb-1 text-[#B88B2A]" />
                       Loading country breakdown...
                     </td>
                   </tr>
                 ) : countriesList.length === 0 ? (
                   <tr>
-                    <td colSpan={8} className="py-6 text-center text-slate-400">
+                    <td colSpan={6} className="py-6 text-center text-slate-400">
                       No country telemetry matches your filter.
                     </td>
                   </tr>
@@ -1476,7 +1413,7 @@ export default function AdminDownloadsSection() {
                         onClick={() => handleSelectCountry(item.country)}
                         className="hover:bg-slate-50/80 dark:hover:bg-zinc-800/40 transition-colors cursor-pointer group"
                       >
-                        <td className="py-2.5 px-3 font-semibold text-slate-900 dark:text-white flex items-center space-x-2">
+                        <td className="py-2.5 px-3 font-semibold text-slate-900 dark:text-white flex items-center space-x-2 whitespace-nowrap min-w-[150px]">
                           <span className={`w-4 h-4 rounded-md flex items-center justify-center text-[9px] font-black shrink-0 ${
                             isTop1 ? 'bg-amber-100 text-amber-800 dark:bg-amber-500/20 dark:text-amber-300' : 'bg-slate-100 dark:bg-zinc-800 text-slate-500'
                           }`}>
@@ -1499,41 +1436,43 @@ export default function AdminDownloadsSection() {
                           </div>
                         </td>
 
-                        <td className="py-2.5 px-3 font-black text-slate-900 dark:text-white">
+                        <td className="py-2.5 px-3 font-black text-slate-900 dark:text-white whitespace-nowrap min-w-[95px]">
                           {(item.totalInstalls || 0).toLocaleString()}
                         </td>
 
-                        <td className="py-2.5 px-3">
-                          <div className="flex items-center space-x-1.5">
-                            <div className="w-14 sm:w-16 bg-slate-100 dark:bg-zinc-800 rounded-full h-1.5 overflow-hidden">
+                        <td className="py-2.5 px-3 whitespace-nowrap min-w-[90px]">
+                          <div className="inline-flex items-center gap-1.5 whitespace-nowrap">
+                            <div className="w-12 sm:w-14 bg-slate-100 dark:bg-zinc-800 rounded-full h-1.5 overflow-hidden shrink-0">
                               <div 
                                 className="bg-[#B88B2A] h-full rounded-full" 
                                 style={{ width: `${Math.min(100, Math.max(3, item.percentageOfTotal || 0))}%` }}
                               />
                             </div>
-                            <span className="text-[11px] font-bold text-slate-700 dark:text-zinc-300">{item.percentageOfTotal || 0}%</span>
+                            <span className="text-[11px] font-bold text-slate-700 dark:text-zinc-300 whitespace-nowrap shrink-0">{item.percentageOfTotal || 0}%</span>
                           </div>
                         </td>
 
-                        <td className="py-2.5 px-3 text-xs">
-                          <span className="text-emerald-600 dark:text-emerald-400 font-bold">{item.android || 0}</span>
-                          <span className="text-slate-300 dark:text-zinc-700 mx-1">/</span>
-                          <span className="text-sky-600 dark:text-sky-400 font-bold">{item.ios || 0}</span>
+                        <td className="py-2.5 px-3 text-xs whitespace-nowrap min-w-[110px]">
+                          <div className="inline-flex items-center gap-1 font-bold whitespace-nowrap">
+                            <span className="text-emerald-600 dark:text-emerald-400 whitespace-nowrap">
+                              {(item.android || 0).toLocaleString()}
+                            </span>
+                            <span className="text-slate-300 dark:text-zinc-700 select-none">/</span>
+                            <span className="text-sky-600 dark:text-sky-400 whitespace-nowrap">
+                              {(item.ios || 0).toLocaleString()}
+                            </span>
+                          </div>
                         </td>
 
-                        <td className="py-2.5 px-3 font-semibold text-slate-700 dark:text-zinc-300">
-                          {(item.today || 0).toLocaleString()}
+                        <td className="py-2.5 px-3 font-semibold text-slate-700 dark:text-zinc-300 whitespace-nowrap min-w-[130px]">
+                          {countryDaysFilter === '30d'
+                            ? (item.last30Days || 0).toLocaleString()
+                            : countryDaysFilter === 'today'
+                            ? (item.today || 0).toLocaleString()
+                            : (item.last7Days || 0).toLocaleString()}
                         </td>
 
-                        <td className="py-2.5 px-3 font-semibold text-slate-700 dark:text-zinc-300">
-                          {(item.last7Days || 0).toLocaleString()}
-                        </td>
-
-                        <td className="py-2.5 px-3 font-semibold text-slate-700 dark:text-zinc-300">
-                          {(item.last30Days || 0).toLocaleString()}
-                        </td>
-
-                        <td className="py-2.5 px-3 text-right">
+                        <td className="py-2.5 px-3 text-right whitespace-nowrap min-w-[70px]">
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
@@ -1556,66 +1495,66 @@ export default function AdminDownloadsSection() {
                 <tfoot className="border-t-2 border-slate-200 dark:border-zinc-700 text-xs">
                   {countriesTotalCount > countriesList.length && (
                     <tr className="bg-slate-50/70 dark:bg-zinc-900/70 text-slate-600 dark:text-zinc-400 font-semibold border-b border-slate-100 dark:border-zinc-800">
-                      <td className="py-2.5 px-3">
+                      <td className="py-2.5 px-3 whitespace-nowrap min-w-[150px]">
                         <span className="font-bold text-slate-700 dark:text-zinc-300">
                           Current Page ({countriesList.length} of {countriesTotalCount})
                         </span>
                       </td>
-                      <td className="py-2.5 px-3 font-bold text-slate-800 dark:text-zinc-200">
+                      <td className="py-2.5 px-3 font-bold text-slate-800 dark:text-zinc-200 whitespace-nowrap min-w-[95px]">
                         {countriesList.reduce((acc, c) => acc + (c.totalInstalls || 0), 0).toLocaleString()}
                       </td>
-                      <td className="py-2.5 px-3">
+                      <td className="py-2.5 px-3 whitespace-nowrap min-w-[90px]">
                         {countriesList.reduce((acc, c) => acc + (c.percentageOfTotal || 0), 0).toFixed(1)}%
                       </td>
-                      <td className="py-2.5 px-3 text-xs">
-                        <span className="text-emerald-600 font-bold">{countriesList.reduce((acc, c) => acc + (c.android || 0), 0)}</span>
-                        <span className="text-slate-300 dark:text-zinc-700 mx-1">/</span>
-                        <span className="text-sky-600 font-bold">{countriesList.reduce((acc, c) => acc + (c.ios || 0), 0)}</span>
+                      <td className="py-2.5 px-3 text-xs whitespace-nowrap min-w-[110px]">
+                        <div className="inline-flex items-center gap-1 font-bold whitespace-nowrap">
+                          <span className="text-emerald-600 whitespace-nowrap">{countriesList.reduce((acc, c) => acc + (c.android || 0), 0).toLocaleString()}</span>
+                          <span className="text-slate-300 dark:text-zinc-700 select-none">/</span>
+                          <span className="text-sky-600 whitespace-nowrap">{countriesList.reduce((acc, c) => acc + (c.ios || 0), 0).toLocaleString()}</span>
+                        </div>
                       </td>
-                      <td className="py-2.5 px-3">
-                        {countriesList.reduce((acc, c) => acc + (c.today || 0), 0).toLocaleString()}
+                      <td className="py-2.5 px-3 font-semibold whitespace-nowrap min-w-[130px]">
+                        {countryDaysFilter === '30d'
+                          ? countriesList.reduce((acc, c) => acc + (c.last30Days || 0), 0).toLocaleString()
+                          : countryDaysFilter === 'today'
+                          ? countriesList.reduce((acc, c) => acc + (c.today || 0), 0).toLocaleString()
+                          : countriesList.reduce((acc, c) => acc + (c.last7Days || 0), 0).toLocaleString()}
                       </td>
-                      <td className="py-2.5 px-3">
-                        {countriesList.reduce((acc, c) => acc + (c.last7Days || 0), 0).toLocaleString()}
-                      </td>
-                      <td className="py-2.5 px-3">
-                        {countriesList.reduce((acc, c) => acc + (c.last30Days || 0), 0).toLocaleString()}
-                      </td>
-                      <td className="py-2.5 px-3 text-right text-[10px] text-slate-400">
+                      <td className="py-2.5 px-3 text-right text-[10px] text-slate-400 whitespace-nowrap min-w-[70px]">
                         Page Sum
                       </td>
                     </tr>
                   )}
                   <tr className="bg-amber-50/40 dark:bg-amber-950/20 font-black text-slate-900 dark:text-white">
-                    <td className="py-2.5 px-3 flex items-center space-x-1.5 text-slate-900 dark:text-white">
+                    <td className="py-2.5 px-3 flex items-center space-x-1.5 text-slate-900 dark:text-white whitespace-nowrap min-w-[150px]">
                       <Globe className="w-3.5 h-3.5 text-[#B88B2A] shrink-0" />
                       <span>Grand Total ({countriesTotalCount} Countries)</span>
                     </td>
-                    <td className="py-2.5 px-3 text-[#B88B2A] text-sm">
+                    <td className="py-2.5 px-3 text-[#B88B2A] text-sm whitespace-nowrap font-black min-w-[95px]">
                       {(countrySummaryTotals?.totalInstalls ?? summary.total).toLocaleString()}
                     </td>
-                    <td className="py-2.5 px-3 font-bold text-slate-700 dark:text-zinc-300">
+                    <td className="py-2.5 px-3 font-bold text-slate-700 dark:text-zinc-300 whitespace-nowrap min-w-[90px]">
                       100%
                     </td>
-                    <td className="py-2.5 px-3 text-xs">
-                      <span className="text-emerald-600 dark:text-emerald-400 font-bold">
-                        {(countrySummaryTotals?.android ?? summary.android).toLocaleString()}
-                      </span>
-                      <span className="text-slate-300 dark:text-zinc-700 mx-1">/</span>
-                      <span className="text-sky-600 dark:text-sky-400 font-bold">
-                        {(countrySummaryTotals?.ios ?? summary.ios).toLocaleString()}
-                      </span>
+                    <td className="py-2.5 px-3 text-xs whitespace-nowrap min-w-[110px]">
+                      <div className="inline-flex items-center gap-1 font-bold whitespace-nowrap">
+                        <span className="text-emerald-600 dark:text-emerald-400 whitespace-nowrap">
+                          {(countrySummaryTotals?.android ?? summary.android).toLocaleString()}
+                        </span>
+                        <span className="text-slate-300 dark:text-zinc-700 select-none">/</span>
+                        <span className="text-sky-600 dark:text-sky-400 whitespace-nowrap">
+                          {(countrySummaryTotals?.ios ?? summary.ios).toLocaleString()}
+                        </span>
+                      </div>
                     </td>
-                    <td className="py-2.5 px-3 font-bold text-slate-700 dark:text-zinc-300">
-                      {(countrySummaryTotals?.today ?? summary.today).toLocaleString()}
+                    <td className="py-2.5 px-3 font-bold text-slate-700 dark:text-zinc-300 whitespace-nowrap min-w-[130px]">
+                      {countryDaysFilter === '30d'
+                        ? (countrySummaryTotals?.last30Days ?? summary.last30Days).toLocaleString()
+                        : countryDaysFilter === 'today'
+                        ? (countrySummaryTotals?.today ?? summary.today).toLocaleString()
+                        : (countrySummaryTotals?.last7Days ?? summary.last7Days).toLocaleString()}
                     </td>
-                    <td className="py-2.5 px-3 font-bold text-slate-700 dark:text-zinc-300">
-                      {(countrySummaryTotals?.last7Days ?? summary.last7Days).toLocaleString()}
-                    </td>
-                    <td className="py-2.5 px-3 font-bold text-slate-700 dark:text-zinc-300">
-                      {(countrySummaryTotals?.last30Days ?? summary.last30Days).toLocaleString()}
-                    </td>
-                    <td className="py-2.5 px-3 text-right text-[10px] text-slate-400 font-normal">
+                    <td className="py-2.5 px-3 text-right text-[10px] text-slate-400 font-normal whitespace-nowrap min-w-[70px]">
                       Overall
                     </td>
                   </tr>

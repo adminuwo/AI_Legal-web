@@ -67,7 +67,7 @@ const getApiUrl = () => {
     if (window._env_?.VITE_AISA_BACKEND_API || window._env_?.AISA_BACKEND_API) {
       return window._env_?.VITE_AISA_BACKEND_API || window._env_?.AISA_BACKEND_API;
     }
-    if (import.meta.env.VITE_AISA_BACKEND_API) {
+    if (import.meta.env?.VITE_AISA_BACKEND_API) {
       return import.meta.env.VITE_AISA_BACKEND_API;
     }
     return `${window.location.origin}/api`;
@@ -76,7 +76,7 @@ const getApiUrl = () => {
 };
 
 export const getUnifiedApiBaseUrl = () => {
-  const envUrl = window._env_?.VITE_UNIFIED_BACKEND_API || import.meta.env.VITE_UNIFIED_BACKEND_API;
+  const envUrl = window._env_?.VITE_UNIFIED_BACKEND_API || import.meta.env?.VITE_UNIFIED_BACKEND_API;
 
   if (typeof window !== 'undefined' && window.location) {
     const currentHost = window.location.hostname;

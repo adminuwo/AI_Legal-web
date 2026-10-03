@@ -38,9 +38,9 @@ export const DATE_RANGE_OPTIONS = [
 ];
 
 const TABS = [
-  { id: 'overview', label: 'Overview', icon: BarChart3 },
+  { id: 'overview', label: 'Downloads & Installs', icon: Download },
   { id: 'users', label: 'Users', icon: Users },
-  { id: 'downloads', label: 'Downloads & Installs', icon: Download },
+  { id: 'downloads', label: 'Use Cases', icon: Sparkles },
   { id: 'billing', label: 'Billing', icon: CreditCard },
   { id: 'plans', label: 'Plans', icon: Package },
   { id: 'judgments', label: 'Posted Judgements', icon: Scale },
@@ -1888,10 +1888,10 @@ export default function AdminDashboard() {
                 </div>
               </div>
 
-              {/* CARD 4: AI OPERATIONS PROCESSED */}
+              {/* CARD 4: AI CREDITS CONSUMED */}
               <div className="bg-white dark:bg-[#1E293B] rounded-2xl p-4 sm:p-5 border border-slate-200/80 dark:border-zinc-800 shadow-xs flex flex-col justify-between space-y-3">
                 <div className="flex items-center justify-between">
-                  <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">AI OPERATIONS</span>
+                  <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">AI CREDITS USED</span>
                   <div className="p-2 rounded-lg bg-blue-500/10 text-blue-500 border border-blue-500/20 shrink-0">
                     <Zap className="w-4 h-4" />
                   </div>
@@ -1901,7 +1901,7 @@ export default function AdminDashboard() {
                     {(stats.totalCreditsUsed || 0).toLocaleString()}
                   </h3>
                   <p className="text-[10px] sm:text-[11px] font-semibold text-slate-500 dark:text-zinc-400 mt-2 pt-2 border-t border-slate-100 dark:border-zinc-800/80 truncate">
-                    Total AI Queries Processed
+                    Total AI Credits Consumed
                   </p>
                 </div>
               </div>
@@ -2032,55 +2032,8 @@ export default function AdminDashboard() {
               </div>
             </div>
 
-            {/* ROW 4: AI LEGAL FEATURE USAGE & ADOPTION ANALYTICS */}
-            <AdminFeatureAdoptionSection user={user} fallbackStats={stats} />
-
-            {/* ROW 5: PENDING TRIAGE ALERTS */}
-            <div className="space-y-3 sm:space-y-4">
-              <h3 className="text-sm sm:text-base font-extrabold text-slate-900 dark:text-white">PENDING TRIAGE</h3>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                <button
-                  onClick={() => setActiveTab('bugs')}
-                  className="bg-white dark:bg-[#1E293B] hover:bg-slate-50 dark:hover:bg-zinc-800/60 p-4 sm:p-6 rounded-2xl sm:rounded-3xl border border-slate-200/80 dark:border-zinc-800 text-left transition-all cursor-pointer flex flex-col justify-between space-y-4 group shadow-xs"
-                >
-                  <div className="flex justify-between items-start">
-                    <span className="text-[10px] font-black uppercase tracking-wider text-red-500 bg-red-500/10 px-2.5 py-0.5 rounded-full border border-red-500/20">
-                      OPEN BUG REPORTS
-                    </span>
-                    <Bug className="w-5 h-5 text-red-500" />
-                  </div>
-                  <div>
-                    <h4 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white">{bugsList.length}</h4>
-                    <p className="text-[11px] sm:text-xs font-medium text-slate-500 mt-1">Critical issues requiring review</p>
-                  </div>
-                  <div className="flex items-center gap-1.5 text-xs font-black text-red-500 group-hover:translate-x-1 transition-transform">
-                    <span>View Bugs</span>
-                    <ChevronRight className="w-4 h-4" />
-                  </div>
-                </button>
-
-                <button
-                  onClick={() => setActiveTab('features')}
-                  className="bg-white dark:bg-[#1E293B] hover:bg-slate-50 dark:hover:bg-zinc-800/60 p-4 sm:p-6 rounded-2xl sm:rounded-3xl border border-slate-200/80 dark:border-zinc-800 text-left transition-all cursor-pointer flex flex-col justify-between space-y-4 group shadow-xs"
-                >
-                  <div className="flex justify-between items-start">
-                    <span className="text-[10px] font-black uppercase tracking-wider text-blue-500 bg-blue-500/10 px-2.5 py-0.5 rounded-full border border-blue-500/20">
-                      PENDING FEATURE REQUESTS
-                    </span>
-                    <Lightbulb className="w-5 h-5 text-blue-500" />
-                  </div>
-                  <div>
-                    <h4 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white">{featuresList.length}</h4>
-                    <p className="text-[11px] sm:text-xs font-medium text-slate-500 mt-1">User submitted ideas awaiting review</p>
-                  </div>
-                  <div className="flex items-center gap-1.5 text-xs font-black text-blue-500 group-hover:translate-x-1 transition-transform">
-                    <span>View Requests</span>
-                    <ChevronRight className="w-4 h-4" />
-                  </div>
-                </button>
-              </div>
-            </div>
+            {/* ROW 4: PRODUCTION DOWNLOADS & INSTALLS TELEMETRY */}
+            <AdminDownloadsSection />
           </div>
         ) : activeTab === 'advocate-verifications' ? (
           <AdminAdvocateVerificationsSection token={user?.token} />
@@ -3696,8 +3649,8 @@ export default function AdminDashboard() {
             </div>
           </div>
         ) : activeTab === 'downloads' ? (
-          /* TAB: DOWNLOADS & INSTALLS ANALYTICS */
-          <AdminDownloadsSection />
+          /* TAB: USE CASES (AI LEGAL FEATURE ADOPTION) */
+          <AdminFeatureAdoptionSection user={user} fallbackStats={stats} />
         ) : activeTab === 'linked-orgs' ? (
           /* TAB: LINKED ORGANIZATIONS (VIA CONVEE-EDUCATION) */
           <AdminLinkedOrganizationsSection />

@@ -27,6 +27,11 @@ export default function SearchResultCard({
       <div>
         <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 dark:border-slate-800/70 pb-3 mb-3.5">
           <div className="flex items-center gap-2">
+            {judgment.isDirectMatch && (
+              <span className="px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider bg-gradient-to-r from-amber-500 to-[#B88B2A] text-slate-950 flex items-center gap-1 shadow-2xs">
+                ⭐ Top Match
+              </span>
+            )}
             <span className="px-2.5 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider bg-[#111827] text-white dark:bg-amber-400 dark:text-slate-950 flex items-center gap-1">
               <Landmark size={11} />
               {judgment.court || 'Supreme Court of India'}
@@ -83,11 +88,35 @@ export default function SearchResultCard({
           </p>
         </div>
 
-        {/* Core Ratio Decidendi Snippet */}
-        {judgment.ratioDecidendi && (
-          <div className="mt-3 text-xs text-slate-600 dark:text-slate-400 italic border-l-2 border-[#B88B2A] pl-3 py-0.5 line-clamp-2">
-            <span className="font-bold text-slate-800 dark:text-slate-200 not-italic">Ratio: </span>
-            "{judgment.ratioDecidendi}"
+        {/* 1. Case Facts & Background */}
+        {(judgment.caseContext?.facts || judgment.facts || judgment.executiveSummary) && (
+          <div className="mt-3.5 p-3.5 rounded-xl bg-slate-50/90 dark:bg-[#131B2E] border border-slate-200/80 dark:border-slate-800 space-y-1.5">
+            <div className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400">
+              <BookOpen size={13} className="text-[#B88B2A]" />
+              <span>Case Facts:</span>
+            </div>
+            <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed font-normal">
+              {judgment.caseContext?.facts || judgment.facts || judgment.executiveSummary}
+            </p>
+          </div>
+        )}
+
+        {/* 2. Final Judgment & Established Ruling */}
+        {(judgment.finalDecision || judgment.ratioDecidendi) && (
+          <div className="mt-2.5 p-3.5 rounded-xl bg-amber-50/70 dark:bg-amber-950/25 border-l-3 border-[#B88B2A] border-y border-r border-amber-200/60 dark:border-amber-900/40 space-y-1.5">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-1.5 text-[11px] font-black uppercase tracking-wider text-[#B38628] dark:text-amber-400">
+                <Scale size={13} />
+                <span>Final Judgment & Decision:</span>
+              </div>
+              <span className="text-[9.5px] font-bold text-[#B38628] dark:text-amber-300 bg-amber-100/80 dark:bg-amber-900/60 px-2 py-0.2 rounded">
+                Holding
+              </span>
+            </div>
+            <p className="text-xs text-slate-800 dark:text-slate-200 leading-relaxed font-medium">
+              {judgment.finalDecision ? `${judgment.finalDecision} ` : ''}
+              {judgment.ratioDecidendi && !judgment.finalDecision?.includes(judgment.ratioDecidendi.slice(0, 30)) ? `"${judgment.ratioDecidendi}"` : ''}
+            </p>
           </div>
         )}
 

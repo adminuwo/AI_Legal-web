@@ -1,8 +1,8 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Search, Sparkles, Filter, Bookmark, Plus, ArrowRight, RotateCcw, 
-  Landmark, Scale, BookOpen, Layers, Menu, X, ArrowUp, CheckCircle2 
+  Landmark, Scale, BookOpen, Layers, Menu, X, ArrowUp, CheckCircle2, Copy 
 } from 'lucide-react';
 import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
 import toast from 'react-hot-toast';
@@ -64,6 +64,16 @@ export default function PublicCaseSearchWorkspace() {
   const [partyResults, setPartyResults] = useState([]);
   const [hasSearched, setHasSearched] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
+  const resultsTopRef = useRef(null);
+
+  // Auto-scroll to top of results whenever new search finishes
+  useEffect(() => {
+    if (hasSearched && !isSearching && results.length > 0 && resultsTopRef.current) {
+      setTimeout(() => {
+        resultsTopRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 100);
+    }
+  }, [hasSearched, isSearching, results.length]);
 
   // Active Judgment Reader
   const [selectedJudgment, setSelectedJudgment] = useState(null);
@@ -191,6 +201,9 @@ export default function PublicCaseSearchWorkspace() {
       citation: '',
       party: ''
     });
+    setActiveSource('ALL');
+    setSelectedHighCourt('all');
+    executeSearch(searchQuery || '', 'ALL', 'all');
     toast.success('Filters reset to default');
   };
 
@@ -217,11 +230,36 @@ export default function PublicCaseSearchWorkspace() {
     setIsAddToCaseOpen(true);
   };
 
-  // Filter & Sort Results
+  // Filter & Sort Results: whatever user searched is strictly placed at the TOP (#1)
   const sortedResults = useMemo(() => {
     let list = [...results];
+    const qLower = (searchQuery || '').toLowerCase().trim();
     if (sortBy === 'relevance') {
-      list.sort((a, b) => (b.relevanceScore || 0) - (a.relevanceScore || 0));
+      list.sort((a, b) => {
+        if (qLower) {
+          const qClean = qLower.replace(/[^a-z0-9\s]/g, ' ').replace(/\s+/g, ' ').trim();
+          const qCore = qLower.replace(/\s*\([^)]*\)/g, '').replace(/[^a-z0-9\s]/g, ' ').replace(/\s+/g, ' ').trim();
+          const qPetitioner = qCore.split(/\s+(?:v|vs|versus)\s+/)[0]?.trim() || '';
+
+          const checkDirect = (item) => {
+            if (item.isDirectMatch) return true;
+            const itemTitle = (item.title || '').toLowerCase().replace(/[^a-z0-9\s]/g, ' ').replace(/\s+/g, ' ').trim();
+            const itemCit = (item.citation || '').toLowerCase().replace(/[^a-z0-9\s]/g, ' ').replace(/\s+/g, ' ').trim();
+            
+            if (qClean && (itemTitle.includes(qClean) || qClean.includes(itemTitle))) return true;
+            if (qCore && (itemTitle.includes(qCore) || qCore.includes(itemTitle))) return true;
+            if (qPetitioner && qPetitioner.length > 3 && itemTitle.includes(qPetitioner)) return true;
+            if (qClean && (itemCit.includes(qClean) || qClean.includes(itemCit))) return true;
+            return false;
+          };
+
+          const aExact = checkDirect(a);
+          const bExact = checkDirect(b);
+          if (aExact && !bExact) return -1;
+          if (!aExact && bExact) return 1;
+        }
+        return (b.relevanceScore || 0) - (a.relevanceScore || 0);
+      });
     } else if (sortBy === 'newest') {
       list.sort((a, b) => parseInt(b.year || 0) - parseInt(a.year || 0));
     } else if (sortBy === 'oldest') {
@@ -230,7 +268,7 @@ export default function PublicCaseSearchWorkspace() {
       list.sort((a, b) => (a.court || '').localeCompare(b.court || ''));
     }
     return list;
-  }, [results, sortBy]);
+  }, [results, sortBy, searchQuery]);
 
   // Active filters count
   const activeFiltersCount = useMemo(() => {
@@ -500,7 +538,11 @@ export default function PublicCaseSearchWorkspace() {
               activeSource={activeSource}
               onSelectSource={(src) => {
                 setActiveSource(src);
-                executeSearch(null, src);
+                const courtForSearch = src === 'HC' ? selectedHighCourt : 'all';
+                if (src !== 'HC') {
+                  setSelectedHighCourt('all');
+                }
+                executeSearch(null, src, courtForSearch);
               }}
               selectedHighCourt={selectedHighCourt}
               onSelectHighCourt={(hc) => {
@@ -728,14 +770,19 @@ export default function PublicCaseSearchWorkspace() {
             )}
             
             {/* Results Header with Query Summary and Sort Bar */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200/80 dark:border-slate-800 pb-4">
+            <div ref={resultsTopRef} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200/80 dark:border-slate-800 pb-4">
               <div>
                 <span className="text-xs text-slate-400 font-semibold block">
                   Legal Precedents & Judgments for:
                 </span>
                 <div className="flex items-center gap-2">
                   <h2 className="text-lg sm:text-xl font-black text-slate-900 dark:text-white tracking-tight">
-                    {searchQuery ? `"${searchQuery}"` : 'All Jurisprudential Authorities'}
+                    {searchQuery ? `"${searchQuery}"` : (
+                      activeSource === 'SC' ? 'Supreme Court Landmark Rulings' :
+                      activeSource === 'HC' ? (selectedHighCourt !== 'all' ? `${selectedHighCourt.replace('hc_', '').toUpperCase()} High Court Precedents` : 'High Court Landmark Rulings') :
+                      activeSource === 'ACTS' ? 'Statutory Precedents & Bare Acts Interpretation' :
+                      'All Jurisprudential Authorities'
+                    )}
                   </h2>
                   <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#B88B2A]/15 text-[#B38628] dark:text-amber-400 border border-[#B88B2A]/30">
                     {results.length} Relevant Authorities
@@ -775,6 +822,95 @@ export default function PublicCaseSearchWorkspace() {
               ))}
             </div>
 
+            {/* ─── Consolidated Research Synthesis: Key Facts & Established Judgments (At Bottom of Case Search) ─── */}
+            {sortedResults.length > 0 && (
+              <div className="mt-10 p-6 sm:p-8 rounded-3xl bg-gradient-to-br from-white via-amber-50/25 to-slate-50 dark:from-[#0F1523] dark:via-[#131B2E] dark:to-[#0B0F19] border-2 border-[#B88B2A]/35 shadow-sm space-y-6">
+                
+                {/* Header */}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200/80 dark:border-slate-800 pb-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-2xl bg-amber-500/10 border border-[#B88B2A]/30 text-[#B88B2A] flex items-center justify-center shrink-0">
+                      <Scale size={20} />
+                    </div>
+                    <div>
+                      <h3 className="text-base sm:text-lg font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
+                        <span>Research Synthesis: Facts & Established Judgments</span>
+                        <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-amber-500/15 text-[#B38628] dark:text-amber-300 border border-[#B88B2A]/30">
+                          Summary
+                        </span>
+                      </h3>
+                      <p className="text-xs text-slate-500 dark:text-slate-400">
+                        Consolidated jurisprudential overview for query: <strong className="text-slate-800 dark:text-slate-200 font-semibold">"{searchQuery || 'Landmark Precedents'}"</strong>
+                      </p>
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={() => {
+                      const factsText = sortedResults.slice(0, 3).map((r, i) => `${i + 1}. ${r.title} (${r.citation}):\nFacts: ${r.caseContext?.facts || r.executiveSummary || 'N/A'}\nJudgment: ${r.finalDecision || r.ratioDecidendi || 'N/A'}`).join('\n\n');
+                      navigator.clipboard.writeText(`AI LEGAL™ Research Synthesis for "${searchQuery}":\n\n${factsText}`);
+                      toast.success('Consolidated Facts & Judgments brief copied!');
+                    }}
+                    className="px-3.5 py-1.5 rounded-xl bg-white dark:bg-slate-800 text-xs font-bold text-[#B38628] dark:text-amber-300 border border-[#B88B2A]/30 hover:bg-amber-50 dark:hover:bg-slate-700 transition-colors flex items-center gap-1.5 self-start sm:self-auto cursor-pointer shadow-2xs"
+                  >
+                    <Copy size={13} />
+                    <span>Copy Research Brief</span>
+                  </button>
+                </div>
+
+                {/* 2-Column Split: Case Facts on Left + Final Judgments on Right */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+                  
+                  {/* Column 1: Case Facts & Factual Matrix */}
+                  <div className="p-5 rounded-2xl bg-white dark:bg-[#111622] border border-slate-200/80 dark:border-slate-800 space-y-3.5 shadow-2xs">
+                    <div className="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-slate-800 dark:text-slate-200">
+                      <BookOpen size={15} className="text-[#B88B2A]" />
+                      <span>1. Case Facts & Factual Background</span>
+                    </div>
+                    <div className="space-y-3">
+                      {sortedResults.slice(0, 3).map((item, idx) => (
+                        <div key={idx} className="p-3.5 rounded-xl bg-slate-50 dark:bg-[#131B2E] border border-slate-200/60 dark:border-slate-800/80 space-y-1.5 text-xs">
+                          <span className="font-bold text-[#B38628] dark:text-amber-400 block">
+                            {idx + 1}. {item.title} ({item.year || item.date})
+                          </span>
+                          <p className="text-slate-600 dark:text-slate-300 leading-relaxed font-normal">
+                            {item.caseContext?.facts || item.executiveSummary || item.relevanceReason}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Column 2: Final Judgments & Court Holdings */}
+                  <div className="p-5 rounded-2xl bg-white dark:bg-[#111622] border border-slate-200/80 dark:border-slate-800 space-y-3.5 shadow-2xs">
+                    <div className="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-[#B38628] dark:text-amber-400">
+                      <Scale size={15} />
+                      <span>2. Final Judgments & Binding Holdings</span>
+                    </div>
+                    <div className="space-y-3">
+                      {sortedResults.slice(0, 3).map((item, idx) => (
+                        <div key={idx} className="p-3.5 rounded-xl bg-amber-50/50 dark:bg-amber-950/20 border border-[#B88B2A]/25 space-y-1.5 text-xs">
+                          <div className="flex items-center justify-between">
+                            <span className="font-bold text-slate-900 dark:text-white">
+                              {idx + 1}. {item.title}
+                            </span>
+                            <span className="text-[10px] font-mono text-[#B38628] bg-amber-100/60 dark:bg-amber-900/40 px-1.5 py-0.5 rounded">
+                              {item.citation}
+                            </span>
+                          </div>
+                          <p className="text-slate-700 dark:text-slate-300 leading-relaxed font-medium">
+                            {item.finalDecision || item.ratioDecidendi}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                </div>
+
+              </div>
+            )}
+
           </div>
         )}
 
@@ -801,7 +937,12 @@ export default function PublicCaseSearchWorkspace() {
                 Clear Filters
               </button>
               <button
-                onClick={() => executeSearch('')}
+                onClick={() => {
+                  setActiveSource('ALL');
+                  setSelectedHighCourt('all');
+                  setSearchQuery('');
+                  executeSearch('', 'ALL', 'all');
+                }}
                 className="px-4 py-2 rounded-xl text-xs font-bold bg-[#111111] dark:bg-white text-white dark:text-slate-950 hover:opacity-90 cursor-pointer"
               >
                 Show All Landmark Rulings

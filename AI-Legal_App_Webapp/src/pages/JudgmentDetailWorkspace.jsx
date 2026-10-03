@@ -11,7 +11,6 @@ import toast from 'react-hot-toast';
 import caseSearchService from '../services/caseSearchService';
 import JudgmentDocumentViewer from '../Components/CaseSearch/JudgmentDocumentViewer';
 import CaseInfoPanel from '../Components/CaseSearch/CaseInfoPanel';
-import JudgmentBottomBar from '../Components/CaseSearch/JudgmentBottomBar';
 import StructuredSummaryModal from '../Components/CaseSearch/StructuredSummaryModal';
 import DeepAnalysisModal from '../Components/CaseSearch/DeepAnalysisModal';
 import JudgmentChatSidebar from '../Components/CaseSearch/JudgmentChatSidebar';
@@ -24,15 +23,15 @@ export default function JudgmentDetailWorkspace() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Instant hydration from navigation state if available
+  // Instant hydration from navigation state if already fully enriched
   const passedJudgment = location.state?.judgment;
   const [judgment, setJudgment] = useState(() => {
-    if (passedJudgment && (passedJudgment.id === id || passedJudgment.slug === id || !id)) {
+    if (passedJudgment && passedJudgment.isFullyEnriched && (passedJudgment.id === id || passedJudgment.slug === id || !id)) {
       return passedJudgment;
     }
     return null;
   });
-  const [loading, setLoading] = useState(!judgment);
+  const [loading, setLoading] = useState(!judgment || !judgment.isFullyEnriched);
   const [isBookmarked, setIsBookmarked] = useState(false);
   
   // Modals & Drawers state
@@ -51,22 +50,15 @@ export default function JudgmentDetailWorkspace() {
 
   useEffect(() => {
     async function loadCase() {
-      // If we already have the exact judgment in state, skip network fetching
-      if (passedJudgment && (passedJudgment.id === id || passedJudgment.slug === id)) {
-        setJudgment(passedJudgment);
-        setIsBookmarked(caseSearchService.isJudgmentBookmarked(passedJudgment.id));
-        setLoading(false);
-        return;
-      }
-
       setLoading(true);
       try {
-        const data = await caseSearchService.getJudgmentById(id);
-        if (data) {
-          setJudgment(data);
-          setIsBookmarked(caseSearchService.isJudgmentBookmarked(data.id));
+        const fullData = await caseSearchService.getJudgmentById(id);
+        if (fullData) {
+          setJudgment(fullData);
+          setIsBookmarked(caseSearchService.isJudgmentBookmarked(fullData.id));
         } else if (passedJudgment) {
           setJudgment(passedJudgment);
+          setIsBookmarked(caseSearchService.isJudgmentBookmarked(passedJudgment.id));
         }
       } catch (err) {
         console.error('Failed to load judgment:', err);
@@ -171,83 +163,87 @@ export default function JudgmentDetailWorkspace() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-100 dark:bg-[#080C14] text-slate-900 dark:text-slate-100 flex flex-col pb-24">
+    <div className="min-h-screen bg-slate-100 dark:bg-[#080C14] text-slate-900 dark:text-slate-100 flex flex-col pb-8">
       
-      {/* ─── Top Header Workspace Bar (NORMAL FLOW - NOT STICKY) ─── */}
-      <header className="relative w-full z-10 bg-white dark:bg-[#0F1523] border-b border-slate-200 dark:border-slate-800 px-4 sm:px-8 py-3.5 shadow-xs">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
+      {/* ─── Top Header Workspace Bar with Sleek Compact Actions ─── */}
+      <header className="sticky top-0 z-30 bg-white/95 dark:bg-[#0F1523]/95 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 px-4 sm:px-6 py-2 shadow-2xs">
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-3">
           
           {/* Back Button & Title */}
-          <div className="flex items-center gap-3 min-w-0 flex-1">
+          <div className="flex items-center gap-2.5 min-w-0 flex-1">
             <button
               onClick={handleBack}
-              className="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-black dark:hover:text-white hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors flex items-center gap-1.5 text-xs font-bold shrink-0 cursor-pointer"
+              className="px-2.5 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:text-black dark:hover:text-white hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors flex items-center gap-1.5 text-xs font-semibold shrink-0 cursor-pointer"
+              title="Return to case search"
             >
-              <ArrowLeft size={14} />
-              <span>Back to Search</span>
+              <ArrowLeft size={13} />
+              <span>Back</span>
             </button>
 
-            <div className="min-w-0">
-              <div className="flex items-center gap-2">
-                <h1 className="text-sm sm:text-base font-black text-slate-900 dark:text-white tracking-tight truncate">
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-2 min-w-0">
+                <h1 className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white tracking-tight truncate">
                   {judgment.title}
                 </h1>
-                <span className="hidden sm:inline-block px-2 py-0.5 rounded text-[10px] font-bold font-mono bg-amber-50 dark:bg-amber-950/40 text-[#B38628] border border-[#B88B2A]/30 shrink-0">
+                <span className="hidden sm:inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-mono font-medium bg-amber-50 dark:bg-amber-950/40 text-[#B38628] border border-[#B88B2A]/25 shrink-0">
                   {judgment.citation}
                 </span>
               </div>
-              <p className="text-[11px] text-slate-500 truncate">
+              <p className="text-[10px] sm:text-[11px] text-slate-500 dark:text-slate-400 truncate mt-0.5">
                 {judgment.court} • {judgment.bench || 'Division Bench'} • {judgment.date || judgment.year}
               </p>
             </div>
           </div>
 
-          {/* Action Buttons */}
-          <div className="flex items-center gap-2 shrink-0 w-full md:w-auto justify-end">
-            {/* View Official PDF Button */}
+          {/* Unified Compact Actions Toolbar (Replaces Bulky Separate Pill Cards) */}
+          <div className="inline-flex items-center gap-1 p-1 bg-slate-100/90 dark:bg-slate-800/70 rounded-xl border border-slate-200/80 dark:border-slate-700/60 shrink-0 self-start md:self-auto">
+            {/* 1. Chat with AI */}
+            <button
+              onClick={() => {
+                if (window.innerWidth < 1024) {
+                  setIsMobileChatOpen(true);
+                } else {
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                }
+              }}
+              className="px-2.5 py-1 rounded-lg text-xs font-medium text-slate-700 dark:text-slate-200 hover:text-slate-950 dark:hover:text-white hover:bg-white dark:hover:bg-slate-700 transition-all flex items-center gap-1.5 cursor-pointer"
+              title="Open AI Legal Assistant"
+            >
+              <Sparkles size={12} className="text-[#B88B2A]" />
+              <span>AI Chat</span>
+            </button>
+
+            {/* 2. Generate Summary */}
+            <button
+              onClick={() => setIsSummaryOpen(true)}
+              className="px-2.5 py-1 rounded-lg text-xs font-medium text-slate-700 dark:text-slate-200 hover:text-slate-950 dark:hover:text-white hover:bg-white dark:hover:bg-slate-700 transition-all flex items-center gap-1.5 cursor-pointer"
+              title="View 14-point structured summary"
+            >
+              <FileText size={12} className="text-slate-400" />
+              <span>Summary</span>
+            </button>
+
+            {/* 3. Deep Analysis */}
+            <button
+              onClick={() => setIsAnalysisOpen(true)}
+              className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-amber-500/15 text-[#B38628] dark:text-amber-300 hover:bg-amber-500/25 border border-[#B88B2A]/30 transition-all flex items-center gap-1.5 cursor-pointer shadow-2xs"
+              title="View 13-point deep analytical brief"
+            >
+              <Brain size={12} />
+              <span>Deep Analysis</span>
+            </button>
+
+            {/* Subtle Divider */}
+            <div className="w-[1px] h-3.5 bg-slate-200 dark:bg-slate-700 mx-0.5" />
+
+            {/* 4. Official PDF */}
             <button
               onClick={() => setIsPdfModalOpen(true)}
-              className="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-[#111111] dark:bg-white text-white dark:text-slate-950 hover:bg-[#B38628] dark:hover:bg-[#E5A93C] dark:hover:text-black transition-all flex items-center gap-1.5 cursor-pointer shadow-xs"
+              className="px-2.5 py-1 rounded-lg text-xs font-medium text-slate-700 dark:text-slate-200 hover:text-slate-950 dark:hover:text-white hover:bg-white dark:hover:bg-slate-700 transition-all flex items-center gap-1.5 cursor-pointer"
               title="View Official Law Report PDF"
             >
-              <FileText size={13} className="text-[#B88B2A] dark:text-[#B38628]" />
-              <span>Official Law Report PDF</span>
-            </button>
-
-            <button
-              onClick={handleAddToCaseClick}
-              className="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-[#B88B2A] hover:bg-[#B38628] text-slate-950 transition-all flex items-center gap-1.5 cursor-pointer shadow-xs"
-            >
-              <Plus size={13} />
-              <span>Add to Case</span>
-            </button>
-
-            <button
-              onClick={handleToggleBookmark}
-              className={`p-2 rounded-xl border text-xs font-bold transition-all cursor-pointer ${
-                isBookmarked
-                  ? 'bg-amber-500 text-white border-amber-500'
-                  : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-100'
-              }`}
-              title={isBookmarked ? 'Bookmarked in Saved Precedents' : 'Bookmark Judgment'}
-            >
-              {isBookmarked ? <BookmarkCheck size={14} /> : <Bookmark size={14} />}
-            </button>
-
-            <button
-              onClick={handleShare}
-              className="p-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors cursor-pointer"
-              title="Share Research"
-            >
-              <Share2 size={14} />
-            </button>
-
-            <button
-              onClick={handlePrint}
-              className="p-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors cursor-pointer hidden sm:block"
-              title="Print Law Report Dossier"
-            >
-              <Printer size={14} />
+              <Download size={12} className="text-slate-500 dark:text-slate-400" />
+              <span>Official PDF</span>
             </button>
           </div>
 
@@ -255,7 +251,7 @@ export default function JudgmentDetailWorkspace() {
       </header>
 
       {/* ─── Master Body: Metadata + Central Document Viewer + Desktop AI Assistant ─── */}
-      <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 sm:px-8 space-y-6">
+      <main className="flex-1 max-w-7xl w-full mx-auto p-3.5 sm:p-5 sm:px-6 space-y-4">
         
         {/* 1. Case Information & Coram Panel */}
         <CaseInfoPanel judgment={judgment} />
@@ -267,7 +263,6 @@ export default function JudgmentDetailWorkspace() {
           <div className="lg:col-span-8 space-y-6 min-w-0">
             <JudgmentDocumentViewer 
               judgment={judgment} 
-              onOpenPdfModal={() => setIsPdfModalOpen(true)}
             />
 
             {/* Citations & Precedents Network Card */}
@@ -323,21 +318,6 @@ export default function JudgmentDetailWorkspace() {
         </div>
 
       </main>
-
-      {/* ─── Fixed Bottom AI Action Bar ─── */}
-      <JudgmentBottomBar
-        onOpenChat={() => {
-          if (window.innerWidth < 1024) {
-            setIsMobileChatOpen(true);
-          } else {
-            // Scroll right sidebar into view or highlight
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-          }
-        }}
-        onOpenSummary={() => setIsSummaryOpen(true)}
-        onOpenAnalysis={() => setIsAnalysisOpen(true)}
-        onQuickPrompt={handleQuickPrompt}
-      />
 
       {/* ─── 14-Section Structured Legal Summary Modal ─── */}
       <StructuredSummaryModal

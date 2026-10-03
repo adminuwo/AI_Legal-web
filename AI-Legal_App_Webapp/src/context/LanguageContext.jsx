@@ -2,7 +2,24 @@ import React, { createContext, useContext } from 'react';
 import { usePersonalization } from './PersonalizationContext';
 import { legalTranslations } from '../Tools/AI_Legal/translations/legal.translations';
 
-const LanguageContext = createContext();
+const defaultLanguageState = {
+    language: 'English',
+    currentLanguage: 'English',
+    toolkitLanguage: 'English',
+    setLanguage: () => {},
+    setToolkitLanguage: () => {},
+    t: (key) => key,
+    tLegal: (key) => key,
+    languages: ["English", "Hindi"],
+    region: 'India',
+    setRegion: () => {},
+    regions: {},
+    regionFlags: {},
+    allTimezones: [],
+    regionTimezones: []
+};
+
+const LanguageContext = createContext(defaultLanguageState);
 
 export const LanguageProvider = ({ children }) => {
     const { personalizations, updatePersonalization } = usePersonalization();
@@ -7131,7 +7148,7 @@ export const LanguageProvider = ({ children }) => {
 
     return (
         <LanguageContext.Provider value={{
-            language, setLanguage, t,
+            language, currentLanguage: language, setLanguage, t,
             toolkitLanguage, setToolkitLanguage, tLegal,
             languages: uniqueLanguages, region, setRegion, regions, regionFlags, allTimezones, regionTimezones
         }}>
@@ -7140,4 +7157,7 @@ export const LanguageProvider = ({ children }) => {
     );
 };
 
-export const useLanguage = () => useContext(LanguageContext);
+export const useLanguage = () => {
+    const context = useContext(LanguageContext);
+    return context || defaultLanguageState;
+};

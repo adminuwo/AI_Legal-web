@@ -26,10 +26,7 @@ export default function LegalSourceSelector({
           {/* All Sources */}
           <button
             type="button"
-            onClick={() => {
-              onSelectSource('ALL');
-              onSelectHighCourt('all');
-            }}
+            onClick={() => onSelectSource('ALL')}
             className={`px-3 py-1 rounded-full text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 whitespace-nowrap ${
               activeSource === 'ALL'
                 ? 'bg-[#111827] text-white dark:bg-amber-400 dark:text-slate-950 shadow-xs'
@@ -43,10 +40,7 @@ export default function LegalSourceSelector({
           {/* Supreme Court */}
           <button
             type="button"
-            onClick={() => {
-              onSelectSource('SC');
-              onSelectHighCourt('all');
-            }}
+            onClick={() => onSelectSource('SC')}
             className={`px-3 py-1 rounded-full text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 whitespace-nowrap ${
               activeSource === 'SC'
                 ? 'bg-[#111827] text-white dark:bg-amber-400 dark:text-slate-950 shadow-xs'
