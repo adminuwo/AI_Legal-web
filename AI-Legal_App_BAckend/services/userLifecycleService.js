@@ -191,9 +191,10 @@ export const handleNewUserRegistration = async (user, authMethod = 'email', plat
             source: userPlatform === 'ios' ? 'app-store' : 'google-play',
             installedAt: userDoc?.createdAt || new Date(),
             firstInstall: true,
-            appVersion: '1.0.11',
+            appVersion: userDoc?.appVersion || '1.0.16',
             deviceType: 'phone',
-            status: 'installed'
+            status: 'installed',
+            lastActiveAt: new Date()
           }
         },
         { upsert: true }

@@ -805,9 +805,9 @@ export const changeUserPlan = async (req, res) => {
         if (expire) {
             // Expire subscription
             try {
-                await Subscription.findOneAndUpdate(
-                    { accountId: targetUserId },
-                    { $set: { status: 'expired' } }
+                await Subscription.updateMany(
+                    { $or: [{ accountId: targetUserId }, { userId: targetUserId }] },
+                    { $set: { status: 'expired', tier: 'FREE' } }
                 );
             } catch (e) {}
 
@@ -819,6 +819,29 @@ export const changeUserPlan = async (req, res) => {
                     'subscription.expiryDate': new Date()
                 }
             }, { new: true });
+
+            try {
+                await FeatureAccessManager.resetUserPlanUsage(targetUserId);
+            } catch (e) {}
+
+            try {
+                const io = getIO();
+                if (io) {
+                    io.to(targetUserId.toString()).emit('feature_usage_updated', {
+                        userId: targetUserId.toString(),
+                        plan: 'FREE',
+                        credits: 0,
+                        timestamp: Date.now()
+                    });
+                    io.to(targetUserId.toString()).emit('subscription_updated', {
+                        userId: targetUserId.toString(),
+                        plan: 'FREE',
+                        status: 'expired',
+                        credits: 0,
+                        timestamp: Date.now()
+                    });
+                }
+            } catch (sockErr) {}
 
             broadcastAdminRefresh('user', { _id: targetUserId, plan: 'FREE', credits: 0 });
             return res.status(200).json({ success: true, message: 'User subscription expired successfully.', user: expiredUser });
@@ -837,7 +860,7 @@ export const changeUserPlan = async (req, res) => {
         }
 
         let targetPlanKey = 'FREE';
-        let planDisplayName = 'AI Legal™ Free';
+        let planDisplayName = 'AI Legal™ Free Plan';
         let planCredits = 500;
         let priceMonthly = 0;
         let priceYearly = 0;
@@ -861,8 +884,15 @@ export const changeUserPlan = async (req, res) => {
             else if (raw.includes('PREMIUM')) { targetPlanKey = 'PREMIUM'; planDisplayName = 'AI Legal™ Premium'; }
             else if (raw.includes('PRO') || raw.includes('PROFESSIONAL')) { targetPlanKey = 'PRO'; planDisplayName = 'AI Legal™ Professional'; }
             else if (raw.includes('BASIC')) { targetPlanKey = 'BASIC'; planDisplayName = 'AI Legal™ Basic'; }
-            else if (raw.includes('FREE')) { targetPlanKey = 'FREE'; planDisplayName = 'AI Legal™ Free'; }
+            else if (raw.includes('FREE')) { targetPlanKey = 'FREE'; planDisplayName = 'AI Legal™ Free Plan'; }
             else { targetPlanKey = 'FREE'; planDisplayName = inputTarget; }
+        }
+
+        if (targetPlanKey === 'FREE') {
+            planCredits = 500;
+            priceMonthly = 0;
+            priceYearly = 0;
+            planDisplayName = 'AI Legal™ Free Plan';
         }
 
         if (!plan) {
@@ -880,17 +910,30 @@ export const changeUserPlan = async (req, res) => {
         else if (targetPlanKey === 'PREMIUM') normalizedTier = 'PREMIUM';
         else if (targetPlanKey === 'ENTERPRISE') normalizedTier = 'ENTERPRISE';
 
+        // When assigning FREE, deactivate old paid subscriptions first
+        if (targetPlanKey === 'FREE') {
+            try {
+                await Subscription.updateMany(
+                    { $or: [{ accountId: targetUserId }, { userId: targetUserId }] },
+                    { $set: { status: 'expired', tier: 'FREE' } }
+                );
+            } catch (e) {}
+        }
+
         let sub = null;
         try {
             sub = await Subscription.findOneAndUpdate(
-                { accountId: targetUserId },
+                { $or: [{ accountId: targetUserId }, { userId: targetUserId }] },
                 {
-                    accountId: targetUserId,
-                    tier: normalizedTier,
-                    status: 'active',
-                    expiryDate: renewalDate,
-                    billingCycle: type,
-                    amount: type === 'yearly' ? priceYearly : priceMonthly
+                    $set: {
+                        accountId: targetUserId,
+                        userId: targetUserId,
+                        tier: normalizedTier,
+                        status: 'active',
+                        expiryDate: renewalDate,
+                        billingCycle: type,
+                        amount: type === 'yearly' ? priceYearly : priceMonthly
+                    }
                 },
                 { new: true, upsert: true }
             );
@@ -909,21 +952,48 @@ export const changeUserPlan = async (req, res) => {
             }
         }, { new: true });
 
-        // Add to payments log for SaaS simulation
+        // Reset user feature usage counters upon plan update
         try {
-            await Payment.create({
-                userId: targetUserId,
-                planId: planObjId,
-                invoiceNumber: `INV-${Date.now().toString().slice(-6)}`,
-                amount: type === 'yearly' ? priceYearly : priceMonthly,
-                gst: type === 'yearly' ? priceYearly * 0.18 : priceMonthly * 0.18,
-                gateway: 'Admin Direct Assignment',
-                transactionId: `txn_admin_${Date.now()}`,
-                status: 'success'
-            });
-        } catch (payErr) {
-            console.warn('[ADMIN CHANGE PLAN] Payment log warning:', payErr.message);
+            await FeatureAccessManager.resetUserPlanUsage(targetUserId);
+        } catch (e) {}
+
+        // Add to payments log for SaaS simulation if paid plan
+        if (priceMonthly > 0 || priceYearly > 0) {
+            try {
+                await Payment.create({
+                    userId: targetUserId,
+                    planId: planObjId,
+                    invoiceNumber: `INV-${Date.now().toString().slice(-6)}`,
+                    amount: type === 'yearly' ? priceYearly : priceMonthly,
+                    gst: type === 'yearly' ? priceYearly * 0.18 : priceMonthly * 0.18,
+                    gateway: 'Admin Direct Assignment',
+                    transactionId: `txn_admin_${Date.now()}`,
+                    status: 'success'
+                });
+            } catch (payErr) {
+                console.warn('[ADMIN CHANGE PLAN] Payment log warning:', payErr.message);
+            }
         }
+
+        // Real-time broadcast to target user socket (sync Web & Mobile App instantly)
+        try {
+            const io = getIO();
+            if (io) {
+                io.to(targetUserId.toString()).emit('feature_usage_updated', {
+                    userId: targetUserId.toString(),
+                    plan: targetPlanKey,
+                    credits: planCredits,
+                    timestamp: Date.now()
+                });
+                io.to(targetUserId.toString()).emit('subscription_updated', {
+                    userId: targetUserId.toString(),
+                    plan: targetPlanKey,
+                    status: 'active',
+                    credits: planCredits,
+                    timestamp: Date.now()
+                });
+            }
+        } catch (sockErr) {}
 
         const userPayload = {
             ...updatedUser.toObject(),

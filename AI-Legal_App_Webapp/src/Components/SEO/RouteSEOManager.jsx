@@ -8,8 +8,8 @@ import { useLocation } from 'react-router-dom';
  */
 const ROUTE_METADATA = {
   '/': {
-    title: "AI LEGAL™ — India's #1 Legal AI & Litigation Software",
-    description: "All-in-one Legal AI for India. Track court cases, research 3.8 Cr+ judgments, and draft petitions under BNS & BNSS. Try Free!",
+    title: "AI LEGAL™ — Smarter Practice. Faster Justice.",
+    description: "Smarter Practice. Faster Justice. All-in-one Legal AI for India. Track court cases, research 3.8 Cr+ judgments, and draft petitions under BNS & BNSS. Try Free!",
     canonical: "https://ailegal.aisa24.com/"
   },
   '/features': {
@@ -90,8 +90,8 @@ const ROUTE_METADATA = {
 };
 
 const DEFAULT_METADATA = {
-  title: "AI LEGAL™ — India's #1 Legal AI & Litigation Software",
-  description: "All-in-one Legal AI for India. Track court cases, research 3.8 Cr+ judgments, and draft petitions under BNS & BNSS. Try Free!",
+  title: "AI LEGAL™ — Smarter Practice. Faster Justice.",
+  description: "Smarter Practice. Faster Justice. All-in-one Legal AI for India. Track court cases, research 3.8 Cr+ judgments, and draft petitions under BNS & BNSS. Try Free!",
   canonical: "https://ailegal.aisa24.com/"
 };
 

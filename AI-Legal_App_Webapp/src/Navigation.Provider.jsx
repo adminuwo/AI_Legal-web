@@ -569,6 +569,11 @@ const NavigateProvider = () => {
         <Route path="/share/:shareId" element={<SharedChat />} />
         <Route path="/mobile-app" element={<Navigate to="/dashboard/mobile-app" replace />} />
 
+        {/* Role Dashboard Routing Aliases */}
+        <Route path="/advocate/dashboard" element={<Navigate to="/dashboard" replace />} />
+        <Route path="/student/dashboard" element={<Navigate to="/dashboard" replace />} />
+        <Route path="/firm/dashboard" element={<Navigate to="/dashboard" replace />} />
+
         {/* Dashboard (Protected) */}
         <Route
           path={AppRoute.DASHBOARD}

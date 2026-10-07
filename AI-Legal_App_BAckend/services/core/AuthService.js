@@ -102,6 +102,11 @@ export class AuthService extends BaseService {
       });
     }
 
+    const validAccountTypes = ['advocate', 'student', 'law_firm'];
+    const rawAccountType = (payload.accountType || payload.role || 'advocate').toLowerCase().trim();
+    const accountType = validAccountTypes.includes(rawAccountType) ? rawAccountType : 'advocate';
+    const firmRole = payload.firmRole || 'owner';
+
     // Save/Update in PendingRegistration collection ONLY
     await PendingRegistration.findOneAndUpdate(
       { email: normalizedEmail },
@@ -116,6 +121,8 @@ export class AuthService extends BaseService {
         dialCode: dialCode || '+91',
         state: payload.state || jurisdiction || 'India',
         jurisdiction: jurisdiction || country || 'India',
+        accountType,
+        firmRole,
         verificationCode,
         verificationCodeExpiresAt: expiresAt,
         previousCodes,
@@ -247,11 +254,27 @@ export class AuthService extends BaseService {
     user.lockoutUntil = undefined;
     user.lastLoginAt = new Date();
 
-    // Role is strictly managed in the database (defaults to 'user' if unset)
+    // AccountType & role strictly managed in the database (defaults to requested role or 'advocate' if unset)
+    const validAccountTypes = ['advocate', 'student', 'law_firm'];
+    const rawRequestedRole = (payload.selectedRole || payload.accountType || '').toLowerCase().trim();
+    const requestedRole = validAccountTypes.includes(rawRequestedRole) ? rawRequestedRole : null;
+
+    if (!user.accountType) {
+      user.accountType = requestedRole || 'advocate';
+    }
+    if (!user.firmRole) {
+      user.firmRole = 'owner';
+    }
     if (!user.role) {
       user.role = 'user';
     }
     await user.save();
+
+    // Auto-resolve role based on authoritative user.accountType
+    if (!user.accountType) {
+      user.accountType = requestedRole || 'advocate';
+      await user.save();
+    }
 
     const token = generateTokenAndSetCookies(res, user._id, user.email, user.name, user.plan, user.role);
 
@@ -264,6 +287,8 @@ export class AuthService extends BaseService {
         message: "LogIn Successfully",
         token: token,
         role: user.role,
+        accountType: user.accountType,
+        firmRole: user.firmRole,
         plan: user.plan,
         isVerified: user.isVerified
       }

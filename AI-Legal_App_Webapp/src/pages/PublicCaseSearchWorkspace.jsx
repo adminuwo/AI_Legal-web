@@ -366,7 +366,7 @@ export default function PublicCaseSearchWorkspace() {
               <span>Post your judgement</span>
             </button>
 
-            {isAuthenticated ? (
+            {isAuthenticated && (
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => navigate('/dashboard')}
@@ -382,13 +382,6 @@ export default function PublicCaseSearchWorkspace() {
                   {user?.name ? user.name.charAt(0).toUpperCase() : 'A'}
                 </div>
               </div>
-            ) : (
-              <button
-                onClick={() => navigate('/signup')}
-                className="px-4 py-1.5 rounded-full text-xs font-bold text-white bg-gradient-to-r from-[#B88B2A] to-[#B38628] hover:opacity-95 transition-all cursor-pointer shadow-md shadow-[#B88B2A]/30"
-              >
-                Get Started
-              </button>
             )}
           </div>
 
@@ -436,10 +429,10 @@ export default function PublicCaseSearchWorkspace() {
                 </button>
               ) : (
                 <button
-                  onClick={() => { setMobileMenuOpen(false); navigate('/signup'); }}
-                  className="w-full py-2.5 rounded-full text-xs font-bold text-white bg-gradient-to-r from-[#B88B2A] to-[#B38628] text-center"
+                  onClick={() => { setMobileMenuOpen(false); navigate('/login'); }}
+                  className="w-full py-2.5 rounded-full text-xs font-bold text-slate-800 dark:text-white bg-slate-100 dark:bg-slate-800 text-center"
                 >
-                  Get Started
+                  Sign In
                 </button>
               )}
             </div>

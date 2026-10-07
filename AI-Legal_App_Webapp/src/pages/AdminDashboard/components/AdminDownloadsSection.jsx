@@ -53,6 +53,7 @@ export default function AdminDownloadsSection() {
   const [syncingHistorical, setSyncingHistorical] = useState(false);
   const [syncingGa4, setSyncingGa4] = useState(false);
   const [syncingSilent, setSyncingSilent] = useState(false);
+  const [lastUpdated, setLastUpdated] = useState(new Date());
 
   const [summary, setSummary] = useState({
     total: 0,
@@ -213,6 +214,7 @@ export default function AdminDownloadsSection() {
 
       if (sumRes?.success && sumRes.summary) {
         setSummary(sumRes.summary);
+        setLastUpdated(new Date());
       }
 
       if (countRes?.success) {
@@ -419,6 +421,7 @@ export default function AdminDownloadsSection() {
           { Metric: "First-time Installers", Value: summary.firstTimeInstallers },
           { Metric: "Reported Uninstalls", Value: summary.uninstalls }
         ];
+        const wsSummary = XLSX.utils.json_to_sheet(summaryRows);
         wsSummary['!cols'] = [{ wch: 32 }, { wch: 20 }];
         XLSX.utils.book_append_sheet(workbook, wsSummary, "Overview KPIs");
 
@@ -615,7 +618,7 @@ export default function AdminDownloadsSection() {
               <h2 className="text-base sm:text-lg font-black text-slate-900 dark:text-white tracking-tight">Downloads & Installs</h2>
               <span className="px-2 py-0.5 text-[9px] sm:text-[10px] font-bold bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/20 rounded-full flex items-center gap-1 shrink-0">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                Live Telemetry
+                Live {lastUpdated ? `(${lastUpdated.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })})` : 'Telemetry'}
               </span>
             </div>
             <p className="text-[11px] sm:text-xs text-slate-500 dark:text-zinc-400 mt-0.5 leading-snug">

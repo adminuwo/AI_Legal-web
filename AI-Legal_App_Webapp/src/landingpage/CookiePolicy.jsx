@@ -218,19 +218,12 @@ export default function CookiePolicy() {
               <span>Post your judgement</span>
             </button>
 
-            {isAuthenticated ? (
+            {isAuthenticated && (
               <button
                 onClick={() => navigate('/dashboard')}
                 className="px-4 py-1.5 rounded-full text-xs font-bold text-white bg-gradient-to-r from-[#B88B2A] to-[#B38628] hover:opacity-95 transition-all cursor-pointer shadow-md shadow-[#B88B2A]/30"
               >
                 Dashboard →
-              </button>
-            ) : (
-              <button
-                onClick={() => navigate('/signup')}
-                className="px-4 py-1.5 rounded-full text-xs font-bold text-white bg-gradient-to-r from-[#B88B2A] to-[#B38628] hover:opacity-95 transition-all cursor-pointer shadow-md shadow-[#B88B2A]/30"
-              >
-                Get Started
               </button>
             )}
           </div>
@@ -319,18 +312,12 @@ export default function CookiePolicy() {
                     Go to Dashboard →
                   </button>
                 ) : (
-                  <div className="grid grid-cols-2 gap-2">
+                  <div>
                     <button
                       onClick={() => { setMobileMenuOpen(false); navigate('/login'); }}
-                      className="py-2.5 bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-white font-bold rounded-full text-center text-xs"
+                      className="w-full py-2.5 bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-white font-bold rounded-full text-center text-xs"
                     >
                       Sign In
-                    </button>
-                    <button
-                      onClick={() => { setMobileMenuOpen(false); navigate('/signup'); }}
-                      className="py-2.5 bg-gradient-to-r from-[#B88B2A] to-[#B38628] hover:opacity-95 text-white font-bold rounded-full text-center text-xs shadow-md shadow-[#B88B2A]/30"
-                    >
-                      Get Started
                     </button>
                   </div>
                 )}

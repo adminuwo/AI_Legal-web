@@ -98,6 +98,20 @@ const userSchema = new mongoose.Schema({
         enum: ['user', 'admin', 'SUPER_ADMIN'],
         default: "user"
     },
+    accountType: {
+        type: String,
+        enum: ['advocate', 'student', 'law_firm'],
+        default: 'advocate'
+    },
+    firmRole: {
+        type: String,
+        enum: ['owner', 'admin', 'advocate', 'associate', 'staff'],
+        default: 'owner'
+    },
+    profileDetails: {
+        type: mongoose.Schema.Types.Mixed,
+        default: {}
+    },
     chatSessions: [{ type: mongoose.Schema.Types.ObjectId, ref: "ChatSession" }],
     verificationCode: String,
     isBlocked: {

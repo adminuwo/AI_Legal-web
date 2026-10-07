@@ -220,13 +220,6 @@ export default function PostJudgment() {
               <Plus size={14} className="text-[#B88B2A] stroke-[2.5]" />
               <span>Post your judgement</span>
             </span>
-
-            <button
-              onClick={() => navigate('/signup')}
-              className="px-4 py-1.5 rounded-full text-xs font-bold text-slate-950 bg-gradient-to-r from-[#B88B2A] to-[#B38628] hover:opacity-95 transition-all cursor-pointer shadow-md shadow-[#B88B2A]/25"
-            >
-              Get Started
-            </button>
           </div>
 
           {/* Mobile Header Toggle */}
@@ -302,12 +295,6 @@ export default function PostJudgment() {
                   <Plus size={14} className="stroke-[2.5]" />
                   <span>Post your judgement (Active)</span>
                 </span>
-                <button
-                  onClick={() => { setMobileMenuOpen(false); navigate('/signup'); }}
-                  className="w-full py-2.5 bg-gradient-to-r from-[#B88B2A] to-[#B38628] hover:opacity-95 text-white font-bold rounded-full text-center text-xs shadow-md shadow-[#B88B2A]/30"
-                >
-                  Get Started
-                </button>
               </div>
             </motion.div>
           )}

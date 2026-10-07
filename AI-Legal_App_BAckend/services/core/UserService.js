@@ -46,10 +46,24 @@ export class UserService extends BaseService {
       user = await userModel.findOne({ email: reqUser.email });
     }
 
-    // Ensure role defaults to 'user' if undefined, preserving MongoDB role as single source of truth
-    if (user && !user.role) {
-      user.role = 'user';
-      await user.save();
+    // Ensure role and accountType default safely, preserving MongoDB role as single source of truth
+    if (user) {
+      let shouldSave = false;
+      if (!user.role) {
+        user.role = 'user';
+        shouldSave = true;
+      }
+      if (!user.accountType) {
+        user.accountType = 'advocate';
+        shouldSave = true;
+      }
+      if (!user.firmRole) {
+        user.firmRole = 'owner';
+        shouldSave = true;
+      }
+      if (shouldSave) {
+        await user.save();
+      }
     }
 
     if (!user) {

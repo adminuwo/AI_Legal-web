@@ -98,6 +98,21 @@ export function parseAuthError(err, context, navigate, onAction) {
     };
   }
 
+  // 3b. Role Mismatch
+  if (errCode === 'ROLE_MISMATCH' || lowerMsg.includes('role mismatch')) {
+    const actualRole = err?.response?.data?.actualRole || 'advocate';
+    const roleLabel = actualRole === 'law_firm' ? 'Law Firm' : actualRole === 'student' ? 'Student' : 'Advocate';
+    return {
+      title: "Wrong Account Type",
+      description: err?.response?.data?.message || `This account is registered as a ${roleLabel}. Please select ${roleLabel} to continue.`,
+      icon: "shield-alert",
+      primaryLabel: `Switch to ${roleLabel}`,
+      primaryAction: () => {
+        if (onAction) onAction("switchRole", actualRole);
+      }
+    };
+  }
+
   // 4. Email Already Exists
   const lowerMsg = errMsg.toLowerCase();
   if (

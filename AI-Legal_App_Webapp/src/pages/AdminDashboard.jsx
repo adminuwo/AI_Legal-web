@@ -5,7 +5,7 @@ import {
   BarChart3, Users, CreditCard, Package, Ticket, Lightbulb, Bug, AlertCircle, ChevronDown, Sparkles,
   MessageSquare, Globe, Settings, Shield, ShieldAlert, Search, RefreshCw, Plus, PlusCircle, 
   Edit2, Edit3, Trash2, Lock, Unlock, CheckCircle2, XCircle, ExternalLink, Key, DollarSign, 
-  TrendingUp, Activity, HardDrive, Terminal, Send, Eye, EyeOff, ChevronRight, X, 
+  TrendingUp, Activity, HardDrive, Terminal, Send, Eye, EyeOff, ChevronRight, ChevronLeft, X, 
   FileText, Check, RotateCw, Building2, UserCheck, Zap, ArrowLeft, Download, Tag, Wrench, Calendar,
   Upload, FileUp, Database, FolderOpen, Scale, FileDown, Phone, Mail, Clock, Star
 } from 'lucide-react';
@@ -301,8 +301,34 @@ export default function AdminDashboard() {
   const [creditModalUser, setCreditModalUser] = useState(null);
   const [creditAdjustment, setCreditAdjustment] = useState({ amount: '50', actionType: 'add', reason: '' });
   const [subModalUser, setSubModalUser] = useState(null);
-  const [subForm, setSubForm] = useState({ planId: 'advocate_pro', billingCycle: 'monthly' });
+  const [subForm, setSubForm] = useState({ planId: 'FREE', billingCycle: 'monthly' });
   const [selectedDossierUser, setSelectedDossierUser] = useState(null);
+  const planScrollRef = useRef(null);
+
+  // Sync subForm when opening a user in Dossier
+  useEffect(() => {
+    if (selectedDossierUser) {
+      const activePlan = selectedDossierUser.subscription?.plan || selectedDossierUser.currentPlan || 'FREE';
+      const activeCycle = selectedDossierUser.subscription?.billingCycle || 'monthly';
+      setSubForm({
+        planId: activePlan,
+        billingCycle: activeCycle
+      });
+    }
+  }, [selectedDossierUser]);
+
+  // Sync subForm when opening Subscription Modal
+  useEffect(() => {
+    if (subModalUser) {
+      const activePlan = subModalUser.subscription?.plan || subModalUser.currentPlan || 'FREE';
+      const activeCycle = subModalUser.subscription?.billingCycle || 'monthly';
+      setSubForm({
+        planId: activePlan,
+        billingCycle: activeCycle
+      });
+    }
+  }, [subModalUser]);
+
   const [passwordResetUser, setPasswordResetUser] = useState(null);
   const [passwordResetVal, setPasswordResetVal] = useState('');
   const [refundConfirmModal, setRefundConfirmModal] = useState({ isOpen: false, payment: null });
@@ -4578,9 +4604,41 @@ export default function AdminDashboard() {
 
                 {/* Select Subscription Plan Horizontal Pill Scroll */}
                 <div className="space-y-2">
-                  <label className="text-xs font-extrabold text-slate-900 dark:text-white">Select Subscription Plan</label>
-                  <div className="flex gap-2 overflow-x-auto pb-2 no-scrollbar">
+                  <div className="flex items-center justify-between gap-2">
+                    <label className="text-xs font-extrabold text-slate-900 dark:text-white">Select Subscription Plan</label>
+                    <div className="flex items-center gap-1.5 text-[11px] font-bold text-slate-400">
+                      <span className="hidden sm:inline text-[10px] text-slate-400">Scroll horizontally →</span>
+                      <button
+                        type="button"
+                        onClick={() => planScrollRef.current?.scrollBy({ left: -240, behavior: 'smooth' })}
+                        className="p-1 rounded-lg border border-slate-200 dark:border-zinc-700 bg-white hover:bg-slate-100 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-slate-600 dark:text-zinc-300 transition-all cursor-pointer shadow-2xs"
+                        title="Scroll left"
+                        aria-label="Scroll left"
+                      >
+                        <ChevronLeft className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => planScrollRef.current?.scrollBy({ left: 240, behavior: 'smooth' })}
+                        className="p-1 rounded-lg border border-slate-200 dark:border-zinc-700 bg-white hover:bg-slate-100 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-slate-600 dark:text-zinc-300 transition-all cursor-pointer shadow-2xs"
+                        title="Scroll right"
+                        aria-label="Scroll right"
+                      >
+                        <ChevronRight className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </div>
+                  <div
+                    ref={planScrollRef}
+                    onWheel={(e) => {
+                      if (e.deltaY !== 0 && planScrollRef.current) {
+                        planScrollRef.current.scrollLeft += e.deltaY;
+                      }
+                    }}
+                    className="flex gap-2.5 overflow-x-auto pb-3 pt-1 horizontal-plan-scrollbar select-none"
+                  >
                     {[
+                      { id: 'FREE', name: 'AI Legal™ Free Plan', badge: 'FREE TIER' },
                       { id: 'advocate_basic', name: 'Advocate Basic Plan', badge: 'BASIC' },
                       { id: 'advocate_pro', name: 'Advocate Pro Plan', badge: 'PRO' },
                       { id: 'advocate_premium', name: 'Advocate Premium Plan', badge: 'PREMIUM' },
@@ -4594,20 +4652,23 @@ export default function AdminDashboard() {
                       { id: 'combo_advocate_firm', name: 'Advocate + Law Firm Combo', badge: 'COMBO' },
                       { id: 'combo_all_access', name: 'All Access Ecosystem Pass', badge: 'ALL ACCESS' },
                     ].map((plan) => {
-                      const isSelected = subForm.planId === plan.id || subForm.planId === plan.name;
+                      const curPlan = String(subForm.planId || '').toLowerCase().trim();
+                      const targetPlan = String(plan.id).toLowerCase().trim();
+                      const isFreeMatch = (targetPlan === 'free') && (!curPlan || curPlan === 'free' || curPlan === 'free tier' || curPlan.includes('free'));
+                      const isSelected = isFreeMatch || curPlan === targetPlan || curPlan === String(plan.name).toLowerCase().trim();
                       return (
                         <button
                           key={plan.id}
                           type="button"
                           onClick={() => setSubForm(prev => ({ ...prev, planId: plan.id }))}
-                          className={`px-3 py-2 rounded-xl border text-left shrink-0 transition-all cursor-pointer ${
+                          className={`px-3.5 py-2.5 rounded-xl border text-left shrink-0 transition-all cursor-pointer ${
                             isSelected
-                              ? 'bg-[#B88B2A]/20 border-[#B88B2A] text-[#B88B2A] shadow-2xs'
+                              ? 'bg-[#B88B2A]/20 border-[#B88B2A] text-[#B88B2A] shadow-xs ring-1 ring-[#B88B2A]/40'
                               : 'bg-white dark:bg-zinc-900 border-slate-200 dark:border-zinc-800 text-slate-700 dark:text-zinc-300 hover:border-[#B88B2A]/50'
                           }`}
                         >
                           <p className="text-xs font-black">{plan.name}</p>
-                          <p className="text-[9px] font-extrabold uppercase text-slate-400 mt-0.5">{plan.badge}</p>
+                          <p className={`text-[9px] font-extrabold uppercase mt-0.5 ${isSelected ? 'text-[#B88B2A]' : 'text-slate-400'}`}>{plan.badge}</p>
                         </button>
                       );
                     })}

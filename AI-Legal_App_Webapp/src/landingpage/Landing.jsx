@@ -504,7 +504,7 @@ export default function Landing() {
               <span>Post your judgement</span>
             </button>
 
-            {isAuthenticated ? (
+            {isAuthenticated && (
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => navigate('/dashboard')}
@@ -520,13 +520,6 @@ export default function Landing() {
                   {user?.name ? user.name.charAt(0).toUpperCase() : 'A'}
                 </div>
               </div>
-            ) : (
-              <button
-                onClick={() => navigate('/signup')}
-                className="px-4 py-1.5 rounded-full text-xs font-bold text-white bg-gradient-to-r from-[#B88B2A] to-[#B38628] hover:opacity-95 transition-all cursor-pointer shadow-md shadow-[#B88B2A]/30"
-              >
-                Get Started
-              </button>
             )}
           </div>
 
@@ -614,18 +607,12 @@ export default function Landing() {
                     Go to Dashboard →
                   </button>
                 ) : (
-                  <div className="grid grid-cols-2 gap-2">
+                  <div>
                     <button
                       onClick={() => { setMobileMenuOpen(false); navigate('/login'); }}
-                      className="py-2.5 bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-white font-bold rounded-full text-center text-xs"
+                      className="w-full py-2.5 bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-white font-bold rounded-full text-center text-xs"
                     >
                       Sign In
-                    </button>
-                    <button
-                      onClick={() => { setMobileMenuOpen(false); navigate('/signup'); }}
-                      className="py-2.5 bg-gradient-to-r from-[#B88B2A] to-[#B38628] hover:opacity-95 text-white font-bold rounded-full text-center text-xs shadow-md shadow-[#B88B2A]/30"
-                    >
-                      Get Started
                     </button>
                   </div>
                 )}
@@ -641,40 +628,40 @@ export default function Landing() {
       ========================================================================= */}
       <section 
         id="hero" 
-        className="relative overflow-hidden pt-10 pb-16 sm:pt-16 sm:pb-24 border-b border-slate-200/80 dark:border-slate-800/80 bg-[#F8FAFC] dark:bg-[#070A12] bg-[radial-gradient(#CBD5E1_1.25px,transparent_1.25px)] dark:bg-[radial-gradient(rgba(184,139,42,0.18)_1.25px,transparent_1.25px)] bg-[size:24px_24px]"
+        className="relative overflow-hidden pt-5 pb-8 sm:pt-8 sm:pb-10 border-b border-slate-200/80 dark:border-slate-800/80 bg-[#F8FAFC] dark:bg-[#070A12] bg-[radial-gradient(#CBD5E1_1.25px,transparent_1.25px)] dark:bg-[radial-gradient(rgba(184,139,42,0.18)_1.25px,transparent_1.25px)] bg-[size:24px_24px]"
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-center">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-center">
             
             {/* LEFT COLUMN: TEXT & CALLS TO ACTION */}
-            <div className="lg:col-span-6 text-left space-y-5">
+            <div className="lg:col-span-6 text-left space-y-3">
               
               {/* Main Headline */}
-              <h1 className="text-3xl sm:text-5xl lg:text-[52px] font-black tracking-tight text-[#0F172A] dark:text-white leading-[1.12]">
-                All Your Legal Work,<br />
-                <span className="text-[#0F172A] dark:text-white">One Powerful System</span>
+              <h1 className="text-3xl sm:text-4xl lg:text-[44px] font-black tracking-tight text-[#0F172A] dark:text-white leading-[1.12]">
+                Smarter Practice.<br />
+                <span className="text-[#0F172A] dark:text-white">Faster Justice.</span>
               </h1>
 
               {/* Subheading Paragraph 1 */}
-              <p className="text-base sm:text-lg text-slate-600 dark:text-slate-300 leading-relaxed font-normal">
+              <p className="text-sm sm:text-[15px] text-slate-600 dark:text-slate-300 leading-relaxed font-normal">
                 Replace fragmented tools with a single AI-powered platform that centralizes cases, compliances, communication, and decision-making.
               </p>
 
               {/* Subheading Lead 2 (Bold) */}
-              <h2 className="text-base sm:text-lg font-black text-[#0F172A] dark:text-white tracking-tight">
+              <h2 className="text-sm sm:text-[15px] font-black text-[#0F172A] dark:text-white tracking-tight">
                 All-in-one legal case management & litigation software for India
               </h2>
 
               {/* Subheading Paragraph 3 */}
-              <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 leading-relaxed">
+              <p className="text-xs sm:text-[13px] text-slate-500 dark:text-slate-400 leading-relaxed">
                 Track cases across the Supreme Court, High Courts, District Courts and 8,200+ courts and tribunals. Automate cause lists and hearing alerts. Research 3.8 crore+ judgments with AI. Built for Indian advocates, law firms and in-house teams.
               </p>
 
               {/* 2 Primary Action Buttons */}
-              <div className="pt-2 flex flex-col sm:flex-row items-stretch sm:items-center gap-3.5">
+              <div className="pt-1 flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
                 <button
                   onClick={() => navigate(isAuthenticated ? '/dashboard' : '/signup')}
-                  className="px-7 py-3.5 bg-gradient-to-b from-[#D4AF37] to-[#B88B2A] hover:brightness-105 active:scale-98 text-[#111111] text-sm font-black rounded-xl shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer group"
+                  className="px-6 py-2.5 bg-gradient-to-b from-[#D4AF37] to-[#B88B2A] hover:brightness-105 active:scale-98 text-[#111111] text-sm font-black rounded-xl shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer group"
                 >
                   <span>{isAuthenticated ? 'Go to Dashboard' : 'Start Free Trial'}</span>
                   <ChevronRight size={16} className="group-hover:translate-x-0.5 transition-transform" />
@@ -682,7 +669,7 @@ export default function Landing() {
                 <button
                   type="button"
                   onClick={() => setIsDownloadModalOpen(true)}
-                  className="px-7 py-3.5 bg-white dark:bg-[#0B0F19] hover:bg-slate-100 dark:hover:bg-slate-800/90 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-white text-sm font-bold rounded-xl shadow-2xs transition-all flex items-center justify-center gap-2 cursor-pointer"
+                  className="px-6 py-2.5 bg-white dark:bg-[#0B0F19] hover:bg-slate-100 dark:hover:bg-slate-800/90 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-white text-sm font-bold rounded-xl shadow-2xs transition-all flex items-center justify-center gap-2 cursor-pointer"
                 >
                   <Smartphone size={16} className="text-[#B88B2A]" />
                   <span>Download App</span>
@@ -690,7 +677,7 @@ export default function Landing() {
               </div>
 
               {/* Conversion Trust Badge Microcopy */}
-              <div className="flex flex-wrap items-center gap-2.5 text-[11px] font-semibold text-slate-500 dark:text-slate-400 pt-1">
+              <div className="flex flex-wrap items-center gap-2.5 text-[11px] font-semibold text-slate-500 dark:text-slate-400 pt-0.5">
                 <span className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-bold">
                   <CheckCircle2 size={13} /> Free Trial Included
                 </span>
@@ -702,7 +689,7 @@ export default function Landing() {
             </div>
 
             {/* RIGHT COLUMN: DASHBOARD SCREENSHOT (NO ENTER OVERLAY) */}
-            <div className="lg:col-span-6 relative group mt-6 lg:mt-0">
+            <div className="lg:col-span-6 relative group mt-4 lg:mt-0">
               {/* Ambient Back Glow */}
               <div className="absolute -inset-1.5 bg-gradient-to-r from-[#B88B2A]/25 via-[#D4AF37]/15 to-[#B88B2A]/25 rounded-3xl blur-xl opacity-70 group-hover:opacity-100 transition duration-500 -z-10" />
               

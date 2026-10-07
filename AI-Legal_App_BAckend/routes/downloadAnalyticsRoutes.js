@@ -40,7 +40,7 @@ router.get('/uninstalls', getUninstalledUsers);
 // 6. Manual trigger to sync historical registered users into AppInstall telemetry
 router.post('/sync-historical', async (req, res) => {
     try {
-        const result = await syncHistoricalInstalls();
+        const result = await syncHistoricalInstalls(true);
         return res.status(200).json({ success: true, ...result });
     } catch (err) {
         return res.status(500).json({ success: false, message: err.message });

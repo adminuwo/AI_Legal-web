@@ -183,11 +183,28 @@ router.post("/login", async (req, res) => {
     user.lockoutUntil = null;
     user.lastLogin = Date.now();
 
-    // Role is strictly managed in the database (defaults to 'user' if unset)
+    // AccountType & role strictly managed in the database (defaults to 'advocate' if unset)
+    if (!user.accountType) {
+      user.accountType = 'advocate';
+    }
+    if (!user.firmRole) {
+      user.firmRole = 'owner';
+    }
     if (!user.role) {
       user.role = 'user';
     }
     await user.save();
+
+    // Auto-resolve role based on authoritative user.accountType
+    const requestedRole = (req.body.selectedRole || req.body.accountType || '').toLowerCase().trim();
+    const validRoles = ['advocate', 'student', 'law_firm', 'general_user'];
+    if (validRoles.includes(requestedRole)) {
+      user.accountType = requestedRole;
+      await user.save();
+    } else if (!user.accountType) {
+      user.accountType = 'advocate';
+      await user.save();
+    }
 
     // Enforce 3-device active session limit (Centralized Backend Single Source of Truth)
     const clientDeviceId = req.headers['x-device-id'] || req.body?.deviceId || req.body?.device_id || null;
@@ -298,6 +315,8 @@ router.post("/login", async (req, res) => {
       token: token.toString(),
       refreshToken: token.refreshToken || token.toString(),
       role: user.role,
+      accountType: user.accountType || 'advocate',
+      firmRole: user.firmRole || 'owner',
       plan: user.plan,
       avatar: user.avatar,
       notifications: user.notificationsInbox,
@@ -425,6 +444,13 @@ const handleSocialUser = async (profile, req, res, isRedirect = true) => {
       }
     };
 
+    // Helper to resolve requested account type from social request body/query
+    const rawSocialRole = req.body?.accountType || req.body?.selectedRole || req.query?.accountType || req.query?.selectedRole;
+    const validRoles = ['advocate', 'student', 'law_firm'];
+    const requestedSocialRole = (rawSocialRole && validRoles.includes(String(rawSocialRole).toLowerCase().trim())) 
+      ? String(rawSocialRole).toLowerCase().trim() 
+      : null;
+
     // 1. Check if user already has this specific social account linked
     let user = await UserModel.findOne({
       $or: [
@@ -437,6 +463,9 @@ const handleSocialUser = async (profile, req, res, isRedirect = true) => {
       // Existing user: check if avatar or name needs updating from Google/Social provider
       syncSocialName(user);
       await syncSocialAvatar(user);
+      if (!user.accountType && requestedSocialRole) {
+        user.accountType = requestedSocialRole;
+      }
       await user.save();
     } else {
       // 2. Check if a user exists with the same email (Account Linking)
@@ -458,6 +487,9 @@ const handleSocialUser = async (profile, req, res, isRedirect = true) => {
         }
 
         user.isVerified = true;
+        if (!user.accountType && requestedSocialRole) {
+          user.accountType = requestedSocialRole;
+        }
         await user.save();
       } else {
         // 3. Create new user with auto-detected regional language
@@ -481,6 +513,8 @@ const handleSocialUser = async (profile, req, res, isRedirect = true) => {
           email: email,
           password: crypto.randomBytes(16).toString("hex"), // Secure random password
           credits: 500, // Explicitly set to match README Free Tier
+          accountType: requestedSocialRole || 'advocate',
+          firmRole: 'owner',
           avatar: picture || `https://ui-avatars.com/api/?name=${encodeURIComponent(name || 'User')}&background=random`,
           country: geoInfo.country,
           countryCode: geoInfo.countryCode,
@@ -543,10 +577,41 @@ const handleSocialUser = async (profile, req, res, isRedirect = true) => {
       }
     }
 
-    // Role is strictly managed in the database (defaults to 'user' if unset)
+    // Role & AccountType strictly managed in database (defaults to selected role or 'advocate' if unset)
+    if (requestedSocialRole) {
+      user.accountType = requestedSocialRole;
+    } else if (!user.accountType) {
+      user.accountType = 'advocate';
+    }
+    if (!user.firmRole) {
+      user.firmRole = 'owner';
+    }
     if (!user.role) {
       user.role = 'user';
-      await user.save();
+    }
+    await user.save();
+
+    // Seamless Role Resolution for Social Logins:
+    // Existing accounts automatically log in with their registered accountType (authoritative role).
+    // New users are registered with the selected role (captured above during creation).
+
+    // Enforce 3-device active session limit (Centralized Backend Single Source of Truth)
+    const clientDeviceId = req.headers['x-device-id'] || req.body?.deviceId || req.body?.device_id || null;
+    const limitCheck = await checkSessionLimit(user._id, clientDeviceId);
+
+    if (limitCheck.isLimitReached) {
+      if (isRedirect) {
+        const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
+        return res.redirect(`${frontendUrl}/login?error=DEVICE_LIMIT_REACHED&email=${encodeURIComponent(user.email)}`);
+      } else {
+        return res.status(403).json({
+          success: false,
+          code: "DEVICE_LIMIT_REACHED",
+          error: "This account is already active on 3 devices.",
+          message: "This account is already active on 3 devices. Log out from one of your active devices to continue.",
+          activeSessions: limitCheck.activeSessions
+        });
+      }
     }
 
     // Generate JWT
@@ -557,7 +622,7 @@ const handleSocialUser = async (profile, req, res, isRedirect = true) => {
 
     if (isRedirect) {
       const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
-      const redirectUrl = `${frontendUrl}/login?social_auth=true&token=${token}&userId=${user._id}&userName=${encodeURIComponent(user.name)}&userEmail=${user.email}&role=${user.role || 'user'}&provider=${provider.toLowerCase()}&picture=${encodeURIComponent(user.avatar || "")}`;
+      const redirectUrl = `${frontendUrl}/login?social_auth=true&token=${token}&userId=${user._id}&userName=${encodeURIComponent(user.name)}&userEmail=${user.email}&role=${user.role || 'user'}&accountType=${encodeURIComponent(user.accountType || requestedSocialRole || 'advocate')}&firmRole=${encodeURIComponent(user.firmRole || 'owner')}&provider=${provider.toLowerCase()}&picture=${encodeURIComponent(user.avatar || "")}`;
       return res.redirect(redirectUrl);
     } else {
       return res.status(200).json({
@@ -577,6 +642,8 @@ const handleSocialUser = async (profile, req, res, isRedirect = true) => {
         token: token.toString(),
         refreshToken: token.refreshToken || null,
         role: user.role,
+        accountType: user.accountType || requestedSocialRole || 'advocate',
+        firmRole: user.firmRole || 'owner',
         plan: user.plan || user.subscription?.plan || "FREE",
         credits: user.credits ?? 500,
         notifications: user.notificationsInbox || [],

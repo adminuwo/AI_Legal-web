@@ -42,26 +42,29 @@ const ACCOUNT_TYPES = [
   {
     id: 'advocate',
     label: 'Advocate',
-    icon: Shield,
+    icon: Scale,
+    iconChar: '⚖',
     subtitle: 'Litigation Workspace',
-    placeholder: 'Advocate Email / Bar Council ID',
+    placeholder: 'Advocate Email / Bar Registration',
     desc: 'Access court cause lists, drafting engine & precedent research'
-  },
-  {
-    id: 'law_firm',
-    label: 'Law Firm',
-    icon: Building2,
-    subtitle: 'Firm Workspace',
-    placeholder: 'Firm Email / Admin ID',
-    desc: 'Manage associates, team dockets, permissions & multi-user CRM'
   },
   {
     id: 'student',
     label: 'Student',
     icon: GraduationCap,
+    iconChar: '🎓',
     subtitle: 'Academic Hub',
     placeholder: 'Student Email / Roll ID',
     desc: 'Practice MCQs, case brief summaries, interactive notes & AI Tutor'
+  },
+  {
+    id: 'law_firm',
+    label: 'Law Firm',
+    icon: Building2,
+    iconChar: '🏢',
+    subtitle: 'Firm Workspace',
+    placeholder: 'Firm Email / Admin Username',
+    desc: 'Manage associates, team dockets, permissions & multi-user CRM'
   },
 ];
 
@@ -100,6 +103,13 @@ const Login = () => {
   const [deviceLimitSessions, setDeviceLimitSessions] = useState(null);
   const [showDeviceLimitModal, setShowDeviceLimitModal] = useState(false);
 
+  // Helper to format role names cleanly
+  const formatRoleLabel = (r) => {
+    if (r === 'law_firm' || r === 'firm') return 'Law Firm';
+    if (r === 'student') return 'Student';
+    return 'Advocate';
+  };
+
   // Apply selected workspace role & dispatch event
   const applySelectedWorkspace = (roleToApply = accountType) => {
     const targetRole = roleToApply === 'firm' || roleToApply === 'law_firm' ? 'law_firm' : roleToApply;
@@ -119,13 +129,23 @@ const Login = () => {
   };
 
   const triggerError = (errObj) => {
+    if (errObj?.response?.data?.code === 'ROLE_MISMATCH' || errObj?.response?.data?.roleMismatch) {
+      const actualRole = errObj.response.data.actualRole || 'advocate';
+      setRoleMismatchData({ actualRole, selectedRole: accountType });
+      return;
+    }
     if (errObj?.response?.data?.code === 'DEVICE_LIMIT_REACHED') {
       setDeviceLimitSessions(errObj.response.data.activeSessions || []);
       setShowDeviceLimitModal(true);
       return;
     }
-    const details = parseAuthError(errObj, 'login', navigate, (actionType) => {
-      if (actionType === 'focusEmail') {
+    const details = parseAuthError(errObj, 'login', navigate, (actionType, payloadRole) => {
+      if (actionType === 'switchRole') {
+        const target = payloadRole || errObj?.response?.data?.actualRole || 'advocate';
+        setAccountType(target);
+        applySelectedWorkspace(target);
+        setShowErrorDialog(false);
+      } else if (actionType === 'focusEmail') {
         document.querySelector("input[type='email']")?.focus();
       } else if (actionType === 'focusPassword') {
         document.querySelector("input[type='password']")?.focus();
@@ -168,6 +188,8 @@ const Login = () => {
     const provider = params.get('provider');
     const picture = params.get('picture');
     const roleParam = params.get('role');
+    const returnedAccountType = params.get('accountType');
+
     let userRole = roleParam;
     try {
       if ((!userRole || userRole === 'user') && token) {
@@ -177,6 +199,10 @@ const Login = () => {
     } catch (e) {}
 
     if (isSocialAuth && token && userId) {
+      const activeRole = returnedAccountType || accountType || 'advocate';
+      setAccountType(activeRole);
+      applySelectedWorkspace(activeRole);
+
       toast.success(`Successfully authenticated as ${userName}!`);
 
       const userData = {
@@ -185,6 +211,7 @@ const Login = () => {
         email: userEmail,
         token: token,
         role: userRole || "user",
+        accountType: activeRole,
         plan: "Basic",
         provider: provider || "local",
         avatar: picture || ""
@@ -198,14 +225,17 @@ const Login = () => {
       localStorage.setItem("provider", provider || "local");
       autoAcceptCookies();
 
-      applySelectedWorkspace();
-
-      const from = location.state?.from || AppRoute.DASHBOARD;
+      const targetDashboard = activeRole === 'student'
+        ? '/student/dashboard'
+        : activeRole === 'law_firm'
+          ? '/firm/dashboard'
+          : '/advocate/dashboard';
+      const from = location.state?.from || targetDashboard;
       navigate(from, { replace: true });
       console.log("[LOGIN] Social auth success, initiating merge...");
       chatStorageService.mergeGuestChats();
     }
-  }, [location, navigate, setUserRecoil]);
+  }, [location, navigate, setUserRecoil, accountType]);
 
 
   const handleSubmit = async (e) => {
@@ -226,7 +256,7 @@ const Login = () => {
     }
 
     try {
-      const payload = { email, password };
+      const payload = { email, password, selectedRole: accountType, accountType };
       const res = await axios.post(apis.logIn, payload, {
         headers: {
           'x-device-id': getDeviceId(),
@@ -235,23 +265,32 @@ const Login = () => {
         }
       });
 
+      // Seamlessly resolve user's authoritative accountType
+      const userAccountType = res.data.accountType || res.data.user?.accountType || accountType || 'advocate';
+      setAccountType(userAccountType);
+      applySelectedWorkspace(userAccountType);
+
       toast.success("Welcome Back! You have successfully signed in.", {
         icon: '👋',
         style: {
           borderRadius: '16px',
-          background: '#1F2937',
+          background: '#111111',
           color: '#FFF',
+          border: '1px solid rgba(200, 163, 77, 0.3)'
         }
       });
       setUserData(res.data);
       setUserRecoil({ user: res.data });
-      localStorage.setItem("userId", res.data.id);
+      localStorage.setItem("userId", res.data.id || res.data._id);
       localStorage.setItem("token", res.data.token);
       autoAcceptCookies();
 
-      applySelectedWorkspace();
-
-      const from = location.state?.from || AppRoute.DASHBOARD;
+      const targetDashboard = userAccountType === 'student'
+        ? '/student/dashboard'
+        : userAccountType === 'law_firm'
+          ? '/firm/dashboard'
+          : '/advocate/dashboard';
+      const from = location.state?.from || targetDashboard;
       navigate(from, { replace: true });
       console.log("[LOGIN] Standard login success, initiating merge...");
       chatStorageService.mergeGuestChats();
@@ -285,16 +324,23 @@ const Login = () => {
         console.warn('[Google Login] Client userinfo fetch skipped/failed, backend will resolve server-side:', fetchErr);
       }
 
-      // Send to our backend (backend verifies token and resolves profile server-side)
+      // Send to our backend with selectedRole & accountType preserved
       const res = await axios.post(apis.googleLogin, {
         credential: tokenResponse.access_token,
         email,
         name,
         picture,
+        selectedRole: accountType,
+        accountType: accountType,
         deviceOS: 'web',
         platform: 'web',
         signupPlatform: 'web'
       });
+
+      // Seamlessly resolve user's authoritative accountType
+      const userAccountType = res.data.accountType || res.data.user?.accountType || accountType || 'advocate';
+      setAccountType(userAccountType);
+      applySelectedWorkspace(userAccountType);
 
       toast.success('Logged in with Google!');
       const freshData = setUserData(res.data);
@@ -302,8 +348,6 @@ const Login = () => {
       localStorage.setItem("userId", res.data.id || res.data._id);
       localStorage.setItem("token", res.data.token);
       autoAcceptCookies();
-
-      applySelectedWorkspace();
 
       // Ensure full profile sync from DB immediately
       try {
@@ -318,8 +362,12 @@ const Login = () => {
         console.warn('[Google Login] Profile sync notice:', syncErr);
       }
 
-
-      const from = location.state?.from || AppRoute.DASHBOARD;
+      const targetDashboard = userAccountType === 'student'
+        ? '/student/dashboard'
+        : userAccountType === 'law_firm'
+          ? '/firm/dashboard'
+          : '/advocate/dashboard';
+      const from = location.state?.from || targetDashboard;
       navigate(from, { replace: true });
       console.log("[LOGIN] Google login success, initiating merge...");
       chatStorageService.mergeGuestChats();
@@ -389,13 +437,6 @@ const Login = () => {
             >
               <Plus size={14} className="text-[#B38628] stroke-[2.5]" />
               <span>Post your judgement</span>
-            </button>
-
-            <button
-              onClick={() => navigate('/signup')}
-              className="px-4 py-1.5 rounded-full text-xs font-bold text-white bg-gradient-to-r from-[#B88B2A] to-[#B38628] hover:opacity-95 transition-all cursor-pointer shadow-md shadow-[#B88B2A]/30"
-            >
-              Get Started
             </button>
           </div>
 
@@ -534,52 +575,49 @@ const Login = () => {
         </div>
 
         {/* Right Column: Authentication Card & Role Selector */}
-        <div className="md:col-span-7 p-5 sm:p-6 lg:p-7 flex flex-col justify-center bg-white dark:bg-[#111625] transition-colors">
+        <div className="md:col-span-7 p-6 sm:p-7 lg:p-8 flex flex-col justify-center bg-white dark:bg-[#111111] transition-colors">
           
           {/* Header Brand Emblem & Greeting */}
-          <div className="flex flex-col items-center text-center mb-3.5">
-            <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-[#B88B2A]/20 via-amber-500/10 to-[#B38628]/20 border border-[#B88B2A]/35 flex items-center justify-center p-1.5 mb-2 shadow-xs">
+          <div className="flex flex-col items-center text-center mb-5">
+            <div className="w-12 h-12 rounded-2xl bg-white dark:bg-[#181818] border border-slate-200 dark:border-zinc-800 flex items-center justify-center p-2 mb-2.5 shadow-sm">
               <img 
                 src="/logo/logo_transparent.png" 
                 alt="AI LEGAL™" 
-                className="w-full h-full object-contain drop-shadow-xs" 
+                className="w-full h-full object-contain" 
               />
             </div>
             <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white tracking-tight">
-              Welcome Back
+              Welcome to AI LEGAL™
             </h1>
-            <p className="text-[11px] sm:text-xs text-[#B38628] dark:text-[#D4AF37] font-semibold mt-0.5">
-              Continue Your Legal Journey
+            <p className="text-xs text-slate-500 dark:text-zinc-400 font-normal mt-1">
+              Enter credentials to access your secure workspace
             </p>
           </div>
 
-          {/* ACCOUNT TYPE Selector */}
-          <div className="mb-3.5">
-            <div className="flex items-center justify-between mb-1.5">
-              <span className="text-[10px] font-bold text-slate-400 dark:text-slate-400 uppercase tracking-wider">
-                Account Type
-              </span>
-              <span className="text-[10px] font-semibold text-[#B38628] dark:text-[#D4AF37]">
-                {accountType === 'advocate' ? '⚖️ Litigation Practice' : accountType === 'law_firm' ? '🏛️ Law Firm Team' : '🎓 Academic Hub'}
-              </span>
-            </div>
+          {/* Continue as (Role Selector) */}
+          <div className="mb-4">
+            <label className="block text-[11px] font-bold text-slate-600 dark:text-zinc-400 uppercase tracking-wider mb-2">
+              Continue as
+            </label>
             
-            <div className="grid grid-cols-3 gap-1.5">
+            <div className="grid grid-cols-3 gap-2">
               {ACCOUNT_TYPES.map((type) => {
-                const Icon = type.icon;
                 const isSelected = accountType === type.id;
                 return (
                   <button
                     key={type.id}
                     type="button"
-                    onClick={() => setAccountType(type.id)}
-                    className={`py-1.5 px-2 rounded-xl flex items-center justify-center gap-1.5 text-[11px] font-bold transition-all cursor-pointer ${
+                    onClick={() => {
+                      setAccountType(type.id);
+                      applySelectedWorkspace(type.id);
+                    }}
+                    className={`py-2 px-2 rounded-xl flex items-center justify-center gap-1.5 text-xs font-semibold transition-all cursor-pointer ${
                       isSelected
-                        ? 'border-2 border-[#B88B2A] bg-[#B88B2A]/15 text-[#966d1b] dark:text-[#F1C40F] shadow-xs'
-                        : 'border border-slate-200 dark:border-zinc-800 text-slate-600 dark:text-slate-400 hover:border-slate-300 dark:hover:border-zinc-700 bg-slate-50/60 dark:bg-zinc-900/40'
+                        ? 'border-2 border-[#B88B2A] bg-[#B88B2A]/10 text-[#966d1b] dark:text-[#E2C374] font-bold shadow-xs'
+                        : 'border border-slate-200 dark:border-zinc-800 text-slate-600 dark:text-zinc-400 hover:border-slate-300 dark:hover:border-zinc-700 bg-slate-50/50 dark:bg-[#181818]'
                     }`}
                   >
-                    <Icon className={`w-3 h-3 ${isSelected ? 'text-[#B38628] dark:text-[#F1C40F]' : 'text-slate-400'}`} />
+                    <span className="text-sm">{type.iconChar}</span>
                     <span>{type.label}</span>
                   </button>
                 );
@@ -588,14 +626,10 @@ const Login = () => {
           </div>
 
           {/* Login Form */}
-          <form onSubmit={handleSubmit} className="space-y-2.5">
+          <form onSubmit={handleSubmit} className="space-y-3">
             <div>
-              <label className="block text-[11px] font-semibold text-slate-700 dark:text-zinc-300 mb-1">
-                {accountType === 'advocate' 
-                  ? 'Advocate Email / Bar Registration' 
-                  : accountType === 'law_firm' 
-                    ? 'Firm Email / Admin Username' 
-                    : 'Student Email / Roll ID'}
+              <label className="block text-xs font-semibold text-slate-700 dark:text-zinc-300 mb-1">
+                Email Address
               </label>
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 dark:text-zinc-500" />
@@ -610,7 +644,7 @@ const Login = () => {
                         ? 'e.g. partner@lexchambers.com' 
                         : 'e.g. student@nlu.ac.in'
                   }
-                  className="w-full bg-slate-50/50 dark:bg-[#0E121E] border border-slate-200 dark:border-zinc-800 rounded-xl py-2 pl-9.5 pr-3 text-xs text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-zinc-600 focus:outline-none focus:border-[#B88B2A] focus:ring-2 focus:ring-[#B88B2A]/20 transition-all"
+                  className="w-full bg-slate-50/50 dark:bg-[#181818] border border-slate-200 dark:border-zinc-800 rounded-xl py-2 pl-9.5 pr-3 text-xs text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-zinc-600 focus:outline-none focus:border-[#B88B2A] focus:ring-2 focus:ring-[#B88B2A]/20 transition-all"
                   required
                 />
               </div>
@@ -618,11 +652,11 @@ const Login = () => {
 
             <div>
               <div className="flex items-center justify-between mb-1">
-                <label className="block text-[11px] font-semibold text-slate-700 dark:text-zinc-300">
+                <label className="block text-xs font-semibold text-slate-700 dark:text-zinc-300">
                   Password
                 </label>
-                <Link to="/forgot-password" className="text-[11px] font-bold text-[#B38628] dark:text-[#D4AF37] hover:underline">
-                  Forgot?
+                <Link to="/forgot-password" className="text-xs font-semibold text-[#B88B2A] hover:underline">
+                  Forgot Password?
                 </Link>
               </div>
               <div className="relative">
@@ -632,7 +666,7 @@ const Login = () => {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
-                  className="w-full bg-slate-50/50 dark:bg-[#0E121E] border border-slate-200 dark:border-zinc-800 rounded-xl py-2 pl-9.5 pr-10 text-xs text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-zinc-600 focus:outline-none focus:border-[#B88B2A] focus:ring-2 focus:ring-[#B88B2A]/20 transition-all"
+                  className="w-full bg-slate-50/50 dark:bg-[#181818] border border-slate-200 dark:border-zinc-800 rounded-xl py-2 pl-9.5 pr-10 text-xs text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-zinc-600 focus:outline-none focus:border-[#B88B2A] focus:ring-2 focus:ring-[#B88B2A]/20 transition-all"
                   required
                 />
                 <button
@@ -645,59 +679,61 @@ const Login = () => {
               </div>
             </div>
 
+            {/* Remember Me */}
+            <div className="flex items-center justify-between pt-0.5">
+              <label className="flex items-center gap-2 cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  defaultChecked
+                  className="w-3.5 h-3.5 rounded border-slate-300 dark:border-zinc-700 text-[#B88B2A] focus:ring-[#B88B2A] accent-[#B88B2A]"
+                />
+                <span className="text-xs text-slate-600 dark:text-zinc-400">Remember me</span>
+              </label>
+            </div>
+
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-2.5 bg-gradient-to-r from-[#B88B2A] via-[#D4AF37] to-[#B38628] hover:opacity-95 text-slate-950 rounded-xl font-bold transition-all flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed shadow-md shadow-[#B88B2A]/25 mt-1 cursor-pointer uppercase tracking-wider text-xs"
+              className="w-full py-2.5 bg-[#B88B2A] hover:bg-[#A37820] text-slate-950 rounded-xl font-bold transition-all flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed shadow-md shadow-[#B88B2A]/20 mt-2 cursor-pointer uppercase tracking-wider text-xs"
             >
               {loading ? (
                 <div className="w-4 h-4 border-2 border-slate-950/30 border-t-slate-950 rounded-full animate-spin" />
               ) : (
-                `Login to ${accountType === 'advocate' ? 'Advocate' : accountType === 'law_firm' ? 'Law Firm' : 'Student'} Workspace`
+                'Log In'
               )}
             </button>
           </form>
 
           {/* Divider */}
-          <div className="flex items-center gap-3 my-3">
+          <div className="flex items-center gap-3 my-3.5">
             <div className="flex-1 h-px bg-slate-200 dark:bg-zinc-800" />
             <span className="text-[10px] text-slate-400 dark:text-zinc-500 font-bold uppercase tracking-wider">
-              or continue with
+              OR CONTINUE WITH
             </span>
             <div className="flex-1 h-px bg-slate-200 dark:bg-zinc-800" />
           </div>
 
           {/* SSO Buttons */}
-          <div className="grid grid-cols-3 gap-2">
-            {/* UWO SSO Button */}
-            <button
-              type="button"
-              onClick={() => setShowUwoModal(true)}
-              className="flex items-center justify-center gap-1.5 w-full py-2 bg-[#B88B2A]/10 border border-[#B88B2A]/35 hover:bg-[#B88B2A]/20 rounded-xl font-bold text-[#B38628] dark:text-[#D4AF37] transition-all shadow-2xs text-[11px] cursor-pointer"
-            >
-              <Zap className="w-3 h-3 fill-[#D4AF37]" />
-              <span>UWO SSO</span>
-            </button>
-
+          <div className="grid grid-cols-2 gap-2.5">
             {/* Google OAuth */}
             <button
               type="button"
               onClick={() => googleLogin()}
               disabled={googleLoading}
-              className="flex items-center justify-center gap-1.5 w-full py-2 bg-white dark:bg-[#0E121E] border border-slate-200 dark:border-zinc-800 hover:bg-slate-50 dark:hover:bg-zinc-800/60 rounded-xl font-medium text-slate-800 dark:text-zinc-100 transition-all shadow-2xs disabled:opacity-50 text-[11px] cursor-pointer"
+              className="flex items-center justify-center gap-2 w-full py-2 bg-white dark:bg-[#181818] border border-slate-200 dark:border-zinc-800 hover:bg-slate-50 dark:hover:bg-zinc-800/60 rounded-xl font-semibold text-slate-800 dark:text-zinc-100 transition-all shadow-2xs disabled:opacity-50 text-xs cursor-pointer"
             >
               {googleLoading ? (
                 <div className="w-3 h-3 border-2 border-slate-200 border-t-[#B88B2A] rounded-full animate-spin" />
               ) : (
                 <>
-                  <svg className="w-3 h-3" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+                  <svg className="w-3.5 h-3.5" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
                     <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
                     <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
                     <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
                     <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
                     <path fill="none" d="M0 0h48v48H0z"/>
                   </svg>
-                  <span>Google</span>
+                  <span>Continue with Google</span>
                 </>
               )}
             </button>
@@ -705,37 +741,39 @@ const Login = () => {
             {/* Apple OAuth */}
             <button
               type="button"
-              onClick={() => { window.location.href = apis.appleLogin; }}
-              className="flex items-center justify-center gap-1.5 w-full py-2 bg-white dark:bg-[#0E121E] border border-slate-200 dark:border-zinc-800 hover:bg-slate-50 dark:hover:bg-zinc-800/60 rounded-xl font-medium text-slate-800 dark:text-zinc-100 transition-all shadow-2xs text-[11px] cursor-pointer"
+              onClick={() => { window.location.href = `${apis.appleLogin}?selectedRole=${accountType}&accountType=${accountType}`; }}
+              className="flex items-center justify-center gap-2 w-full py-2 bg-white dark:bg-[#181818] border border-slate-200 dark:border-zinc-800 hover:bg-slate-50 dark:hover:bg-zinc-800/60 rounded-xl font-semibold text-slate-800 dark:text-zinc-100 transition-all shadow-2xs text-xs cursor-pointer"
             >
-              <svg className="w-3 h-3 fill-current text-black dark:text-white" viewBox="0 0 170 170">
+              <svg className="w-3.5 h-3.5 fill-current text-black dark:text-white" viewBox="0 0 170 170">
                 <path d="m150.37 130.25c-2.45 5.66-5.35 10.87-8.71 15.66-4.58 6.53-8.33 11.05-11.22 13.56-4.48 4.12-9.28 6.23-14.42 6.35-3.69 0-8.14-1.05-13.32-3.18-5.197-2.12-9.973-3.17-14.34-3.17-4.58 0-9.492 1.05-14.746 3.17-5.254 2.13-9.49 3.29-12.71 3.48-5.253.39-10.37-1.77-15.35-6.47-3.04-2.79-6.79-7.14-11.24-13.06-4.45-5.91-8.25-12.51-11.41-19.78-3.15-7.26-4.73-14.85-4.73-22.77 0-10.73 2.53-19.89 7.58-27.48 4.09-6.13 9.42-10.66 15.98-13.59 6.57-2.93 13.25-4.4 20.03-4.4 4.04 0 9.06 1.05 15.08 3.14 6.02 2.1 10.15 3.15 12.39 3.15 1.48 0 5.8-1.12 12.96-3.37 7.16-2.25 13.3-3.23 18.42-2.93 13 1.08 23.36 6.3 31.06 15.65-11.52 6.93-17.28 17.06-17.28 30.38 0 10.18 3.03 18.67 9.09 25.44 3.04 3.42 6.78 6.24 11.23 8.48zm-26.65-103.11c0 8.08-3 15.82-8.99 23.23-7.55 9.06-16.14 14-25.75 14.86-.34-8.15 2.68-15.97 9.05-23.47 3.25-3.83 7.37-7.25 12.35-10.27 4.99-3.01 9.42-4.63 13.28-4.87.04.18.06.35.06.52z" />
               </svg>
-              <span>Apple</span>
+              <span>Continue with Apple</span>
             </button>
           </div>
 
           {/* Sign Up Link */}
-          <div className="mt-3.5 text-center text-xs text-slate-500 dark:text-zinc-400">
-            Don't have an account?{' '}
+          <div className="mt-4 text-center text-xs text-slate-500 dark:text-zinc-400">
+            New to AI LEGAL™?{' '}
             <Link 
               to="/signup" 
-              className="text-[#B38628] dark:text-[#D4AF37] font-bold hover:underline transition-colors ml-1"
+              className="text-[#B88B2A] dark:text-[#D4AF37] font-bold hover:underline transition-colors ml-1"
             >
               Create Account
             </Link>
           </div>
 
           {/* Terms and Privacy */}
-          <div className="mt-2 text-center text-[10px] text-slate-400 dark:text-zinc-500">
+          <div className="mt-2.5 text-center text-[10px] text-slate-400 dark:text-zinc-500">
             By signing in, you agree to our{' '}
-            <Link to="/terms" className="hover:underline text-[#B38628] dark:text-[#D4AF37]">Terms</Link>
-            {' '}&{' '}
-            <Link to="/privacy-policy" className="hover:underline text-[#B38628] dark:text-[#D4AF37]">Privacy Policy</Link>
+            <Link to="/terms" className="hover:underline text-[#B88B2A] dark:text-[#D4AF37]">Terms of Use</Link>
+            {' '}and{' '}
+            <Link to="/privacy-policy" className="hover:underline text-[#B88B2A] dark:text-[#D4AF37]">Privacy Policy</Link>.
           </div>
         </div>
       </div>
       </main>
+
+
 
       {/* Social Auth Verifying Overlay */}
       <AnimatePresence>
@@ -783,6 +821,7 @@ const Login = () => {
             name: uUser.name || uUser.email?.split('@')[0] || 'User',
             email: uUser.email,
             role: uUser.role || 'user',
+            accountType: uUser.accountType || accountType,
             plan: uUser.plan || 'Basic',
             avatar: uUser.avatar || null,
             token: data.token || data.access_token,
@@ -793,7 +832,7 @@ const Login = () => {
           localStorage.setItem('user', JSON.stringify(formattedUser));
           autoAcceptCookies();
 
-          applySelectedWorkspace();
+          applySelectedWorkspace(formattedUser.accountType);
 
           const from = location.state?.from || AppRoute.DASHBOARD;
           navigate(from, { replace: true });

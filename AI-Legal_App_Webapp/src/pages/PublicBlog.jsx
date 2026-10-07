@@ -382,19 +382,12 @@ Seamlessly transition between legacy laws and the 2024 Sanhitas:
               <span>Post your judgement</span>
             </button>
 
-            {isAuthenticated ? (
+            {isAuthenticated && (
               <button
                 onClick={() => navigate('/dashboard')}
                 className="px-4 py-1.5 rounded-full text-xs font-bold text-white bg-gradient-to-r from-[#B88B2A] to-[#B38628] hover:opacity-95 transition-all cursor-pointer shadow-md shadow-[#B88B2A]/30"
               >
                 Dashboard →
-              </button>
-            ) : (
-              <button
-                onClick={() => navigate('/signup')}
-                className="px-4 py-1.5 rounded-full text-xs font-bold text-white bg-gradient-to-r from-[#B88B2A] to-[#B38628] hover:opacity-95 transition-all cursor-pointer shadow-md shadow-[#B88B2A]/30"
-              >
-                Get Started
               </button>
             )}
           </div>

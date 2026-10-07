@@ -48,6 +48,7 @@ const Signup = () => {
     COUNTRIES.find(c => c.code === 'IN') || { name: 'India', code: 'IN', flag: '🇮🇳', dialCode: '+91' }
   );
   const [selectedState, setSelectedState] = useState(STATES_BY_COUNTRY['IN']?.[0]?.name || 'Gujarat');
+  const [accountType, setAccountType] = useState('advocate');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   
@@ -145,6 +146,8 @@ const Signup = () => {
         fullName: name,
         email,
         password,
+        accountType,
+        firmRole: 'owner',
         phone: localPhone,
         country: selectedCountry.name,
         countryCode: selectedCountry.code,
@@ -173,8 +176,10 @@ const Signup = () => {
       });
       
       localStorage.setItem('pendingVerificationEmail', email);
+      localStorage.setItem('pendingAccountType', accountType);
+      localStorage.setItem('user_selected_role', accountType);
 
-      navigate(AppRoute.E_Verification, { state: { email, from: location.state?.from } });
+      navigate(AppRoute.E_Verification, { state: { email, accountType, from: location.state?.from } });
       console.log("[SIGNUP] Pre-verification signup complete, sent code to email:", email);
     } catch (err) {
       triggerError(err);
@@ -213,6 +218,8 @@ const Signup = () => {
         email,
         name,
         picture,
+        selectedRole: accountType,
+        accountType: accountType,
         deviceOS: 'web',
         platform: 'web',
         signupPlatform: 'web'
@@ -220,12 +227,18 @@ const Signup = () => {
 
       console.log('[Google Signup] Backend response:', res.data);
       toast.success('Signed up with Google!');
-      const from = location.state?.from || AppRoute.DASHBOARD;
+      const targetDashboard = accountType === 'student'
+        ? '/student/dashboard'
+        : accountType === 'law_firm'
+          ? '/firm/dashboard'
+          : '/advocate/dashboard';
+      const from = location.state?.from || targetDashboard;
 
       setUserData(res.data);
       setUserRecoil({ user: res.data });
-      localStorage.setItem("userId", res.data.id);
+      localStorage.setItem("userId", res.data.id || res.data._id);
       localStorage.setItem("token", res.data.token);
+      localStorage.setItem("user_selected_role", accountType);
 
       navigate(from, { replace: true });
       console.log("[SIGNUP] Google signup success, initiating merge...");
@@ -299,10 +312,6 @@ const Signup = () => {
               <Plus size={14} className="text-[#B38628] stroke-[2.5]" />
               <span>Post your judgement</span>
             </button>
-
-            <span className="px-4 py-1.5 rounded-full text-xs font-bold text-white bg-gradient-to-r from-[#B88B2A] to-[#B38628] shadow-md shadow-[#B88B2A]/30">
-              Get Started
-            </span>
           </div>
 
           {/* Mobile Header Toggle */}
@@ -584,6 +593,37 @@ const Signup = () => {
                       className="w-full bg-transparent py-2 px-3 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-zinc-600 focus:outline-none text-xs"
                       required
                     />
+                  </div>
+                </div>
+
+                {/* Account Type: I am a */}
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-700 dark:text-zinc-300 uppercase tracking-wider mb-1.5">
+                    I am a
+                  </label>
+                  <div className="grid grid-cols-3 gap-2">
+                    {[
+                      { id: 'advocate', label: 'Advocate', iconChar: '⚖' },
+                      { id: 'student', label: 'Student', iconChar: '🎓' },
+                      { id: 'law_firm', label: 'Law Firm', iconChar: '🏢' },
+                    ].map((role) => {
+                      const isSelected = accountType === role.id;
+                      return (
+                        <button
+                          key={role.id}
+                          type="button"
+                          onClick={() => setAccountType(role.id)}
+                          className={`py-2 px-2 rounded-xl flex items-center justify-center gap-1.5 text-xs font-semibold transition-all cursor-pointer ${
+                            isSelected
+                              ? 'border-2 border-[#B88B2A] bg-[#B88B2A]/10 text-[#966d1b] dark:text-[#E2C374] font-bold shadow-xs'
+                              : 'border border-slate-200 dark:border-zinc-800 text-slate-600 dark:text-zinc-400 hover:border-slate-300 dark:hover:border-zinc-700 bg-slate-50/50 dark:bg-[#181818]'
+                          }`}
+                        >
+                          <span className="text-sm">{role.iconChar}</span>
+                          <span>{role.label}</span>
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
 

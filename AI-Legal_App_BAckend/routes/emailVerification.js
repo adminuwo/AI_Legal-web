@@ -72,6 +72,8 @@ router.post("/", async (req, res) => {
             dialCode: pendingReg.dialCode || '+91',
             jurisdiction: pendingReg.jurisdiction || pendingReg.country || 'India',
             state: pendingReg.state || '',
+            accountType: pendingReg.accountType || 'advocate',
+            firmRole: pendingReg.firmRole || 'owner',
             legalJurisdiction: {
                 country: pendingReg.country || 'India',
                 countryCode: pendingReg.countryCode || 'IN',
@@ -151,6 +153,8 @@ router.post("/", async (req, res) => {
             id: newUser._id,
             name: newUser.name,
             email: newUser.email,
+            accountType: newUser.accountType || 'advocate',
+            firmRole: newUser.firmRole || 'owner',
             message: "Your AI Legal™ account has been created successfully.",
             token,
         });

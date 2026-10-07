@@ -43,12 +43,17 @@ const COUNTRY_REGIONS_MAP = {
 };
 
 let syncPromise = null;
+let lastHistoricalSyncTime = 0;
 
 /**
  * Syncs existing registered users into AppInstall collection so historical analytics
  * accurately reflect real first-party users and devices.
  */
-export const syncHistoricalInstalls = async () => {
+export const syncHistoricalInstalls = async (force = false) => {
+    const now = Date.now();
+    if (!force && (now - lastHistoricalSyncTime < 5 * 60 * 1000)) {
+        return { synced: 0, throttled: true };
+    }
     if (syncPromise) return syncPromise;
     syncPromise = (async () => {
         try {
@@ -125,6 +130,7 @@ export const syncHistoricalInstalls = async () => {
             console.warn('[AppInstall Sync Error]', err.message);
             return { synced: 0, error: err.message };
         } finally {
+            lastHistoricalSyncTime = Date.now();
             syncPromise = null;
         }
     })();
@@ -902,7 +908,7 @@ export const exportDownloadReport = async (req, res) => {
 };
 
 /**
- * 6. Public Telemetry Endpoint to record new app installs
+ * 6. Public Telemetry Endpoint to record new app installs in Real Time
  */
 export const recordInstallTelemetry = async (req, res) => {
     try {
@@ -913,12 +919,46 @@ export const recordInstallTelemetry = async (req, res) => {
             country = 'India',
             country_code = 'IN',
             state = '',
-            app_version = '1.0.11',
+            city = '',
+            app_version = '1.0.16',
             source = 'organic',
+            slug = null,
+            install_referrer = '',
+            firebase_instance_id = null,
+            fcm_token = null,
+            fingerprint = '',
             user_id
-        } = req.body;
+        } = req.body || {};
 
-        const effectiveId = install_id || device_id || `inst_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+        const effectiveId = (install_id || device_id || firebase_instance_id || `inst_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`).trim();
+
+        const normPlatform = ['android', 'ios', 'web'].includes(String(platform).toLowerCase())
+            ? String(platform).toLowerCase()
+            : 'android';
+
+        // Auto-detect country from Cloudflare / Proxy header if not explicitly set
+        let detectedCountry = (country || 'India').trim();
+        let detectedCountryCode = (country_code || (detectedCountry === 'Nepal' ? 'NP' : 'IN')).trim();
+        if (req.headers['cf-ipcountry'] && (!country || country === 'India' || country === 'unknown')) {
+            const cfCountry = req.headers['cf-ipcountry'].toUpperCase();
+            if (cfCountry && cfCountry.length === 2) {
+                detectedCountryCode = cfCountry;
+                if (cfCountry === 'IN') detectedCountry = 'India';
+                else if (cfCountry === 'NP') detectedCountry = 'Nepal';
+                else if (cfCountry === 'US') detectedCountry = 'United States';
+            }
+        }
+
+        let effectiveSource = source || 'organic';
+        if (slug || effectiveSource === 'referral') {
+            effectiveSource = 'referral';
+        } else if (normPlatform === 'ios' && (!source || source === 'organic')) {
+            effectiveSource = 'app-store';
+        } else if (normPlatform === 'android' && (!source || source === 'organic')) {
+            effectiveSource = 'google-play';
+        }
+
+        const now = new Date();
 
         const doc = await AppInstall.findOneAndUpdate(
             { installId: effectiveId },
@@ -926,24 +966,45 @@ export const recordInstallTelemetry = async (req, res) => {
                 $setOnInsert: {
                     installId: effectiveId,
                     userId: user_id && mongoose.Types.ObjectId.isValid(user_id) ? user_id : null,
-                    platform: ['android', 'ios', 'web'].includes(String(platform).toLowerCase()) ? String(platform).toLowerCase() : 'android',
-                    country: country || 'India',
-                    countryCode: country_code || 'IN',
+                    platform: normPlatform,
+                    country: detectedCountry,
+                    countryCode: detectedCountryCode,
                     state: state || '',
-                    source: source || 'organic',
-                    installedAt: new Date(),
+                    city: city || '',
+                    source: effectiveSource,
+                    installedAt: now,
                     firstInstall: true,
-                    appVersion: app_version || '1.0.11',
-                    status: 'installed'
+                    appVersion: app_version || '1.0.16',
+                    deviceType: req.body.device_type || 'phone',
+                    deviceOSVersion: req.body.os_version || fingerprint || '',
+                    status: 'installed',
+                    slug: slug || null,
+                    rawReferrer: install_referrer || '',
+                    firebaseInstanceId: firebase_instance_id || null,
+                    fcmToken: fcm_token || null
+                },
+                $set: {
+                    lastActiveAt: now,
+                    updatedAt: now,
+                    status: 'installed', // Ensure reinstall or active status
+                    ...(user_id && mongoose.Types.ObjectId.isValid(user_id) ? { userId: user_id } : {}),
+                    ...(fcm_token ? { fcmToken: fcm_token } : {}),
+                    ...(firebase_instance_id ? { firebaseInstanceId: firebase_instance_id } : {}),
+                    ...(slug ? { slug, source: 'referral' } : {})
                 }
             },
-            { upsert: true, new: true }
+            { upsert: true, new: true, setDefaultsOnInsert: true }
         );
+
+        console.log(`[Telemetry] Real-time install recorded: ${doc.installId} (${doc.platform}, ${doc.country}, ${doc.source})`);
 
         return res.status(200).json({
             success: true,
             recorded: true,
-            installId: doc.installId
+            installId: doc.installId,
+            platform: doc.platform,
+            installedAt: doc.installedAt,
+            status: doc.status
         });
     } catch (err) {
         console.error('[recordInstallTelemetry Error]', err);

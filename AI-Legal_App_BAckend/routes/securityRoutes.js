@@ -56,10 +56,35 @@ const logSecurityEvent = async (userId, event, req, sessionInfo = null) => {
 };
 
 // 1. GET /security/sessions - Retrieve active sessions
-router.get('/sessions', verifyToken, async (req, res) => {
+router.get('/sessions', async (req, res) => {
     try {
-        const userId = req.user.id || req.user._id;
-        const currentToken = req.headers.authorization?.split(" ")[1] || req.cookies?.token;
+        let userId = null;
+        let currentToken = null;
+
+        const authHeader = req.headers.authorization;
+        if (authHeader && authHeader.startsWith('Bearer ')) {
+            const jwt = (await import('jsonwebtoken')).default;
+            try {
+                const decoded = jwt.verify(authHeader.split(' ')[1], process.env.JWT_SECRET);
+                userId = decoded.id;
+                currentToken = authHeader.split(' ')[1];
+            } catch (e) {}
+        }
+
+        // Support fetching active sessions via query email (e.g. for pre-login device limit modal)
+        if (!userId && (req.query.email || req.headers['x-auth-email'])) {
+            const rawEmail = (req.query.email || req.headers['x-auth-email'] || '').trim().toLowerCase();
+            if (rawEmail) {
+                const user = await userModel.findOne({ email: new RegExp('^' + rawEmail + '$', 'i') });
+                if (user) {
+                    userId = user._id;
+                }
+            }
+        }
+
+        if (!userId) {
+            return res.status(401).json({ error: 'Authentication required or valid email must be provided.' });
+        }
 
         const { getActiveSessionsForUser } = await import('../utils/sessionHelper.js');
         const formatted = await getActiveSessionsForUser(userId, currentToken);

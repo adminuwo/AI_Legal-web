@@ -70,7 +70,12 @@ export default function VerificationForm() {
         localStorage.setItem('userId', res.data.id || res.data._id);
       }
 
-      const finalData = setUserData(res.data);
+      const userRole = res.data?.accountType || location.state?.accountType || localStorage.getItem('pendingAccountType') || 'advocate';
+      localStorage.setItem('user_selected_role', userRole);
+      localStorage.removeItem('pendingAccountType');
+      window.dispatchEvent(new CustomEvent('user_role_changed', { detail: { role: userRole } }));
+
+      const finalData = setUserData({ ...res.data, accountType: userRole });
       setUserRecoil({ user: finalData });
       chatStorageService.mergeGuestChats();
 
@@ -83,7 +88,12 @@ export default function VerificationForm() {
         }
       });
 
-      const destination = location.state?.from || AppRoute.DASHBOARD;
+      const targetDashboard = userRole === 'student' 
+        ? '/student/dashboard' 
+        : userRole === 'law_firm' 
+          ? '/firm/dashboard' 
+          : '/advocate/dashboard';
+      const destination = location.state?.from || targetDashboard;
       navigate(destination, { replace: true });
     } catch (err) {
       console.error("Verification Error:", err);

@@ -217,12 +217,6 @@ export default function PublicLegalResearch() {
                 >
                   Sign In
                 </button>
-                <button
-                  onClick={() => navigate('/signup')}
-                  className="px-4 py-2 rounded-full text-xs font-black text-[#111111] bg-gradient-to-b from-[#D4AF37] to-[#B88B2A] hover:brightness-105 shadow-xs transition-all cursor-pointer"
-                >
-                  Get Started
-                </button>
               </div>
             )}
           </div>

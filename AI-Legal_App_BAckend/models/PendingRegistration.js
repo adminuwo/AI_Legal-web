@@ -39,6 +39,20 @@ const pendingRegistrationSchema = new mongoose.Schema({
         type: String,
         default: 'India'
     },
+    accountType: {
+        type: String,
+        enum: ['advocate', 'student', 'law_firm'],
+        default: 'advocate'
+    },
+    firmRole: {
+        type: String,
+        enum: ['owner', 'admin', 'advocate', 'associate', 'staff'],
+        default: 'owner'
+    },
+    state: {
+        type: String,
+        default: ''
+    },
     verificationCode: {
         type: String,
         required: true

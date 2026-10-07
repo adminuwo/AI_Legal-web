@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import Session from "../models/Session.js";
 import crypto from "crypto";
 
@@ -157,7 +158,13 @@ export const createSession = async (userId, token, req) => {
  */
 export const revokeSession = async (userId, sessionId, io = null) => {
     try {
-        const session = await Session.findOne({ _id: sessionId, userId, isActive: true });
+        let session = null;
+        if (mongoose.Types.ObjectId.isValid(sessionId)) {
+            session = await Session.findOne({ _id: sessionId, userId, isActive: true });
+        }
+        if (!session) {
+            session = await Session.findOne({ deviceId: sessionId, userId, isActive: true });
+        }
         if (!session) return false;
 
         session.isActive = false;

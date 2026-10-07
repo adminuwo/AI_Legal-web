@@ -54,7 +54,7 @@ const appInstallSchema = new mongoose.Schema({
     },
     appVersion: {
         type: String,
-        default: '1.0.11'
+        default: '1.0.16'
     },
     deviceType: {
         type: String,
@@ -67,6 +67,29 @@ const appInstallSchema = new mongoose.Schema({
     ipHash: {
         type: String,
         default: ''
+    },
+    slug: {
+        type: String,
+        default: null,
+        index: true
+    },
+    rawReferrer: {
+        type: String,
+        default: ''
+    },
+    firebaseInstanceId: {
+        type: String,
+        default: null,
+        index: true
+    },
+    fcmToken: {
+        type: String,
+        default: null
+    },
+    lastActiveAt: {
+        type: Date,
+        default: Date.now,
+        index: true
     },
     status: {
         type: String,

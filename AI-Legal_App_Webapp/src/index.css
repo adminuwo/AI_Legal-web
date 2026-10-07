@@ -2405,5 +2405,46 @@ html.dark select option,
   background: rgba(184, 139, 42, 1);
 }
 
+/* 20. Horizontal Scrollbar for Admin Subscription Plans */
+.horizontal-plan-scrollbar {
+  overflow-x: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #B88B2A #E2E8F0;
+  -webkit-overflow-scrolling: touch;
+}
+
+.dark .horizontal-plan-scrollbar {
+  scrollbar-color: #B88B2A #27272A;
+}
+
+.horizontal-plan-scrollbar::-webkit-scrollbar {
+  height: 8px !important;
+  display: block !important;
+}
+
+.horizontal-plan-scrollbar::-webkit-scrollbar-track {
+  background: #E2E8F0;
+  border-radius: 9999px;
+  margin: 0 4px;
+}
+
+.dark .horizontal-plan-scrollbar::-webkit-scrollbar-track {
+  background: #27272A;
+}
+
+.horizontal-plan-scrollbar::-webkit-scrollbar-thumb {
+  background: #B88B2A;
+  border-radius: 9999px;
+  border: 1px solid #F1F5F9;
+}
+
+.dark .horizontal-plan-scrollbar::-webkit-scrollbar-thumb {
+  border: 1px solid #18181B;
+}
+
+.horizontal-plan-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #966f1e;
+}
+
 
 
