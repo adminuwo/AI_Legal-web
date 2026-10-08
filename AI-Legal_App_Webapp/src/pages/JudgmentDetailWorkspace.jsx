@@ -196,7 +196,7 @@ export default function JudgmentDetailWorkspace() {
           </div>
 
           {/* Unified Compact Actions Toolbar (Replaces Bulky Separate Pill Cards) */}
-          <div className="inline-flex items-center gap-1 p-1 bg-slate-100/90 dark:bg-slate-800/70 rounded-xl border border-slate-200/80 dark:border-slate-700/60 shrink-0 self-start md:self-auto">
+          <div className="inline-flex items-center gap-1 p-1 bg-slate-100/90 dark:bg-slate-800/70 rounded-xl border border-slate-200/80 dark:border-slate-700/60 max-w-full overflow-x-auto scrollbar-none self-start md:self-auto shrink-0">
             {/* 1. Chat with AI */}
             <button
               onClick={() => {

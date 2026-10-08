@@ -28,6 +28,15 @@ export default function PublicFeatures() {
   const [progress, setProgress] = useState(0);
   const [latency, setLatency] = useState(318);
   const [actionFeedback, setActionFeedback] = useState(null);
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 30);
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   const DEMO_DURATION = 4200; // 4.2 seconds per feature
   const TICK_INTERVAL = 50;   // updates progress every 50ms
@@ -424,9 +433,9 @@ export default function PublicFeatures() {
   };
 
   return (
-    <div className="min-h-screen bg-white dark:bg-[#0B0F19] text-[#0F172A] dark:text-slate-100 font-sans selection:bg-[#B88B2A]/25 selection:text-[#111111]">
+    <div className="min-h-screen w-full max-w-full overflow-x-hidden bg-white dark:bg-[#0B0F19] text-[#0F172A] dark:text-slate-100 font-sans selection:bg-[#B88B2A]/25 selection:text-[#111111]">
       {/* Top Header Navbar */}
-      <header className="sticky top-0 z-50 w-full bg-white/95 dark:bg-[#0B0F19]/95 backdrop-blur-md border-b border-slate-200/80 dark:border-slate-800/80 transition-colors">
+      <header className="sticky top-0 z-50 w-full bg-white/95 dark:bg-[#0B0F19]/95 backdrop-blur-md border-b border-slate-200/80 dark:border-slate-800/80 shadow-xs transition-colors">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-18 flex items-center justify-between">
           <div onClick={() => navigate('/')} className="flex items-center gap-2.5 cursor-pointer select-none group">
             <div className="relative flex items-center justify-center">
@@ -580,77 +589,73 @@ export default function PublicFeatures() {
         </AnimatePresence>
       </header>
 
-      {/* Hero Section — 2-Column Layout matching Home Page with Advocate AI Tools Suite Frame */}
+      {/* =========================================================================
+          SECTION 1: HERO SECTION (CENTERED LAYOUT, NO VIDEO, LUXURY BRAND STYLE)
+      ========================================================================= */}
+      {/* =========================================================================
+          SECTION 1: HERO SECTION (CENTERED LAYOUT, NO VIDEO, LUXURY BRAND STYLE)
+      ========================================================================= */}
       <section 
         id="hero" 
-        className="relative overflow-hidden pt-10 pb-16 sm:pt-16 sm:pb-24 border-b border-slate-200/80 dark:border-slate-800/80 bg-[#F8FAFC] dark:bg-[#070A12] bg-[radial-gradient(#CBD5E1_1.25px,transparent_1.25px)] dark:bg-[radial-gradient(rgba(184,139,42,0.18)_1.25px,transparent_1.25px)] bg-[size:24px_24px]"
+        className="relative overflow-hidden pt-12 sm:pt-20 lg:pt-24 pb-14 sm:pb-20 lg:pb-24 border-b border-slate-200/80 dark:border-slate-800/80 bg-[#F8FAFC] dark:bg-[#070A12]"
       >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-center">
-            
-            {/* LEFT COLUMN: TEXT & CALLS TO ACTION */}
-            <div className="lg:col-span-6 text-left space-y-5">
-              <div className="flex items-center gap-2 text-xs font-mono font-bold tracking-widest uppercase text-[#B38628] dark:text-amber-400">
-                <span className="w-4 h-[2px] bg-[#B88B2A] inline-block" />
-                THE AI LEGAL™ LITIGATION SUITE
-              </div>
+        {/* Crisp dot grid pattern with smooth radial vignette mask so it fades gently */}
+        <div 
+          className="absolute inset-0 pointer-events-none bg-[radial-gradient(#CBD5E1_1px,transparent_1px)] dark:bg-[radial-gradient(rgba(184,139,42,0.18)_1px,transparent_1px)] bg-[size:20px_20px] sm:bg-[size:24px_24px] opacity-75 dark:opacity-85 [mask-image:radial-gradient(ellipse_80%_65%_at_50%_45%,black_35%,transparent_90%)]" 
+        />
 
-              <h1 className="text-3xl sm:text-5xl lg:text-[46px] font-black text-[#0F172A] dark:text-white tracking-tight leading-[1.14]">
-                All Your Legal Work,<br />
-                <span className="text-[#B38628] dark:text-amber-400">In One Intelligent Platform.</span>
-              </h1>
+        {/* Seamless ambient center radial glow — pure CSS radial-gradient (no hard bounding box or clipping) */}
+        <div 
+          className="absolute inset-0 pointer-events-none bg-[radial-gradient(ellipse_70%_55%_at_50%_45%,rgba(184,139,42,0.08)_0%,rgba(184,139,42,0.02)_50%,transparent_100%)] dark:bg-[radial-gradient(ellipse_70%_55%_at_50%_45%,rgba(184,139,42,0.18)_0%,rgba(184,139,42,0.04)_50%,transparent_100%)]" 
+        />
 
-              <p className="text-base sm:text-lg text-slate-600 dark:text-slate-300 leading-relaxed font-normal">
-                From case research and judgment analysis to court drafting and argument practice — everything Indian advocates need in one seamless workspace. Explore each feature below with interactive live demos.
-              </p>
+        {/* Subtle top golden light wash */}
+        <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-amber-500/[0.03] via-transparent to-transparent" />
 
-              {/* Stats Badges — Clean Styling */}
-              <div className="flex flex-wrap items-center gap-2.5 pt-1">
-                <div className="px-3 py-1.5 rounded-lg bg-white dark:bg-[#0B1120] border border-slate-200/80 dark:border-slate-800 text-xs font-mono font-medium text-slate-700 dark:text-slate-300 shadow-2xs">
-                  6 products, one place
-                </div>
-                <div className="px-3 py-1.5 rounded-lg bg-white dark:bg-[#0B1120] border border-slate-200/80 dark:border-slate-800 text-xs font-mono font-medium text-slate-700 dark:text-slate-300 shadow-2xs">
-                  Every feature, a <span className="text-[#B38628] dark:text-amber-400 font-bold">live demo</span>
-                </div>
-                <div className="px-3 py-1.5 rounded-lg bg-white dark:bg-[#0B1120] border border-slate-200/80 dark:border-slate-800 text-xs font-mono font-medium text-slate-700 dark:text-slate-300 shadow-2xs">
-                  SC • 25 HCs • 30+ tribunals
-                </div>
-              </div>
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center flex flex-col items-center space-y-4 sm:space-y-6">
+          {/* Eyebrow Label — Centered */}
+          <div className="inline-flex items-center justify-center gap-1.5 sm:gap-2 text-[10px] sm:text-xs font-mono font-bold tracking-wider sm:tracking-widest uppercase text-[#B38628] dark:text-amber-400">
+            <span className="w-3 sm:w-4 h-[1.5px] sm:h-[2px] bg-[#B88B2A] inline-block" />
+            <span>THE AI LEGAL™ LITIGATION SUITE</span>
+            <span className="w-3 sm:w-4 h-[1.5px] sm:h-[2px] bg-[#B88B2A] inline-block" />
+          </div>
 
-              {/* Hero CTA Button */}
-              <div className="pt-2 flex flex-wrap items-center gap-3">
-                <button
-                  onClick={() => handleCta('/signup')}
-                  className="px-7 py-3.5 rounded-xl text-sm font-black text-[#111111] bg-gradient-to-b from-[#D4AF37] to-[#B88B2A] hover:brightness-105 active:scale-98 transition-all cursor-pointer shadow-md shadow-[#B88B2A]/25"
-                >
-                  Start your free trial
-                </button>
-              </div>
+          {/* Main Centered Headline */}
+          <h1 className="text-[26px] xs:text-[28px] sm:text-4xl md:text-5xl lg:text-6xl font-black text-[#0F172A] dark:text-white tracking-tight leading-[1.18] sm:leading-[1.14] max-w-3xl mx-auto">
+            All Your Legal Work,<br />
+            <span className="text-[#B38628] dark:text-amber-400">In One Intelligent Platform.</span>
+          </h1>
+
+          {/* Subtitle Paragraph — Centered */}
+          <p className="text-xs sm:text-base lg:text-lg text-slate-600 dark:text-slate-300 leading-relaxed font-normal max-w-2xl mx-auto px-1 sm:px-0">
+            From case research and judgment analysis to court drafting and argument practice — everything Indian advocates need in one seamless workspace. Explore each feature below with interactive live demos.
+          </p>
+
+          {/* Value & Trust Badges — Centered */}
+          <div className="flex flex-wrap items-center justify-center gap-1.5 sm:gap-2.5 pt-1 max-w-xl mx-auto">
+            <div className="px-2.5 sm:px-3.5 py-1.5 rounded-lg bg-white dark:bg-[#0B1120] border border-slate-200/80 dark:border-slate-800 text-[11px] sm:text-xs font-semibold text-slate-700 dark:text-slate-300 shadow-2xs flex items-center gap-1.5">
+              <Scale size={13} className="text-[#B38628] shrink-0" />
+              <span>Supreme Court & High Courts</span>
             </div>
-
-            {/* RIGHT COLUMN: ADVOCATE AI TOOLS SUITE SCREENSHOT (IN SAME MACOS WINDOW FRAME AS HOME) */}
-            <div className="lg:col-span-6 relative group mt-6 lg:mt-0">
-              {/* Ambient Back Glow */}
-              <div className="absolute -inset-1.5 bg-gradient-to-r from-[#B88B2A]/25 via-[#D4AF37]/15 to-[#B88B2A]/25 rounded-3xl blur-xl opacity-70 group-hover:opacity-100 transition duration-500 -z-10" />
-              
-              {/* Advocate AI Tools Suite Frame */}
-              <div 
-                onClick={() => navigate(isAuthenticated ? '/dashboard/tools' : '/signup')}
-                className="relative rounded-2xl sm:rounded-3xl bg-[#0B0F19] p-2 sm:p-2.5 border border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden cursor-pointer transition-transform duration-300 hover:scale-[1.01]"
-                title="Click to explore AI Legal Tools Suite"
-              >
-                {/* The Actual Advocate AI Tools Suite Image */}
-                <div className="relative overflow-hidden rounded-xl bg-[#0B0F19]">
-                  <img 
-                    src="/assets/ai-legal-tools-suite.png" 
-                    alt="AI LEGAL™ Advocate AI Tools Suite" 
-                    className="w-full h-auto object-cover rounded-xl border border-slate-800/50 shadow-inner block"
-                    loading="eager"
-                  />
-                </div>
-              </div>
+            <div className="px-2.5 sm:px-3.5 py-1.5 rounded-lg bg-white dark:bg-[#0B1120] border border-slate-200/80 dark:border-slate-800 text-[11px] sm:text-xs font-semibold text-slate-700 dark:text-slate-300 shadow-2xs flex items-center gap-1.5">
+              <Sparkles size={13} className="text-[#B38628] shrink-0" />
+              <span>3.8 Cr+ Verified Judgments</span>
             </div>
+            <div className="px-2.5 sm:px-3.5 py-1.5 rounded-lg bg-white dark:bg-[#0B1120] border border-slate-200/80 dark:border-slate-800 text-[11px] sm:text-xs font-semibold text-slate-700 dark:text-slate-300 shadow-2xs flex items-center gap-1.5">
+              <ShieldCheck size={13} className="text-emerald-600 dark:text-emerald-400 shrink-0" />
+              <span>BNS / BNSS / BSA Native Grounding</span>
+            </div>
+          </div>
 
+          {/* Hero CTA Button — Centered */}
+          <div className="pt-2 flex flex-wrap items-center justify-center gap-3 w-full sm:w-auto">
+            <button
+              onClick={() => handleCta('/signup')}
+              className="gold-shimmer-btn w-full max-w-[280px] sm:w-auto px-7 sm:px-8 py-3 sm:py-3.5 rounded-xl text-xs sm:text-base font-black text-[#111111] bg-gradient-to-b from-[#D4AF37] to-[#B88B2A] hover:brightness-105 active:scale-98 transition-all cursor-pointer shadow-md shadow-[#B88B2A]/25 flex items-center justify-center gap-2 hover:-translate-y-0.5"
+            >
+              <span>Start your free trial</span>
+              <ChevronRight size={18} />
+            </button>
           </div>
         </div>
       </section>
@@ -658,7 +663,7 @@ export default function PublicFeatures() {
       {/* =========================================================================
           ANIMATED "EXPLORE THE SUITE" SECTION (DYNAMIC LIVE DEMO ROTATION)
       ========================================================================= */}
-      <section 
+      <section
         className="py-14 sm:py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto"
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
@@ -710,11 +715,10 @@ export default function PublicFeatures() {
                   whileHover={{ x: 4 }}
                   transition={{ duration: 0.15 }}
                   onClick={() => handleProductSelect(idx)}
-                  className={`w-full text-left p-4.5 rounded-2xl border transition-all cursor-pointer group flex flex-col gap-1.5 relative overflow-hidden ${
-                    isActive
+                  className={`w-full text-left p-4.5 rounded-2xl border transition-all cursor-pointer group flex flex-col gap-1.5 relative overflow-hidden ${isActive
                       ? 'border-[#B88B2A] dark:border-[#B88B2A] bg-amber-50/50 dark:bg-amber-950/20 shadow-md ring-1 ring-[#B88B2A]/40'
                       : 'border-slate-200/90 dark:border-slate-800 bg-white dark:bg-[#0B0F19] hover:border-slate-300 dark:hover:border-slate-700 hover:bg-slate-50/80 dark:hover:bg-[#0F172A]'
-                  }`}
+                    }`}
                 >
                   {/* Subtle active glow bar on the left edge */}
                   {isActive && (
@@ -734,11 +738,10 @@ export default function PublicFeatures() {
                       </span>
                     </div>
                     {prod.badge && (
-                      <span className={`text-[10px] font-mono px-2.5 py-0.5 rounded-full border ${
-                        isActive
+                      <span className={`text-[10px] font-mono px-2.5 py-0.5 rounded-full border ${isActive
                           ? 'border-[#B88B2A]/50 bg-[#B88B2A]/15 text-[#B38628] dark:text-amber-300 font-bold'
                           : 'border-slate-200 dark:border-slate-700 text-slate-500'
-                      }`}>
+                        }`}>
                         {prod.badge}
                       </span>
                     )}
@@ -754,7 +757,7 @@ export default function PublicFeatures() {
           {/* Right Column: Animated Live Interactive Mockup Window */}
           <div className="lg:col-span-8">
             <div className="rounded-3xl border border-slate-200/90 dark:border-slate-800 bg-white dark:bg-[#0B0F19] overflow-hidden shadow-xl relative">
-              
+
               {/* Window Header */}
               <div className="px-5 py-3.5 bg-slate-900 text-slate-200 border-b border-slate-800 flex items-center justify-between">
                 <div className="flex items-center gap-2">
@@ -775,12 +778,12 @@ export default function PublicFeatures() {
                 </div>
               </div>
 
-              {/* Window Body Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-12 min-h-[500px]">
-                
+              {/* Window Body Grid: Naturally stacked and sized on mobile, side-by-side on md+ */}
+              <div className="grid grid-cols-1 md:grid-cols-12 min-h-0 md:min-h-[500px]">
+
                 {/* Visual Canvas Area (Animated Mockup Screen) */}
-                <div className="md:col-span-6 bg-[#0B0F19] dark:bg-[#070A12] p-6 sm:p-8 flex flex-col justify-between relative border-b md:border-b-0 md:border-r border-slate-800 overflow-hidden text-white">
-                  
+                <div className="md:col-span-6 bg-[#0B0F19] dark:bg-[#070A12] p-4 sm:p-8 flex flex-col justify-between relative border-b md:border-b-0 md:border-r border-slate-800 overflow-hidden text-white">
+
                   {/* Animated Background Scanning Beam */}
                   <motion.div
                     className="absolute inset-0 pointer-events-none opacity-20 bg-gradient-to-b from-transparent via-[#B88B2A]/15 to-transparent"
@@ -847,7 +850,7 @@ export default function PublicFeatures() {
 
                         <div className="pt-2 border-t border-slate-800 flex items-center justify-between text-[11px] text-slate-400 font-medium">
                           <span className="truncate max-w-[210px]">{currentFeature.subtext}</span>
-                          
+
                           {/* Mini Interactive Action Button inside the card */}
                           <button
                             onClick={() => handleSimulatedAction(currentFeature.actionText || 'Action Executed')}
@@ -886,7 +889,7 @@ export default function PublicFeatures() {
                 </div>
 
                 {/* Right Specification & Clickable Feature Tags */}
-                <div className="md:col-span-6 p-6 sm:p-8 flex flex-col justify-between space-y-6 bg-white dark:bg-[#0B0F19]">
+                <div className="md:col-span-6 p-4 sm:p-8 flex flex-col justify-between space-y-5 sm:space-y-6 bg-white dark:bg-[#0B0F19]">
                   <div className="space-y-4">
                     <AnimatePresence mode="wait">
                       <motion.div
@@ -929,11 +932,10 @@ export default function PublicFeatures() {
                             <button
                               key={feat.id}
                               onClick={() => handleFeatureSelect(fIdx)}
-                              className={`w-full text-left px-3.5 py-2.5 rounded-xl text-xs transition-all cursor-pointer flex items-center justify-between gap-2.5 relative overflow-hidden ${
-                                isFActive
+                              className={`w-full text-left px-3.5 py-2.5 rounded-xl text-xs transition-all cursor-pointer flex items-center justify-between gap-2.5 relative overflow-hidden ${isFActive
                                   ? 'bg-amber-50/70 dark:bg-amber-950/40 text-[#B38628] dark:text-amber-300 font-bold border border-[#B88B2A]/50 shadow-2xs'
                                   : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/60 font-medium'
-                              }`}
+                                }`}
                             >
                               {/* Bottom Animated Progress Bar inside the Active Pill */}
                               {isFActive && isAutoPlaying && (
@@ -969,26 +971,29 @@ export default function PublicFeatures() {
       </section>
 
       {/* Bottom CTA Banner */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-[#F8FAFC] dark:bg-[#070A12] border-t border-slate-200/80 dark:border-slate-800 text-center relative overflow-hidden">
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[350px] bg-[#B88B2A]/5 rounded-full blur-[140px] pointer-events-none" />
+      <section className="py-12 sm:py-20 px-4 sm:px-6 lg:px-8 bg-[#F8FAFC] dark:bg-[#070A12] border-t border-slate-200/80 dark:border-slate-800 text-center relative overflow-hidden">
+        {/* Seamless ambient radial glow */}
+        <div 
+          className="absolute inset-0 pointer-events-none bg-[radial-gradient(ellipse_75%_55%_at_50%_50%,rgba(184,139,42,0.06)_0%,transparent_80%)] dark:bg-[radial-gradient(ellipse_75%_55%_at_50%_50%,rgba(184,139,42,0.14)_0%,transparent_80%)]" 
+        />
 
-        <div className="max-w-3xl mx-auto space-y-6 relative z-10">
-          <span className="text-xs font-black uppercase tracking-widest text-[#B38628] dark:text-[#B88B2A] block">
+        <div className="max-w-3xl mx-auto space-y-4 sm:space-y-6 relative z-10">
+          <span className="text-[10px] sm:text-xs font-black uppercase tracking-widest text-[#B38628] dark:text-[#B88B2A] block">
             CHAMBER SCALING
           </span>
 
-          <h2 className="text-3xl sm:text-5xl font-black text-[#0F172A] dark:text-white tracking-tight">
+          <h2 className="text-2xl sm:text-4xl lg:text-5xl font-black text-[#0F172A] dark:text-white tracking-tight leading-tight">
             Transform Your Legal Practice Today
           </h2>
 
-          <p className="text-sm sm:text-base text-slate-500 dark:text-slate-400 max-w-xl mx-auto leading-relaxed">
+          <p className="text-xs sm:text-base text-slate-500 dark:text-slate-400 max-w-xl mx-auto leading-relaxed px-1 sm:px-0">
             Join the legal professionals who are streamlining their practice, saving hours, and focusing on winning cases.
           </p>
 
           <div className="pt-2">
             <button
               onClick={() => handleCta('/signup')}
-              className="px-8 py-4 rounded-xl text-sm font-black text-[#111111] bg-gradient-to-b from-[#D4AF37] to-[#B88B2A] hover:brightness-105 active:scale-98 transition-all cursor-pointer shadow-lg shadow-[#B88B2A]/25"
+              className="gold-shimmer-btn w-full max-w-[280px] sm:w-auto px-7 sm:px-8 py-3.5 sm:py-4 rounded-xl text-xs sm:text-sm font-black text-[#111111] bg-gradient-to-b from-[#D4AF37] to-[#B88B2A] hover:brightness-105 active:scale-98 transition-all cursor-pointer shadow-lg shadow-[#B88B2A]/25 hover:-translate-y-0.5"
             >
               Start Your Free Trial Today
             </button>

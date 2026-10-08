@@ -15,11 +15,14 @@ export default function LegalSourceSelector({
 
   return (
     <div className="w-full flex flex-col gap-2 pt-1">
-      {/* Unified One-Row Options: Source tabs + Advanced Filters */}
-      <div className="w-full flex flex-wrap items-center justify-center sm:justify-between gap-2">
+      {/* Unified One-Row Options: Source tabs + Advanced Filters with zero scrollbar line */}
+      <div 
+        className="w-full flex items-center justify-start sm:justify-between gap-2 overflow-x-auto py-1 px-0.5 scrollbar-none [&::-webkit-scrollbar]:hidden"
+        style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+      >
         {/* Primary Legal Source Tabs */}
-        <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none max-w-full">
-          <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 mr-0.5">
+        <div className="flex items-center gap-1.5 shrink-0">
+          <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 mr-0.5 whitespace-nowrap shrink-0 select-none">
             Source:
           </span>
 
@@ -27,7 +30,7 @@ export default function LegalSourceSelector({
           <button
             type="button"
             onClick={() => onSelectSource('ALL')}
-            className={`px-3 py-1 rounded-full text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 whitespace-nowrap ${
+            className={`px-2.5 sm:px-3 py-1 rounded-full text-[11px] sm:text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 whitespace-nowrap shrink-0 select-none ${
               activeSource === 'ALL'
                 ? 'bg-[#111827] text-white dark:bg-amber-400 dark:text-slate-950 shadow-xs'
                 : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
@@ -41,7 +44,7 @@ export default function LegalSourceSelector({
           <button
             type="button"
             onClick={() => onSelectSource('SC')}
-            className={`px-3 py-1 rounded-full text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 whitespace-nowrap ${
+            className={`px-2.5 sm:px-3 py-1 rounded-full text-[11px] sm:text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 whitespace-nowrap shrink-0 select-none ${
               activeSource === 'SC'
                 ? 'bg-[#111827] text-white dark:bg-amber-400 dark:text-slate-950 shadow-xs'
                 : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
@@ -55,21 +58,21 @@ export default function LegalSourceSelector({
           <button
             type="button"
             onClick={() => onSelectSource('HC')}
-            className={`px-3 py-1 rounded-full text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 whitespace-nowrap ${
+            className={`px-2.5 sm:px-3 py-1 rounded-full text-[11px] sm:text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 whitespace-nowrap shrink-0 select-none ${
               activeSource === 'HC'
                 ? 'bg-[#111827] text-white dark:bg-amber-400 dark:text-slate-950 shadow-xs'
                 : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
             }`}
           >
             <Scale size={12} />
-            <span>High Courts (25)</span>
+            <span>High Courts</span>
           </button>
 
           {/* Bare Acts */}
           <button
             type="button"
             onClick={() => onSelectSource('ACTS')}
-            className={`px-3 py-1 rounded-full text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 whitespace-nowrap ${
+            className={`px-2.5 sm:px-3 py-1 rounded-full text-[11px] sm:text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 whitespace-nowrap shrink-0 select-none ${
               activeSource === 'ACTS'
                 ? 'bg-[#111827] text-white dark:bg-amber-400 dark:text-slate-950 shadow-xs'
                 : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
@@ -80,12 +83,12 @@ export default function LegalSourceSelector({
           </button>
         </div>
 
-        {/* Advanced Filters Button - Positioned in the same row! */}
+        {/* Advanced Filters Button - Positioned in the same row */}
         {onToggleFilter && (
           <button
             type="button"
             onClick={onToggleFilter}
-            className={`px-3 py-1 rounded-full text-xs font-bold border transition-all cursor-pointer flex items-center gap-1.5 whitespace-nowrap shrink-0 ${
+            className={`px-2.5 sm:px-3 py-1 rounded-full text-[11px] sm:text-xs font-bold border transition-all cursor-pointer flex items-center gap-1.5 whitespace-nowrap shrink-0 select-none ${
               isFilterOpen || activeFiltersCount > 0
                 ? 'bg-amber-500/10 border-amber-500/40 text-[#B38628] dark:text-[#E5A93C]'
                 : 'bg-slate-100 dark:bg-slate-800/80 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:text-black dark:hover:text-white'

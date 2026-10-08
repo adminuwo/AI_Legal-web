@@ -13,6 +13,7 @@ import { BrowserRouter, useLocation } from 'react-router-dom';
 
 import ErrorBoundary from './Components/ErrorBoundary';
 import RouteSEOManager from './Components/SEO/RouteSEOManager';
+import KeyboardNavigator from './Components/KeyboardNavigator';
 import toast from 'react-hot-toast';
 
 // ─── Patch react-hot-toast for missing .info and .warn methods ───
@@ -208,6 +209,7 @@ const AppTree = (
         <MotionConfig transition={{ ease: [0.22, 1, 0.36, 1] }} reducedMotion="user">
           <VisualViewportManager />
           <RouteSEOManager />
+          <KeyboardNavigator />
           <ToastProvider>
             <PersonalizationProvider>
               <ThemeProvider>

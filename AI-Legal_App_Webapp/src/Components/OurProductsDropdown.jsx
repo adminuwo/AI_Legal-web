@@ -171,10 +171,10 @@ const OurProductsDropdown = ({ isMobile = false, onItemClick }) => {
         <button
           type="button"
           onClick={() => setIsOpen((prev) => !prev)}
-          className={`flex items-center gap-1 text-xs font-semibold transition-colors cursor-pointer py-1 ${
+          className={`flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full transition-all duration-200 cursor-pointer ${
             isOpen
-              ? 'text-[#B38628] dark:text-amber-400'
-              : 'text-slate-600 dark:text-slate-300 hover:text-[#B38628] dark:hover:text-amber-400'
+              ? 'bg-[#B88B2A]/15 text-[#B38628] dark:text-amber-400'
+              : 'text-slate-600 dark:text-slate-300 hover:text-[#B38628] dark:hover:text-amber-400 hover:bg-slate-100/70 dark:hover:bg-slate-800/70'
           }`}
           aria-expanded={isOpen}
           aria-haspopup="true"
@@ -193,11 +193,11 @@ const OurProductsDropdown = ({ isMobile = false, onItemClick }) => {
             <motion.div
               initial={{ opacity: 0, y: 8, scale: 0.96 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: 8, scale: 0.96 }}
-              transition={{ duration: 0.15, ease: 'easeOut' }}
-              className="absolute left-1/2 -translate-x-1/2 mt-2 w-48 bg-white dark:bg-[#111625] border border-slate-200 dark:border-zinc-800 rounded-2xl shadow-xl p-1 z-[100] overflow-hidden"
+              exit={{ opacity: 0, y: 6, scale: 0.96 }}
+              transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
+              className="absolute left-1/2 -translate-x-1/2 mt-2 w-52 bg-white dark:bg-[#111625] border border-slate-200/90 dark:border-zinc-800/90 rounded-2xl shadow-2xl p-1.5 z-[100] overflow-hidden"
             >
-              <div className="px-2 py-1 border-b border-slate-100 dark:border-zinc-800/80 mb-0.5">
+              <div className="px-2.5 py-1 border-b border-slate-100 dark:border-zinc-800/80 mb-1">
                 <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">
                   Ecosystem Products
                 </span>
@@ -216,13 +216,13 @@ const OurProductsDropdown = ({ isMobile = false, onItemClick }) => {
                         e.preventDefault();
                         handleProductClick(prod.url);
                       }}
-                      className="flex items-center justify-between px-2 py-1 rounded-lg text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-[#B88B2A]/10 hover:text-[#B38628] dark:hover:text-amber-300 transition-all group cursor-pointer"
+                      className="flex items-center justify-between px-2.5 py-1.5 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-[#B88B2A]/10 hover:text-[#B38628] dark:hover:text-amber-300 transition-all duration-150 group cursor-pointer"
                     >
-                      <div className="flex items-center gap-2 min-w-0">
-                        <div className="w-6 h-6 rounded-md bg-[#B88B2A]/10 group-hover:bg-[#B88B2A]/20 text-[#B88B2A] flex items-center justify-center shrink-0 transition-colors">
-                          <Icon size={12} />
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <div className="w-6.5 h-6.5 rounded-lg bg-[#B88B2A]/10 group-hover:bg-[#B88B2A]/20 text-[#B88B2A] flex items-center justify-center shrink-0 transition-colors">
+                          <Icon size={13} />
                         </div>
-                        <span className="font-bold flex items-center text-xs">
+                        <span className="font-bold flex items-center text-xs group-hover:translate-x-0.5 transition-transform">
                           {prod.name}
                           {prod.hasTm && (
                             <sup className="text-[8px] font-bold ml-0.5 text-slate-500 dark:text-slate-400 group-hover:text-[#B38628]">
@@ -233,7 +233,7 @@ const OurProductsDropdown = ({ isMobile = false, onItemClick }) => {
                       </div>
                       <ExternalLink
                         size={12}
-                        className="text-slate-400 group-hover:text-[#B38628] shrink-0 ml-1.5 opacity-70 group-hover:opacity-100 transition-all"
+                        className="text-slate-400 group-hover:text-[#B38628] shrink-0 ml-1.5 opacity-70 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all"
                       />
                     </a>
                   );

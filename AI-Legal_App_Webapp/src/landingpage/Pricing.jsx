@@ -1012,6 +1012,22 @@ export default function Pricing() {
                       {plan.fupNotice}
                     </p>
                   )}
+
+                  {/* Plan Upgrade / Checkout Action Button (Touch-Friendly) */}
+                  <div className="pt-4 mt-auto">
+                    <button
+                      type="button"
+                      onClick={() => handlePlanCta(plan)}
+                      className={`w-full py-3 px-4 rounded-xl text-xs sm:text-sm font-black transition-all cursor-pointer flex items-center justify-center gap-2 active:scale-98 shadow-sm ${
+                        plan.popular
+                          ? 'bg-gradient-to-r from-[#B88B2A] to-[#B38628] hover:brightness-105 text-white shadow-md shadow-[#B88B2A]/25'
+                          : 'bg-slate-900 hover:bg-slate-800 dark:bg-white dark:hover:bg-slate-100 text-white dark:text-slate-950'
+                      }`}
+                    >
+                      <span>{plan.buttonText || 'Upgrade Plan'}</span>
+                      <ArrowRight size={15} />
+                    </button>
+                  </div>
                 </div>
               </div>
             );
@@ -1054,14 +1070,14 @@ export default function Pricing() {
           </div>
 
           <div className="bg-white dark:bg-[#0B1120] border border-slate-200/80 dark:border-slate-800 rounded-2xl overflow-hidden shadow-xs">
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs border-collapse">
+            <div className="overflow-x-auto scrollbar-thin">
+              <table className="w-full min-w-[560px] text-left text-xs border-collapse">
                 <thead>
                   <tr className="border-b border-slate-200/80 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50">
-                    <th className="p-4 sm:p-5 font-black text-slate-900 dark:text-white">Capability</th>
-                    <th className="p-4 sm:p-5 font-bold text-slate-600 dark:text-slate-300 text-center">{currentSegmentData.colHeaders[0]}</th>
-                    <th className="p-4 sm:p-5 font-black text-[#B38628] dark:text-[#E5C16C] text-center">{currentSegmentData.colHeaders[1]}</th>
-                    <th className="p-4 sm:p-5 font-bold text-slate-600 dark:text-slate-300 text-center">{currentSegmentData.colHeaders[2]}</th>
+                    <th className="p-3.5 sm:p-5 font-black text-slate-900 dark:text-white">Capability</th>
+                    <th className="p-3.5 sm:p-5 font-bold text-slate-600 dark:text-slate-300 text-center">{currentSegmentData.colHeaders[0]}</th>
+                    <th className="p-3.5 sm:p-5 font-black text-[#B38628] dark:text-[#E5C16C] text-center">{currentSegmentData.colHeaders[1]}</th>
+                    <th className="p-3.5 sm:p-5 font-bold text-slate-600 dark:text-slate-300 text-center">{currentSegmentData.colHeaders[2]}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-slate-600 dark:text-slate-300">

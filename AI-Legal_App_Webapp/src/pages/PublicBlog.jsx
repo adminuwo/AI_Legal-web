@@ -5,8 +5,9 @@ import {
   BookOpen, Calendar, ArrowRight, Tag, Search, ArrowLeft,
   Scale, ShieldCheck, FileText, CheckCircle2, Share2, Copy, Plus,
   Smartphone, Users, Sparkles, Building2, GraduationCap, Briefcase,
-  ExternalLink, Download, X
+  ExternalLink, Download, X, Menu
 } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -19,6 +20,7 @@ import { API } from '../types.js';
 export default function PublicBlog() {
   const navigate = useNavigate();
   const { slug } = useParams();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const token = localStorage.getItem('token');
   const user = getUserData();
   const isAuthenticated = Boolean((token && token !== 'undefined') || (user?.token && user.token !== 'undefined'));
@@ -194,6 +196,7 @@ Seamlessly transition between legacy laws and the 2024 Sanhitas:
   const [articles, setArticles] = useState(CORE_ARTICLES);
   const [singleArticle, setSingleArticle] = useState(null);
   const [loadingSingle, setLoadingSingle] = useState(false);
+  const [imageError, setImageError] = useState(false);
 
   // Fetch in-house published blogs from Backend & Local Cache
   useEffect(() => {
@@ -276,6 +279,7 @@ Seamlessly transition between legacy laws and the 2024 Sanhitas:
 
   // When visiting a specific blog slug directly
   useEffect(() => {
+    setImageError(false);
     if (!slug) {
       setSingleArticle(null);
       return;
@@ -346,7 +350,7 @@ Seamlessly transition between legacy laws and the 2024 Sanhitas:
             </span>
           </div>
 
-          <nav className="hidden md:flex items-center gap-6 text-xs font-semibold text-slate-600 dark:text-slate-300">
+          <nav className="hidden lg:flex items-center gap-6 text-xs font-semibold text-slate-600 dark:text-slate-300">
             <button onClick={() => navigate('/')} className="hover:text-[#B38628] dark:hover:text-amber-400 transition-colors cursor-pointer">
               Home
             </button>
@@ -371,7 +375,8 @@ Seamlessly transition between legacy laws and the 2024 Sanhitas:
             </button>
           </nav>
 
-          <div className="flex items-center gap-2 sm:gap-2.5">
+          {/* Desktop Right Actions */}
+          <div className="hidden lg:flex items-center gap-2.5">
             <ThemeToggle />
 
             <button
@@ -391,96 +396,191 @@ Seamlessly transition between legacy laws and the 2024 Sanhitas:
               </button>
             )}
           </div>
+
+          {/* Mobile Header Toggle */}
+          <div className="flex items-center gap-2 lg:hidden">
+            <ThemeToggle />
+            <button
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="p-2 rounded-xl border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+              aria-label="Toggle menu"
+            >
+              {mobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
+            </button>
+          </div>
         </div>
+
+        {/* Mobile Dropdown Menu Drawer */}
+        <AnimatePresence>
+          {mobileMenuOpen && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              className="lg:hidden bg-white dark:bg-[#0F172A] border-b border-slate-200 dark:border-slate-800 px-5 py-5 space-y-4 shadow-xl"
+            >
+              <div className="flex flex-col space-y-1.5 text-sm font-semibold text-slate-700 dark:text-slate-200">
+                <button
+                  onClick={() => { setMobileMenuOpen(false); navigate('/'); }}
+                  className="text-left px-3.5 py-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800/80 hover:text-[#B38628]"
+                >
+                  Home
+                </button>
+                <button
+                  onClick={() => { setMobileMenuOpen(false); navigate('/features'); }}
+                  className="text-left px-3.5 py-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800/80 hover:text-[#B38628]"
+                >
+                  Features
+                </button>
+                <span className="text-left px-3.5 py-2 rounded-xl bg-[#B88B2A]/15 text-[#B38628] dark:bg-amber-950/60 dark:text-amber-300 font-bold">
+                  Blog
+                </span>
+                <button
+                  onClick={() => { setMobileMenuOpen(false); navigate('/pricing'); }}
+                  className="text-left px-3.5 py-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800/80 hover:text-[#B38628]"
+                >
+                  Pricing
+                </button>
+                <button
+                  onClick={() => { setMobileMenuOpen(false); navigate('/case-search'); }}
+                  className="text-left px-3.5 py-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800/80 hover:text-[#B38628]"
+                >
+                  Case Search
+                </button>
+                <button
+                  onClick={() => { setMobileMenuOpen(false); navigate('/about'); }}
+                  className="text-left px-3.5 py-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800/80 hover:text-[#B38628]"
+                >
+                  About
+                </button>
+                <OurProductsDropdown isMobile={true} onItemClick={() => setMobileMenuOpen(false)} />
+                <button
+                  onClick={() => { setMobileMenuOpen(false); navigate(isAuthenticated ? '/dashboard' : '/login'); }}
+                  className="text-left px-3.5 py-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800/80 hover:text-[#B38628]"
+                >
+                  Dashboard
+                </button>
+              </div>
+
+              <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex flex-col gap-2.5">
+                <button
+                  onClick={() => { setMobileMenuOpen(false); navigate('/post-judgment'); }}
+                  className="w-full py-2.5 rounded-full text-xs font-bold border border-[#B88B2A]/50 bg-amber-50/50 text-[#B38628] dark:bg-amber-950/40 dark:text-amber-300 flex items-center justify-center gap-1.5"
+                >
+                  <Plus size={14} className="stroke-[2.5]" />
+                  <span>Post your judgement</span>
+                </button>
+                {isAuthenticated ? (
+                  <button
+                    onClick={() => { setMobileMenuOpen(false); navigate('/dashboard'); }}
+                    className="w-full py-2.5 rounded-full text-xs font-bold text-white bg-gradient-to-r from-[#B88B2A] to-[#B38628] hover:opacity-95 text-center shadow-md shadow-[#B88B2A]/30"
+                  >
+                    Go to Dashboard →
+                  </button>
+                ) : (
+                  <div>
+                    <button
+                      onClick={() => { setMobileMenuOpen(false); navigate('/login'); }}
+                      className="w-full py-2.5 bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-white font-bold rounded-full text-center text-xs"
+                    >
+                      Sign In
+                    </button>
+                  </div>
+                )}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </header>
 
       {/* Article Detail View */}
       {selectedArticle ? (
-        <article className="py-10 sm:py-14 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto space-y-8">
+        <article className="py-6 sm:py-12 px-3.5 sm:px-6 lg:px-8 max-w-4xl mx-auto space-y-5 sm:space-y-8">
           <button
             onClick={() => navigate('/blog')}
-            className="inline-flex items-center gap-2 text-xs font-bold text-[#B88B2A] hover:underline cursor-pointer"
+            className="inline-flex items-center gap-1.5 text-xs font-bold text-[#B88B2A] hover:underline cursor-pointer group"
           >
-            <ArrowLeft size={14} /> Back to all articles
+            <ArrowLeft size={14} className="group-hover:-translate-x-1 transition-transform" />
+            <span>Back to all articles</span>
           </button>
 
-          {/* Cover Hero Image if present */}
-          {(selectedArticle.image || selectedArticle.coverImage) && (
-            <div className="rounded-3xl overflow-hidden shadow-xl border border-slate-200 dark:border-slate-800 max-h-96 w-full bg-slate-900">
+          {/* Cover Hero Image if present (only rendered if image exists and didn't fail) */}
+          {(selectedArticle.image || selectedArticle.coverImage) && !imageError && (
+            <div className="rounded-2xl sm:rounded-3xl overflow-hidden shadow-xl border border-slate-200 dark:border-slate-800 max-h-96 w-full bg-slate-900">
               <img
                 src={resolveImageUrl(selectedArticle.image || selectedArticle.coverImage)}
                 alt={selectedArticle.title}
-                className="w-full h-72 sm:h-96 object-cover"
-                onError={(e) => { e.target.style.display = 'none'; }}
+                className="w-full h-48 sm:h-72 md:h-96 object-cover"
+                onError={() => setImageError(true)}
               />
             </div>
           )}
 
-          <div className="space-y-4 border-b border-slate-200 dark:border-slate-800 pb-6">
-            <div className="flex items-center gap-2.5 flex-wrap">
-              <span className="px-3 py-0.5 rounded-full bg-[#B88B2A]/15 text-[#B88B2A] font-black text-[11px] uppercase tracking-wider border border-[#B88B2A]/25">
+          <div className="space-y-3.5 sm:space-y-4 border-b border-slate-200 dark:border-slate-800 pb-5 sm:pb-6">
+            <div className="flex items-center gap-2 sm:gap-2.5 flex-wrap">
+              <span className="px-2.5 sm:px-3 py-0.5 rounded-full bg-[#B88B2A]/15 text-[#B88B2A] font-black text-[10px] sm:text-[11px] uppercase tracking-wider border border-[#B88B2A]/25">
                 {selectedArticle.category || 'Legal Insights'}
               </span>
-              <span className="text-xs text-slate-400 font-medium">
+              <span className="text-[11px] sm:text-xs text-slate-400 font-medium">
                 {selectedArticle.date} • {selectedArticle.readTime}
               </span>
             </div>
 
             {/* Keywords / Tags if present */}
             {((selectedArticle.keywords && selectedArticle.keywords.length > 0) || (selectedArticle.tags && selectedArticle.tags.length > 0)) && (
-              <div className="flex items-center gap-2 flex-wrap">
+              <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
                 {(Array.isArray(selectedArticle.keywords) ? selectedArticle.keywords : (Array.isArray(selectedArticle.tags) ? selectedArticle.tags : (selectedArticle.keywords || selectedArticle.tags || '').split(','))).map((kw, i) => (
-                  <span key={i} className="px-2.5 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold text-[11px] flex items-center gap-1">
-                    <Tag size={10} className="text-[#B88B2A]" /> #{typeof kw === 'string' ? kw.trim() : kw}
+                  <span key={i} className="px-2 sm:px-2.5 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800/80 border border-slate-200/60 dark:border-slate-700/60 text-slate-600 dark:text-slate-300 font-bold text-[10px] sm:text-[11px] flex items-center gap-1">
+                    <Tag size={9} className="text-[#B88B2A]" /> #{typeof kw === 'string' ? kw.trim() : kw}
                   </span>
                 ))}
               </div>
             )}
 
             {/* Main Article Title */}
-            <h1 className="text-3xl sm:text-5xl font-black text-slate-950 dark:text-white leading-tight tracking-tight">
+            <h1 className="text-[22px] xs:text-2xl sm:text-4xl lg:text-5xl font-black text-slate-950 dark:text-white leading-[1.22] sm:leading-tight tracking-tight">
               {selectedArticle.title}
             </h1>
 
             {/* Subtitle / Overview */}
             {(selectedArticle.subtitle || selectedArticle.summary) && (
-              <div className="p-4 sm:p-5 rounded-2xl bg-amber-50/80 dark:bg-slate-900/80 border-l-4 border-[#B88B2A] text-base sm:text-lg text-slate-900 dark:text-slate-100 leading-relaxed font-bold shadow-xs">
+              <div className="p-3.5 sm:p-5 rounded-xl sm:rounded-2xl bg-amber-50/70 dark:bg-amber-950/20 border-l-3 sm:border-l-4 border-[#B88B2A] text-xs sm:text-base lg:text-lg text-slate-800 dark:text-slate-200 leading-relaxed font-semibold shadow-2xs">
                 {selectedArticle.subtitle || selectedArticle.summary}
               </div>
             )}
 
-            <div className="flex items-center justify-between text-xs text-slate-500 pt-2">
-              <span>By <strong className="text-slate-800 dark:text-slate-200">{selectedArticle.author || 'AI LEGAL™ Editorial Board'}</strong></span>
+            <div className="flex flex-wrap items-center justify-between gap-2.5 text-xs text-slate-500 pt-1 sm:pt-2">
+              <span className="text-[11px] sm:text-xs">By <strong className="text-slate-800 dark:text-slate-200">{selectedArticle.author || 'AI LEGAL™ Editorial Board'}</strong></span>
               <button
                 onClick={handleShare}
-                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100 dark:bg-slate-800 hover:bg-[#B88B2A]/15 text-slate-700 dark:text-slate-300 transition-colors cursor-pointer"
+                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100 dark:bg-slate-800 hover:bg-[#B88B2A]/15 text-slate-700 dark:text-slate-300 text-[11px] sm:text-xs font-semibold transition-colors cursor-pointer shrink-0"
               >
-                <Share2 size={13} /> Share Article
+                <Share2 size={12} /> <span>Share Article</span>
               </button>
             </div>
           </div>
 
           {/* Article Description / Main Content with Full Markdown Formatting */}
-          <div className="article-body-content max-w-none pt-4">
+          <div className="article-body-content max-w-none pt-2 sm:pt-4">
             <ReactMarkdown
               remarkPlugins={[remarkGfm]}
               urlTransform={(val) => val}
-              className="text-slate-800 dark:text-slate-200 text-sm sm:text-base leading-relaxed focus:outline-none"
+              className="text-slate-800 dark:text-slate-200 text-xs sm:text-base leading-relaxed focus:outline-none"
               components={{
                 h1: ({ node, ...props }) => (
-                  <h1 className="text-2xl sm:text-4xl font-black text-slate-950 dark:text-white tracking-tight mt-8 mb-4 border-b border-slate-200 dark:border-slate-800 pb-2" {...props} />
+                  <h1 className="text-xl sm:text-3xl font-black text-slate-950 dark:text-white tracking-tight mt-6 mb-3 border-b border-slate-200 dark:border-slate-800 pb-2" {...props} />
                 ),
                 h2: ({ node, ...props }) => (
-                  <h2 className="text-xl sm:text-3xl font-black text-slate-950 dark:text-white tracking-tight mt-7 mb-3" {...props} />
+                  <h2 className="text-lg sm:text-2xl font-black text-slate-950 dark:text-white tracking-tight mt-5 mb-2.5" {...props} />
                 ),
                 h3: ({ node, ...props }) => (
-                  <h3 className="text-lg sm:text-2xl font-black text-slate-950 dark:text-white tracking-tight mt-6 mb-3" {...props} />
+                  <h3 className="text-base sm:text-xl font-black text-slate-950 dark:text-white tracking-tight mt-4 mb-2" {...props} />
                 ),
                 h4: ({ node, ...props }) => (
-                  <h4 className="text-base sm:text-xl font-black text-slate-950 dark:text-white mt-5 mb-2" {...props} />
+                  <h4 className="text-sm sm:text-lg font-black text-slate-950 dark:text-white mt-4 mb-2" {...props} />
                 ),
                 p: ({ node, ...props }) => (
-                  <p className="text-slate-800 dark:text-slate-200 text-sm sm:text-[15px] leading-relaxed mb-4 font-normal" {...props} />
+                  <p className="text-slate-800 dark:text-slate-200 text-[13px] sm:text-[15px] leading-relaxed mb-3.5 font-normal" {...props} />
                 ),
                 strong: ({ node, ...props }) => (
                   <strong className="font-black text-slate-950 dark:text-white" {...props} />
@@ -489,19 +589,19 @@ Seamlessly transition between legacy laws and the 2024 Sanhitas:
                   <b className="font-black text-slate-950 dark:text-white" {...props} />
                 ),
                 ul: ({ node, ...props }) => (
-                  <ul className="list-disc pl-6 mb-5 space-y-2 text-slate-800 dark:text-slate-200 marker:text-[#B88B2A]" {...props} />
+                  <ul className="list-disc pl-5 mb-4 space-y-1.5 text-slate-800 dark:text-slate-200 marker:text-[#B88B2A]" {...props} />
                 ),
                 ol: ({ node, ...props }) => (
-                  <ol className="list-decimal pl-6 mb-5 space-y-2 text-slate-800 dark:text-slate-200 marker:text-[#B88B2A] font-bold" {...props} />
+                  <ol className="list-decimal pl-5 mb-4 space-y-1.5 text-slate-800 dark:text-slate-200 marker:text-[#B88B2A] font-bold" {...props} />
                 ),
                 li: ({ node, ...props }) => (
-                  <li className="pl-1 text-slate-800 dark:text-slate-200 text-sm sm:text-[15px] leading-relaxed font-normal" {...props} />
+                  <li className="pl-1 text-slate-800 dark:text-slate-200 text-[13px] sm:text-[15px] leading-relaxed font-normal" {...props} />
                 ),
                 hr: ({ node, ...props }) => (
-                  <hr className="my-8 border-t-2 border-slate-200 dark:border-slate-800" {...props} />
+                  <hr className="my-6 sm:my-8 border-t-2 border-slate-200 dark:border-slate-800" {...props} />
                 ),
                 blockquote: ({ node, ...props }) => (
-                  <blockquote className="border-l-4 border-[#B88B2A] bg-[#B88B2A]/10 dark:bg-[#B88B2A]/15 pl-4 py-3 pr-3 rounded-r-2xl my-5 text-slate-900 dark:text-zinc-100 font-medium italic" {...props} />
+                  <blockquote className="border-l-3 sm:border-l-4 border-[#B88B2A] bg-[#B88B2A]/10 dark:bg-[#B88B2A]/15 pl-3.5 sm:pl-4 py-2.5 sm:py-3 pr-3 rounded-r-xl sm:rounded-r-2xl my-4 text-xs sm:text-sm text-slate-900 dark:text-zinc-100 font-medium italic" {...props} />
                 ),
                 code: ({ node, inline, className, children, ...props }) => (
                   <code className="bg-slate-100 dark:bg-slate-800 text-[#B88B2A] px-1.5 py-0.5 rounded-md font-mono text-xs border border-slate-200 dark:border-slate-700" {...props}>
@@ -509,12 +609,12 @@ Seamlessly transition between legacy laws and the 2024 Sanhitas:
                   </code>
                 ),
                 pre: ({ node, children, ...props }) => (
-                  <pre className="bg-slate-950 text-slate-100 p-4 rounded-xl font-mono text-xs overflow-x-auto my-4 shadow-sm border border-slate-800" {...props}>
+                  <pre className="bg-slate-950 text-slate-100 p-3 sm:p-4 rounded-xl font-mono text-[11px] sm:text-xs overflow-x-auto my-4 shadow-sm border border-slate-800" {...props}>
                     {children}
                   </pre>
                 ),
                 table: ({ node, ...props }) => (
-                  <div className="overflow-x-auto my-6 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-xs">
+                  <div className="overflow-x-auto my-5 border border-slate-200 dark:border-slate-800 rounded-xl shadow-xs">
                     <table className="min-w-full text-xs sm:text-sm text-left border-collapse" {...props} />
                   </div>
                 ),
@@ -522,10 +622,10 @@ Seamlessly transition between legacy laws and the 2024 Sanhitas:
                   <thead className="bg-slate-100 dark:bg-slate-800/80 font-black text-slate-900 dark:text-slate-100 uppercase tracking-wider" {...props} />
                 ),
                 th: ({ node, ...props }) => (
-                  <th className="p-3.5 border-b border-slate-200 dark:border-slate-700 font-black text-xs" {...props} />
+                  <th className="p-2.5 sm:p-3.5 border-b border-slate-200 dark:border-slate-700 font-black text-xs" {...props} />
                 ),
                 td: ({ node, ...props }) => (
-                  <td className="p-3.5 border-b border-slate-100 dark:border-slate-800/60 text-slate-700 dark:text-slate-300 font-medium" {...props} />
+                  <td className="p-2.5 sm:p-3.5 border-b border-slate-100 dark:border-slate-800/60 text-slate-700 dark:text-slate-300 font-medium text-xs sm:text-sm" {...props} />
                 ),
                 a: ({ node, ...props }) => (
                   <a className="text-[#B88B2A] underline hover:text-[#976e18] font-bold transition-colors" target="_blank" rel="noopener noreferrer" {...props} />
@@ -538,16 +638,16 @@ Seamlessly transition between legacy laws and the 2024 Sanhitas:
 
           {/* Special App Store & Google Play Store Section for Blog 1 */}
           {selectedArticle.hasMobileDownload && (
-            <div className="my-10 p-6 sm:p-8 rounded-3xl bg-gradient-to-br from-slate-900 via-[#0B132B] to-[#1C2541] text-white border border-[#B88B2A]/40 shadow-2xl space-y-5">
-              <div className="flex items-center gap-3.5">
-                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#B88B2A] to-[#B38628] flex items-center justify-center p-1.5 shadow-lg shadow-[#B88B2A]/30 shrink-0">
+            <div className="my-8 sm:my-10 p-4 sm:p-8 rounded-2xl sm:rounded-3xl bg-gradient-to-br from-slate-900 via-[#0B132B] to-[#1C2541] text-white border border-[#B88B2A]/40 shadow-2xl space-y-4 sm:space-y-5">
+              <div className="flex items-center gap-3 sm:gap-3.5">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-gradient-to-br from-[#B88B2A] to-[#B38628] flex items-center justify-center p-1.5 shadow-lg shadow-[#B88B2A]/30 shrink-0">
                   <img src="/logo/logo_transparent.png" alt="AI Legal Mobile App" className="w-full h-full object-contain" />
                 </div>
                 <div>
-                  <span className="text-[10px] font-black uppercase tracking-wider text-amber-400 bg-amber-400/15 px-2.5 py-0.5 rounded border border-amber-400/30">
+                  <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-wider text-amber-400 bg-amber-400/15 px-2 py-0.5 rounded border border-amber-400/30">
                     Mobile Chamber Edition
                   </span>
-                  <h3 className="text-lg sm:text-xl font-black text-white mt-1">
+                  <h3 className="text-base sm:text-xl font-black text-white mt-1">
                     Download AI Legal™ on iOS & Android
                   </h3>
                 </div>
@@ -558,7 +658,7 @@ Seamlessly transition between legacy laws and the 2024 Sanhitas:
               </p>
 
               {/* Official Download Badges */}
-              <div className="flex flex-wrap items-center gap-3.5 pt-2">
+              <div className="flex flex-wrap items-center gap-2.5 sm:gap-3.5 pt-1 sm:pt-2">
                 <a
                   href="https://apps.apple.com/in/app/ai-legal/id6797449251"
                   target="_blank"
@@ -566,7 +666,7 @@ Seamlessly transition between legacy laws and the 2024 Sanhitas:
                   className="transition-transform hover:scale-105 active:scale-95 shadow-md cursor-pointer"
                   title="Download AI Legal on Apple App Store"
                 >
-                  <OfficialAppStoreBadge className="h-11 w-auto" />
+                  <OfficialAppStoreBadge className="h-9 sm:h-11 w-auto" />
                 </a>
 
                 <a
@@ -576,36 +676,37 @@ Seamlessly transition between legacy laws and the 2024 Sanhitas:
                   className="transition-transform hover:scale-105 active:scale-95 shadow-md"
                   title="Download AI Legal on Google Play Store"
                 >
-                  <OfficialGooglePlayBadge className="h-11 w-auto" />
+                  <OfficialGooglePlayBadge className="h-9 sm:h-11 w-auto" />
                 </a>
               </div>
 
               {/* Feature Pills */}
-              <div className="pt-3 flex flex-wrap items-center gap-4 text-[11px] text-slate-400 border-t border-slate-700/60">
+              <div className="pt-3 flex flex-wrap items-center gap-2.5 sm:gap-4 text-[10px] sm:text-[11px] text-slate-400 border-t border-slate-700/60">
                 <span className="flex items-center gap-1.5">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" /> Compatible with iOS 16+ & Android 10+
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" /> iOS 16+ & Android 10+
                 </span>
                 <span className="flex items-center gap-1.5">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" /> Offline Law Report Bookmarks
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" /> Offline Law Bookmarks
                 </span>
                 <span className="flex items-center gap-1.5">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" /> 100% Free to Install
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" /> 100% Free to Install
                 </span>
               </div>
             </div>
           )}
 
           {/* Bottom Action Card */}
-          <div className="pt-10 border-t border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div className="pt-8 sm:pt-10 border-t border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3.5">
             <div>
-              <h4 className="text-sm font-black text-slate-900 dark:text-white">Empower your legal practice with AI LEGAL™</h4>
-              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Access 3.8 Cr+ case precedents, AI court drafting, and Section 63 BSA compliance.</p>
+              <h4 className="text-xs sm:text-sm font-black text-slate-900 dark:text-white">Empower your legal practice with AI LEGAL™</h4>
+              <p className="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 mt-0.5">Access 3.8 Cr+ case precedents, AI court drafting, and Section 63 BSA compliance.</p>
             </div>
             <button
               onClick={() => navigate('/signup')}
-              className="px-5 py-2.5 rounded-full text-xs font-black text-[#111111] bg-gradient-to-r from-[#B88B2A] to-[#B38628] hover:opacity-95 shadow-md shadow-[#B88B2A]/25 cursor-pointer whitespace-nowrap"
+              className="w-full sm:w-auto px-5 py-2.5 rounded-full text-xs font-black text-[#111111] bg-gradient-to-r from-[#B88B2A] to-[#B38628] hover:opacity-95 shadow-md shadow-[#B88B2A]/25 cursor-pointer whitespace-nowrap text-center justify-center flex items-center gap-1"
             >
-              Get Started Free →
+              <span>Get Started Free</span>
+              <span>→</span>
             </button>
           </div>
         </article>

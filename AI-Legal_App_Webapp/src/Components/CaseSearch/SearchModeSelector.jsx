@@ -13,8 +13,11 @@ const MODE_ICONS = {
 
 export default function SearchModeSelector({ activeMode, onSelectMode }) {
   return (
-    <div className="w-full flex items-center justify-center overflow-x-auto py-0.5 scrollbar-none">
-      <div className="inline-flex items-center gap-1 p-0.5 bg-slate-100/90 dark:bg-[#111827]/90 rounded-xl border border-slate-200/80 dark:border-slate-800 shadow-2xs max-w-full">
+    <div 
+      className="w-full flex items-center justify-start sm:justify-center overflow-x-auto py-1 px-1 scrollbar-none [&::-webkit-scrollbar]:hidden"
+      style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+    >
+      <div className="inline-flex items-center gap-1 p-0.5 bg-slate-100/90 dark:bg-[#111827]/90 rounded-xl border border-slate-200/80 dark:border-slate-800 shadow-2xs shrink-0">
         {SEARCH_MODES.map(mode => {
           const Icon = MODE_ICONS[mode.id] || Sparkles;
           const isActive = activeMode === mode.id;
@@ -23,7 +26,7 @@ export default function SearchModeSelector({ activeMode, onSelectMode }) {
             <button
               key={mode.id}
               onClick={() => onSelectMode(mode.id)}
-              className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer whitespace-nowrap select-none ${
+              className={`flex items-center gap-1.5 px-2.5 sm:px-3 py-1 rounded-lg text-[11px] sm:text-xs font-bold transition-all cursor-pointer whitespace-nowrap select-none shrink-0 ${
                 isActive
                   ? 'bg-white dark:bg-[#1E293B] text-[#B38628] dark:text-[#E5A93C] shadow-2xs border border-slate-200/80 dark:border-slate-700 font-black'
                   : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white/60 dark:hover:bg-slate-800/60'

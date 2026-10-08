@@ -145,12 +145,12 @@ export default function SearchResultCard({
       </div>
 
       {/* Bottom Action Buttons */}
-      <div className="mt-5 pt-3.5 border-t border-slate-100 dark:border-slate-800/80 flex flex-wrap items-center justify-between gap-2">
-        <div className="flex items-center gap-1.5">
+      <div className="mt-5 pt-3.5 border-t border-slate-100 dark:border-slate-800/80 flex flex-wrap items-center justify-between gap-2.5">
+        <div className="flex items-center gap-1.5 w-full sm:w-auto">
           {/* Read Judgment & AI Analysis (Unified Primary Action) */}
           <button
             onClick={() => onReadJudgment(judgment)}
-            className="px-4 py-2 rounded-xl text-xs font-bold bg-[#111111] dark:bg-white text-white dark:text-slate-950 hover:bg-[#B38628] dark:hover:bg-[#E5A93C] dark:hover:text-black transition-all cursor-pointer flex items-center gap-2 shadow-xs"
+            className="w-full sm:w-auto px-4 py-2.5 sm:py-2 rounded-xl text-xs font-bold bg-[#111111] dark:bg-white text-white dark:text-slate-950 hover:bg-[#B38628] dark:hover:bg-[#E5A93C] dark:hover:text-black transition-all cursor-pointer flex items-center justify-center gap-2 shadow-xs"
           >
             <Brain size={13} className="text-[#B88B2A] dark:text-[#B38628]" />
             <span>Read Judgment & AI Analysis</span>

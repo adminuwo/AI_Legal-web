@@ -66,11 +66,11 @@ export default function PublicFooter() {
   return (
     <footer className="w-full relative z-20 font-sans selection:bg-[#F59E0B]/30 selection:text-white">
       {/* ─── Upper Section: Deep Navy Blue (Matching Reference) ─── */}
-      <div className="bg-[#0B132B] text-white pt-14 pb-12 px-6 sm:px-10 lg:px-16 border-t border-[#1C2541]/80">
-        <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-10 lg:gap-8 items-start">
+      <div className="bg-[#0B132B] text-white pt-10 pb-8 sm:pt-14 sm:pb-12 px-4 sm:px-10 lg:px-16 border-t border-[#1C2541]/80">
+        <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-8 items-start">
           
           {/* Column 1: Brand Info & App Downloads (col-span-5) */}
-          <div className="lg:col-span-5 space-y-5">
+          <div className="lg:col-span-5 space-y-3.5 sm:space-y-5">
             {/* Logo */}
             <div 
               onClick={() => handleNavClick('/')}
@@ -78,21 +78,21 @@ export default function PublicFooter() {
             >
               <div className="relative flex items-center justify-center">
                 <div className="absolute inset-0 bg-[#B88B2A]/20 rounded-full blur-md opacity-0 group-hover:opacity-100 transition-opacity" />
-                <img src="/logo/logo_transparent.png" alt="AI LEGAL" className="w-9 h-9 sm:w-10 sm:h-10 object-contain relative" />
+                <img src="/logo/logo_transparent.png" alt="AI LEGAL" className="w-8 h-8 sm:w-10 sm:h-10 object-contain relative" />
               </div>
-              <h2 className="text-2xl sm:text-3xl font-black tracking-tight text-white flex items-center">
+              <h2 className="text-xl sm:text-3xl font-black tracking-tight text-white flex items-center">
                 AI<span className="text-[#F59E0B] ml-1">Legal</span>
                 <span className="text-[10px] align-super text-[#F59E0B] font-extrabold ml-0.5">™</span>
               </h2>
             </div>
 
             {/* Tagline */}
-            <p className="text-slate-300 text-sm leading-relaxed max-w-sm font-normal">
+            <p className="text-slate-300 text-xs sm:text-sm leading-relaxed max-w-sm font-normal">
               India's first legal AI platform for lawyers, advocates, and law students.
             </p>
 
-            {/* App Store & Google Play Badges Row (Matching Reference) */}
-            <div className="flex flex-wrap items-center gap-2.5 pt-1">
+            {/* App Store & Google Play Badges Row (Side-by-side on mobile) */}
+            <div className="flex items-center gap-2 pt-0.5">
               {/* Google Play Badge */}
               <a
                 href="https://play.google.com/store/apps/details?id=com.uwo.ailegal"
@@ -101,7 +101,7 @@ export default function PublicFooter() {
                 aria-label="GET IT ON Google Play"
                 className="transition-transform duration-200 hover:scale-105 active:scale-95 inline-block"
               >
-                <OfficialGooglePlayBadge className="h-10 w-auto rounded-lg shadow-sm" />
+                <OfficialGooglePlayBadge className="h-8.5 sm:h-10 w-auto rounded-lg shadow-sm" />
               </a>
 
               {/* App Store Badge */}
@@ -112,191 +112,196 @@ export default function PublicFooter() {
                 aria-label="Download on the App Store"
                 className="transition-transform duration-200 hover:scale-105 active:scale-95 inline-block cursor-pointer"
               >
-                <OfficialAppStoreBadge className="h-10 w-auto rounded-lg shadow-sm" />
+                <OfficialAppStoreBadge className="h-8.5 sm:h-10 w-auto rounded-lg shadow-sm" />
               </a>
             </div>
           </div>
 
-          {/* Column 2: Product (col-span-2) */}
-          <div className="lg:col-span-2 space-y-3.5">
-            <h3 className="text-base font-bold text-white tracking-tight">Product</h3>
-            <ul className="space-y-2.5 text-sm text-slate-300 font-normal">
-              <li>
-                <button onClick={() => handleNavClick('/')} className="hover:text-[#F59E0B] transition-colors cursor-pointer text-left">
-                  Home
-                </button>
-              </li>
-              <li>
-                <button onClick={() => handleNavClick('/features')} className="hover:text-[#F59E0B] transition-colors cursor-pointer text-left">
-                  Features
-                </button>
-              </li>
-              <li>
-                <button onClick={() => handleNavClick('/blog')} className="hover:text-[#F59E0B] transition-colors cursor-pointer text-left">
-                  Blog
-                </button>
-              </li>
-              <li>
-                <button onClick={() => handleNavClick('/pricing')} className="hover:text-[#F59E0B] transition-colors cursor-pointer text-left">
-                  Pricing
-                </button>
-              </li>
-              <li>
-                <button onClick={() => handleNavClick('/case-search')} className="hover:text-[#F59E0B] transition-colors cursor-pointer text-left">
-                  Case Search
-                </button>
-              </li>
-              <li>
-                <button onClick={() => handleNavClick('/about')} className="hover:text-[#F59E0B] transition-colors cursor-pointer text-left">
-                  About
-                </button>
-              </li>
-              <li>
-                <button onClick={() => handleNavClick('/dashboard')} className="hover:text-[#F59E0B] transition-colors cursor-pointer text-left">
-                  Dashboard
-                </button>
-              </li>
-            </ul>
-          </div>
+          {/* Links Wrapper: 3 columns in 1 single row on mobile and desktop */}
+          <div className="lg:col-span-7 grid grid-cols-3 gap-2.5 sm:gap-6 lg:gap-8 pt-2 lg:pt-0">
+            
+            {/* Column 2: Product */}
+            <div className="space-y-2.5 sm:space-y-3">
+              <h3 className="text-[11px] sm:text-xs lg:text-sm font-bold text-[#F59E0B] uppercase tracking-wider">Product</h3>
+              <ul className="space-y-1.5 sm:space-y-2 text-[11px] sm:text-xs lg:text-sm text-slate-300 font-normal leading-tight">
+                <li>
+                  <button onClick={() => handleNavClick('/')} className="hover:text-[#F59E0B] transition-colors cursor-pointer text-left">
+                    Home
+                  </button>
+                </li>
+                <li>
+                  <button onClick={() => handleNavClick('/features')} className="hover:text-[#F59E0B] transition-colors cursor-pointer text-left">
+                    Features
+                  </button>
+                </li>
+                <li>
+                  <button onClick={() => handleNavClick('/blog')} className="hover:text-[#F59E0B] transition-colors cursor-pointer text-left">
+                    Blog
+                  </button>
+                </li>
+                <li>
+                  <button onClick={() => handleNavClick('/pricing')} className="hover:text-[#F59E0B] transition-colors cursor-pointer text-left">
+                    Pricing
+                  </button>
+                </li>
+                <li>
+                  <button onClick={() => handleNavClick('/case-search')} className="hover:text-[#F59E0B] transition-colors cursor-pointer text-left">
+                    Case Search
+                  </button>
+                </li>
+                <li>
+                  <button onClick={() => handleNavClick('/about')} className="hover:text-[#F59E0B] transition-colors cursor-pointer text-left">
+                    About
+                  </button>
+                </li>
+                <li>
+                  <button onClick={() => handleNavClick('/dashboard')} className="hover:text-[#F59E0B] transition-colors cursor-pointer text-left">
+                    Dashboard
+                  </button>
+                </li>
+              </ul>
+            </div>
 
-          {/* Column 3: Legal (col-span-2) */}
-          <div className="lg:col-span-2 space-y-3.5">
-            <h3 className="text-base font-bold text-white tracking-tight">Legal</h3>
-            <ul className="space-y-2.5 text-sm text-slate-300 font-normal">
-              <li>
-                <button onClick={() => handleNavClick('/privacy-policy')} className="hover:text-[#F59E0B] transition-colors cursor-pointer text-left">
-                  Privacy Policy
-                </button>
-              </li>
-              <li>
-                <button onClick={() => handleNavClick('/terms')} className="hover:text-[#F59E0B] transition-colors cursor-pointer text-left">
-                  Terms of Service
-                </button>
-              </li>
-              <li>
-                <button onClick={() => handleNavClick('/cookie-policy')} className="hover:text-[#F59E0B] transition-colors cursor-pointer text-left">
-                  Cookie Policy
-                </button>
-              </li>
-              <li>
-                <button onClick={() => handleNavClick('/disclaimer')} className="hover:text-[#F59E0B] transition-colors cursor-pointer text-left">
-                  Disclaimer
-                </button>
-              </li>
-            </ul>
-          </div>
+            {/* Column 3: Legal */}
+            <div className="space-y-2.5 sm:space-y-3">
+              <h3 className="text-[11px] sm:text-xs lg:text-sm font-bold text-[#F59E0B] uppercase tracking-wider">Legal</h3>
+              <ul className="space-y-1.5 sm:space-y-2 text-[11px] sm:text-xs lg:text-sm text-slate-300 font-normal leading-tight">
+                <li>
+                  <button onClick={() => handleNavClick('/privacy-policy')} className="hover:text-[#F59E0B] transition-colors cursor-pointer text-left">
+                    Privacy Policy
+                  </button>
+                </li>
+                <li>
+                  <button onClick={() => handleNavClick('/terms')} className="hover:text-[#F59E0B] transition-colors cursor-pointer text-left">
+                    Terms of Service
+                  </button>
+                </li>
+                <li>
+                  <button onClick={() => handleNavClick('/cookie-policy')} className="hover:text-[#F59E0B] transition-colors cursor-pointer text-left">
+                    Cookie Policy
+                  </button>
+                </li>
+                <li>
+                  <button onClick={() => handleNavClick('/disclaimer')} className="hover:text-[#F59E0B] transition-colors cursor-pointer text-left">
+                    Disclaimer
+                  </button>
+                </li>
+              </ul>
+            </div>
 
-          {/* Column 4: Company (col-span-3) */}
-          <div className="lg:col-span-3 space-y-3.5">
-            <h3 className="text-base font-bold text-white tracking-tight">Company</h3>
-            <ul className="space-y-2.5 text-sm text-slate-300 font-normal">
-              <li>
-                <button onClick={() => handleNavClick('/about')} className="hover:text-[#F59E0B] transition-colors cursor-pointer text-left">
-                  About Us
-                </button>
-              </li>
-              <li
-                className="relative"
-                onMouseEnter={() => {
-                  if (companyBlogTimeoutRef.current) clearTimeout(companyBlogTimeoutRef.current);
-                  setCompanyBlogDropdownOpen(true);
-                }}
-                onMouseLeave={() => {
-                  companyBlogTimeoutRef.current = setTimeout(() => setCompanyBlogDropdownOpen(false), 250);
-                }}
-              >
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setCompanyBlogDropdownOpen(prev => !prev);
+            {/* Column 4: Company */}
+            <div className="space-y-2.5 sm:space-y-3">
+              <h3 className="text-[11px] sm:text-xs lg:text-sm font-bold text-[#F59E0B] uppercase tracking-wider">Company</h3>
+              <ul className="space-y-1.5 sm:space-y-2 text-[11px] sm:text-xs lg:text-sm text-slate-300 font-normal leading-tight">
+                <li>
+                  <button onClick={() => handleNavClick('/about')} className="hover:text-[#F59E0B] transition-colors cursor-pointer text-left">
+                    About Us
+                  </button>
+                </li>
+                <li
+                  className="relative"
+                  onMouseEnter={() => {
+                    if (companyBlogTimeoutRef.current) clearTimeout(companyBlogTimeoutRef.current);
+                    setCompanyBlogDropdownOpen(true);
                   }}
-                  className="hover:text-[#F59E0B] transition-colors cursor-pointer text-left flex items-center gap-1.5 group"
+                  onMouseLeave={() => {
+                    companyBlogTimeoutRef.current = setTimeout(() => setCompanyBlogDropdownOpen(false), 250);
+                  }}
                 >
-                  <span>Blog</span>
-                  <ChevronDown
-                    size={13}
-                    className={`text-slate-400 group-hover:text-[#F59E0B] transition-transform duration-200 ${
-                      companyBlogDropdownOpen ? 'rotate-180 text-[#F59E0B]' : ''
-                    }`}
-                  />
-                </button>
-
-                {/* 2-Option Popover Menu for Blog (Read Articles vs In-House Publishing) */}
-                {companyBlogDropdownOpen && (
-                  <div
-                    className="absolute left-0 lg:left-auto lg:right-0 bottom-full mb-2.5 w-72 sm:w-80 rounded-2xl bg-[#0F172A] border border-[#B88B2A]/40 shadow-2xl p-2.5 z-50 animate-in fade-in zoom-in-95 duration-150 backdrop-blur-xl"
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setCompanyBlogDropdownOpen(prev => !prev);
+                    }}
+                    className="hover:text-[#F59E0B] transition-colors cursor-pointer text-left flex items-center gap-1.5 group"
                   >
-                    <div className="px-3 py-1.5 mb-1.5 border-b border-slate-800 flex items-center justify-between">
-                      <span className="text-[10px] font-black uppercase tracking-wider text-[#B88B2A] flex items-center gap-1">
-                        <Sparkles size={11} /> AI LEGAL™ Journal
-                      </span>
-                      <span className="text-[9px] bg-[#B88B2A]/15 text-[#B88B2A] px-1.5 py-0.5 rounded font-bold">
-                        Company
-                      </span>
-                    </div>
+                    <span>Blog</span>
+                    <ChevronDown
+                      size={13}
+                      className={`text-slate-400 group-hover:text-[#F59E0B] transition-transform duration-200 ${
+                        companyBlogDropdownOpen ? 'rotate-180 text-[#F59E0B]' : ''
+                      }`}
+                    />
+                  </button>
 
-                    {/* Option 1: Direct Blog Tab */}
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setCompanyBlogDropdownOpen(false);
-                        handleNavClick('/blog');
-                      }}
-                      className="w-full text-left p-2.5 rounded-xl hover:bg-slate-800/80 transition-all flex items-start gap-3 group cursor-pointer"
+                  {/* 2-Option Popover Menu for Blog */}
+                  {companyBlogDropdownOpen && (
+                    <div
+                      className="absolute left-0 sm:left-auto sm:right-0 bottom-full mb-2.5 w-72 sm:w-80 rounded-2xl bg-[#0F172A] border border-[#B88B2A]/40 shadow-2xl p-2.5 z-50 animate-in fade-in zoom-in-95 duration-150 backdrop-blur-xl"
                     >
-                      <div className="w-8 h-8 rounded-lg bg-[#B88B2A]/15 text-[#B88B2A] border border-[#B88B2A]/30 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
-                        <BookOpen size={16} />
+                      <div className="px-3 py-1.5 mb-1.5 border-b border-slate-800 flex items-center justify-between">
+                        <span className="text-[10px] font-black uppercase tracking-wider text-[#B88B2A] flex items-center gap-1">
+                          <Sparkles size={11} /> AI LEGAL™ Journal
+                        </span>
+                        <span className="text-[9px] bg-[#B88B2A]/15 text-[#B88B2A] px-1.5 py-0.5 rounded font-bold">
+                          Company
+                        </span>
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between">
-                          <span className="text-xs font-bold text-white group-hover:text-[#B88B2A] transition-colors">
-                            Explore Blog Articles
-                          </span>
-                          <ArrowRight size={12} className="text-slate-500 group-hover:text-[#B88B2A] group-hover:translate-x-0.5 transition-all" />
+
+                      {/* Option 1: Direct Blog Tab */}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setCompanyBlogDropdownOpen(false);
+                          handleNavClick('/blog');
+                        }}
+                        className="w-full text-left p-2.5 rounded-xl hover:bg-slate-800/80 transition-all flex items-start gap-3 group cursor-pointer"
+                      >
+                        <div className="w-8 h-8 rounded-lg bg-[#B88B2A]/15 text-[#B88B2A] border border-[#B88B2A]/30 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                          <BookOpen size={16} />
                         </div>
-                        <p className="text-[11px] text-slate-400 mt-0.5 leading-snug">
-                          Browse published articles, chamber guides & legal updates
-                        </p>
-                      </div>
-                    </button>
-
-                    {/* Option 2: In-House Team Post Blog */}
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setCompanyBlogDropdownOpen(false);
-                        handleNavClick('/blog/publish');
-                      }}
-                      className="w-full text-left p-2.5 rounded-xl hover:bg-amber-950/40 border border-transparent hover:border-[#B88B2A]/30 transition-all flex items-start gap-3 group cursor-pointer mt-1"
-                    >
-                      <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#B88B2A] to-[#B38628] text-slate-950 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform shadow-xs">
-                        <PenTool size={15} className="stroke-[2.5]" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between">
-                          <span className="text-xs font-bold text-white group-hover:text-[#B88B2A] transition-colors flex items-center gap-1.5">
-                            Post In-House Blog
-                            <span className="text-[9px] bg-amber-400 text-slate-950 px-1.5 py-0.2 rounded font-black uppercase tracking-tight">
-                              Studio
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs font-bold text-white group-hover:text-[#B88B2A] transition-colors">
+                              Explore Blog Articles
                             </span>
-                          </span>
-                          <ArrowRight size={12} className="text-slate-500 group-hover:text-[#B88B2A] group-hover:translate-x-0.5 transition-all" />
+                            <ArrowRight size={12} className="text-slate-500 group-hover:text-[#B88B2A] group-hover:translate-x-0.5 transition-all" />
+                          </div>
+                          <p className="text-[11px] text-slate-400 mt-0.5 leading-snug">
+                            Browse published articles, chamber guides & legal updates
+                          </p>
                         </div>
-                        <p className="text-[11px] text-slate-400 mt-0.5 leading-snug">
-                          In-House team workspace to write & publish new content
-                        </p>
-                      </div>
-                    </button>
-                  </div>
-                )}
-              </li>
-            </ul>
+                      </button>
+
+                      {/* Option 2: In-House Team Post Blog */}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setCompanyBlogDropdownOpen(false);
+                          handleNavClick('/blog/publish');
+                        }}
+                        className="w-full text-left p-2.5 rounded-xl hover:bg-amber-950/40 border border-transparent hover:border-[#B88B2A]/30 transition-all flex items-start gap-3 group cursor-pointer mt-1"
+                      >
+                        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#B88B2A] to-[#B38628] text-slate-950 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform shadow-xs">
+                          <PenTool size={15} className="stroke-[2.5]" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs font-bold text-white group-hover:text-[#B88B2A] transition-colors flex items-center gap-1.5">
+                              Post In-House Blog
+                              <span className="text-[9px] bg-amber-400 text-slate-950 px-1.5 py-0.2 rounded font-black uppercase tracking-tight">
+                                Studio
+                              </span>
+                            </span>
+                            <ArrowRight size={12} className="text-slate-500 group-hover:text-[#B88B2A] group-hover:translate-x-0.5 transition-all" />
+                          </div>
+                          <p className="text-[11px] text-slate-400 mt-0.5 leading-snug">
+                            In-House team workspace to write & publish new content
+                          </p>
+                        </div>
+                      </button>
+                    </div>
+                  )}
+                </li>
+              </ul>
+            </div>
+
           </div>
 
           {/* AI Legal Regulatory & Operational Disclaimer */}
-          <div className="lg:col-span-12 mt-4 pt-6 border-t border-slate-800/80">
-            <div className="flex flex-col sm:flex-row items-start gap-3 bg-slate-900/60 p-4 rounded-xl border border-slate-800">
+          <div className="lg:col-span-12 mt-2 pt-5 sm:mt-4 sm:pt-6 border-t border-slate-800/80">
+            <div className="flex flex-col sm:flex-row items-start gap-2.5 sm:gap-3 bg-slate-900/60 p-3.5 sm:p-4 rounded-xl border border-slate-800">
               <div className="p-1.5 rounded-lg bg-amber-500/10 text-[#F59E0B] shrink-0 mt-0.5">
                 <ShieldAlert size={18} />
               </div>
@@ -305,11 +310,11 @@ export default function PublicFooter() {
                   <span className="font-bold text-[#F59E0B] uppercase tracking-wider text-[11px]">
                     AI Legal™ Disclaimer
                   </span>
-                  <span className="text-[10px] text-slate-400 bg-slate-800 px-2 py-0.5 rounded font-medium">
+                  <span className="text-[9px] sm:text-[10px] text-slate-400 bg-slate-800 px-2 py-0.5 rounded font-medium">
                     Informational & Research Support
                   </span>
                 </div>
-                <p className="text-slate-300 text-[11.5px] sm:text-xs">
+                <p className="text-slate-300 text-[11px] sm:text-xs">
                   AI LEGAL™ is an artificial intelligence-driven legal intelligence, research, and automated drafting platform designed for practicing advocates, legal firms, and law students. Outputs generated by AI LEGAL™—including statutory cross-references (BNS, BNSS, BSA, IPC, CrPC), judicial precedent summaries, contract risk assessments, and draft clauses—are provided solely for informational and research assistance. They do not constitute formal legal opinions, binding advice, or legal representation, nor do they establish an advocate-client relationship under the Advocates Act, 1961 or Bar Council of India rules. Practicing advocates, legal counsels, and users retain absolute responsibility to independently verify all citations, precedents, and documents before relying on them or submitting them to any court or tribunal.
                 </p>
               </div>
@@ -320,25 +325,25 @@ export default function PublicFooter() {
       </div>
 
       {/* ─── Bottom Sub-Footer Bar: Warm Pale Cream/Yellow (Exact Match) ─── */}
-      <div className="bg-[#FEF5D4] text-[#1E293B] py-5 px-6 sm:px-10 lg:px-16 border-t border-[#FCD34D]/40 relative">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-center gap-4 text-center">
+      <div className="bg-[#FEF5D4] text-[#1E293B] py-4 sm:py-5 px-4 sm:px-10 lg:px-16 border-t border-[#FCD34D]/40 relative">
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-center gap-2 sm:gap-4 text-center pr-9 sm:pr-12 md:pr-0">
           
           {/* Logo Badge in Dark Frame */}
           <div className="flex items-center gap-2.5">
-            <div className="bg-[#111827] text-white px-3 py-1.5 rounded-md flex items-center gap-2 border border-black/10 shadow-xs">
-              <img src="/logo/logo_transparent.png" alt="AI LEGAL" className="w-5 h-5 object-contain" />
-              <span className="text-xs font-black tracking-tight text-white">
+            <div className="bg-[#111827] text-white px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-md flex items-center gap-1.5 sm:gap-2 border border-black/10 shadow-xs">
+              <img src="/logo/logo_transparent.png" alt="AI LEGAL" className="w-4 h-4 sm:w-5 sm:h-5 object-contain" />
+              <span className="text-[11px] sm:text-xs font-black tracking-tight text-white">
                 AI<span className="text-[#F59E0B] ml-0.5">Legal</span>
               </span>
             </div>
           </div>
 
           {/* Corporate Legal Registration Text */}
-          <div className="space-y-0.5 text-xs text-[#1F2937] font-semibold">
+          <div className="space-y-0.5 text-[11px] sm:text-xs text-[#1F2937] font-semibold">
             <p className="font-bold">
               © 2026 by <span className="font-extrabold text-black">UNIFIED WEB OPTIONS & SERVICES PRIVATE LIMITED</span>, India
             </p>
-            <p className="text-[11px] text-slate-700 tracking-wider">
+            <p className="text-[10px] sm:text-[11px] text-slate-700 tracking-wider">
               DPIIT Recognized | DUNS Registered | Incubated at IIT Ropar – TBIF
             </p>
           </div>
@@ -346,13 +351,13 @@ export default function PublicFooter() {
         </div>
 
         {/* Floating / Anchored Orange Scroll-To-Top Button */}
-        <div className="absolute right-6 sm:right-10 top-1/2 -translate-y-1/2">
+        <div className="absolute right-3 sm:right-10 top-1/2 -translate-y-1/2">
           <button
             onClick={scrollToTop}
             aria-label="Scroll to top"
-            className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-[#F97316] hover:bg-[#EA580C] text-white flex items-center justify-center shadow-lg hover:shadow-xl transition-all cursor-pointer hover:scale-105 active:scale-95"
+            className="w-8 h-8 sm:w-11 sm:h-11 rounded-full bg-[#F97316] hover:bg-[#EA580C] text-white flex items-center justify-center shadow-lg hover:shadow-xl transition-all cursor-pointer hover:scale-105 active:scale-95"
           >
-            <ArrowUp className="w-5 h-5 stroke-[2.5]" />
+            <ArrowUp className="w-4 h-4 sm:w-5 sm:h-5 stroke-[2.5]" />
           </button>
         </div>
       </div>

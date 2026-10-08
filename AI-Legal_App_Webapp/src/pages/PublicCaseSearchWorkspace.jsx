@@ -441,25 +441,25 @@ export default function PublicCaseSearchWorkspace() {
       </header>
 
       {/* ─── MAIN HERO & SEARCH INTERFACE (Compact) ─── */}
-      <section className="relative pt-6 sm:pt-8 pb-4 sm:pb-6 px-4 sm:px-6 lg:px-8 border-b border-slate-200/80 dark:border-slate-800 bg-gradient-to-b from-slate-50/70 via-white to-white dark:from-[#080C14] dark:via-[#0B0F19] dark:to-[#0B0F19]">
-        <div className="max-w-4xl mx-auto text-center space-y-2.5">
+      <section className="relative pt-4 sm:pt-8 pb-3 sm:pb-6 px-3.5 sm:px-6 lg:px-8 border-b border-slate-200/80 dark:border-slate-800 bg-gradient-to-b from-slate-50/70 via-white to-white dark:from-[#080C14] dark:via-[#0B0F19] dark:to-[#0B0F19]">
+        <div className="max-w-4xl mx-auto text-center space-y-2.5 sm:space-y-3">
           
           {/* Top Badge */}
-          <div className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-[#B88B2A]/10 border border-[#B88B2A]/30 text-[#B38628] dark:text-[#E5A93C] text-[11px] font-extrabold uppercase tracking-wider shadow-2xs">
-            <Sparkles size={12} />
+          <div className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-0.5 rounded-full bg-[#B88B2A]/10 border border-[#B88B2A]/30 text-[#B38628] dark:text-[#E5A93C] text-[10px] sm:text-[11px] font-extrabold uppercase tracking-wider shadow-2xs">
+            <Sparkles size={11} className="sm:w-3 sm:h-3" />
             <span>AI LEGAL™ Case Search</span>
           </div>
 
-          <h1 className="text-2xl sm:text-3xl font-black text-[#0F172A] dark:text-white tracking-tight leading-tight">
+          <h1 className="text-xl xs:text-2xl sm:text-3xl font-black text-[#0F172A] dark:text-white tracking-tight leading-tight">
             LEGAL RESEARCH, <span className="text-[#B38628] dark:text-[#E5A93C]">REIMAGINED</span>
           </h1>
 
-          <p className="text-xs sm:text-[13px] text-slate-600 dark:text-slate-400 max-w-xl mx-auto leading-normal">
+          <p className="text-xs sm:text-[13px] text-slate-600 dark:text-slate-400 max-w-xl mx-auto leading-normal px-1 sm:px-0">
             Search Indian Judgments & Laws. Ask a legal question in natural language or search by case name, citation, section or keyword.
           </p>
 
           {/* Search Mode Selector (Section 6) */}
-          <div className="pt-1">
+          <div className="pt-0.5">
             <SearchModeSelector
               activeMode={activeMode}
               onSelectMode={(mode) => setActiveMode(mode)}
@@ -475,8 +475,8 @@ export default function PublicCaseSearchWorkspace() {
               }}
               className="relative flex items-center bg-white dark:bg-[#111622] rounded-2xl border-2 border-slate-200 dark:border-slate-800 focus-within:border-[#B88B2A] shadow-md hover:shadow-lg transition-all p-1 sm:p-1.5"
             >
-              <div className="pl-3 pr-2 text-slate-400">
-                <Search size={18} className="text-[#B88B2A]" />
+              <div className="pl-2.5 sm:pl-3 pr-1.5 sm:pr-2 text-slate-400 shrink-0">
+                <Search size={16} className="text-[#B88B2A] sm:w-[18px] sm:h-[18px]" />
               </div>
 
               <input
@@ -484,11 +484,11 @@ export default function PublicCaseSearchWorkspace() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder={
-                  activeMode === 'AI' ? 'Search judgments e.g. "maintenance rights of divorced Muslim woman", "anticipatory bail under PMLA"...' :
-                  activeMode === 'CITATION' ? 'Enter citation (e.g. (2001) 7 SCC 740, (2017) 10 SCC 1, 2024 INSC 123)...' :
-                  activeMode === 'ACT' ? 'Search by Act or Section (e.g. Section 125 CrPC, Section 438 CrPC, Section 138 NI Act)...' :
-                  activeMode === 'PARTY' ? 'Search by Petitioner or Respondent name (e.g. Danial Latifi, Maneka Gandhi, D.K. Basu)...' :
-                  activeMode === 'JUDGE' ? "Search by Hon'ble Judge name (e.g. Justice G.B. Pattanaik, Justice Chandrachud)..." :
+                  activeMode === 'AI' ? 'Search judgments, issues, or ask a question...' :
+                  activeMode === 'CITATION' ? 'Enter citation (e.g. (2001) 7 SCC 740)...' :
+                  activeMode === 'ACT' ? 'Search by Act or Section (e.g. Section 438 CrPC)...' :
+                  activeMode === 'PARTY' ? 'Search by Party name (e.g. Danial Latifi)...' :
+                  activeMode === 'JUDGE' ? "Search by Hon'ble Judge name..." :
                   'Search Indian judgments, precedents, and statutes...'
                 }
                 className="flex-1 bg-transparent py-1.5 sm:py-2 text-xs sm:text-sm text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none font-medium min-w-0"
@@ -498,7 +498,7 @@ export default function PublicCaseSearchWorkspace() {
                 <button
                   type="button"
                   onClick={() => setSearchQuery('')}
-                  className="px-2 text-slate-400 hover:text-slate-700 dark:hover:text-white"
+                  className="px-1.5 sm:px-2 text-slate-400 hover:text-slate-700 dark:hover:text-white shrink-0"
                 >
                   <X size={15} />
                 </button>
@@ -508,17 +508,17 @@ export default function PublicCaseSearchWorkspace() {
               <button
                 type="submit"
                 disabled={isSearching}
-                className="px-4 sm:px-6 py-2 rounded-xl text-xs sm:text-sm font-black bg-gradient-to-r from-[#E5A93C] to-[#B38628] hover:opacity-95 text-slate-950 transition-all cursor-pointer flex items-center gap-1.5 shadow-md shrink-0 disabled:opacity-50"
+                className="px-3 sm:px-6 py-2 rounded-xl text-xs sm:text-sm font-black bg-gradient-to-r from-[#E5A93C] to-[#B38628] hover:opacity-95 text-slate-950 transition-all cursor-pointer flex items-center gap-1 sm:gap-1.5 shadow-md shrink-0 disabled:opacity-50"
               >
                 {isSearching ? (
                   <>
-                    <Sparkles size={14} className="animate-spin" />
+                    <Sparkles size={13} className="animate-spin" />
                     <span>Searching...</span>
                   </>
                 ) : (
                   <>
                     <span>Search</span>
-                    <ArrowRight size={14} />
+                    <ArrowRight size={13} />
                   </>
                 )}
               </button>
@@ -585,26 +585,26 @@ export default function PublicCaseSearchWorkspace() {
           <>
             {/* STATE 1: INITIAL EMPTY STATE (Section 11) */}
             {!hasSearched && !isSearching && (
-          <div className="max-w-3xl mx-auto space-y-8 py-4">
+          <div className="max-w-3xl mx-auto space-y-6 sm:space-y-8 py-2 sm:py-4">
             
             <div className="text-center space-y-2">
-              <div className="w-12 h-12 rounded-2xl bg-[#B88B2A]/15 text-[#B38628] flex items-center justify-center mx-auto shadow-xs">
-                <Landmark size={24} />
+              <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-[#B88B2A]/15 text-[#B38628] flex items-center justify-center mx-auto shadow-xs">
+                <Landmark size={22} className="sm:w-6 sm:h-6" />
               </div>
-              <h2 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white">
+              <h2 className="text-base sm:text-xl font-bold text-slate-900 dark:text-white px-2">
                 Search Across 75+ Years of Indian Jurisprudence
               </h2>
-              <p className="text-xs sm:text-sm text-slate-500 max-w-md mx-auto">
+              <p className="text-xs sm:text-sm text-slate-500 max-w-md mx-auto px-2">
                 Explore binding ratio decidendi, key statutory provisions, and courtroom takeaways.
               </p>
             </div>
 
             {/* Popular Search Chips */}
-            <div className="space-y-2.5">
-              <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block text-center">
+            <div className="space-y-2">
+              <span className="text-[11px] sm:text-xs font-bold text-slate-400 uppercase tracking-wider block text-center">
                 Popular Legal Inquiries:
               </span>
-              <div className="flex flex-wrap items-center justify-center gap-2">
+              <div className="flex flex-wrap items-center justify-center gap-1.5 sm:gap-2">
                 {POPULAR_SEARCH_CHIPS.map((chip, idx) => (
                   <button
                     key={idx}
@@ -612,29 +612,31 @@ export default function PublicCaseSearchWorkspace() {
                       setSearchQuery(chip);
                       executeSearch(chip);
                     }}
-                    className="px-3.5 py-1.5 rounded-full text-xs font-semibold bg-slate-100 dark:bg-slate-800/80 text-slate-700 dark:text-slate-300 hover:bg-amber-50 hover:text-[#B38628] dark:hover:bg-amber-950/40 dark:hover:text-amber-300 border border-slate-200/80 dark:border-slate-800 transition-all cursor-pointer flex items-center gap-1.5 shadow-2xs"
+                    className="px-2.5 sm:px-3.5 py-1 sm:py-1.5 rounded-full text-[11px] sm:text-xs font-semibold bg-slate-100 dark:bg-slate-800/80 text-slate-700 dark:text-slate-300 hover:bg-amber-50 hover:text-[#B38628] dark:hover:bg-amber-950/40 dark:hover:text-amber-300 border border-slate-200/80 dark:border-slate-800 transition-all cursor-pointer flex items-center gap-1.5 shadow-2xs"
                   >
-                    <Search size={12} className="text-slate-400" />
+                    <Search size={11} className="text-slate-400" />
                     <span>{chip}</span>
                   </button>
                 ))}
               </div>
             </div>
 
-            {/* Landmark Categories Preview Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-4">
+            {/* Landmark Categories Preview Grid — 3 Cards in 1 Row on Mobile */}
+            <div className="grid grid-cols-3 gap-2 sm:gap-4 pt-2 sm:pt-4">
               <div 
                 onClick={() => {
                   setSearchQuery('Anticipatory bail');
                   executeSearch('Anticipatory bail');
                 }}
-                className="p-5 rounded-2xl bg-white dark:bg-[#111622] border border-slate-200/80 dark:border-slate-800 hover:border-[#B88B2A]/60 transition-all cursor-pointer group shadow-xs space-y-2"
+                className="p-2.5 sm:p-5 rounded-xl sm:rounded-2xl bg-white dark:bg-[#111622] border border-slate-200/80 dark:border-slate-800 hover:border-[#B88B2A]/60 transition-all cursor-pointer group shadow-xs space-y-1 sm:space-y-2 flex flex-col justify-between"
               >
-                <div className="w-8 h-8 rounded-xl bg-amber-500/10 text-[#B88B2A] flex items-center justify-center group-hover:scale-105 transition-transform">
-                  <Scale size={16} />
+                <div>
+                  <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg sm:rounded-xl bg-amber-500/10 text-[#B88B2A] flex items-center justify-center group-hover:scale-105 transition-transform">
+                    <Scale size={14} className="sm:w-4 sm:h-4" />
+                  </div>
+                  <h3 className="text-[11px] sm:text-sm font-bold text-slate-900 dark:text-white mt-1 sm:mt-2 leading-tight">Criminal & Bail</h3>
                 </div>
-                <h3 className="text-sm font-bold text-slate-900 dark:text-white">Criminal & Bail</h3>
-                <p className="text-[11px] text-slate-500">
+                <p className="text-[9px] sm:text-[11px] text-slate-500 leading-snug line-clamp-2 sm:line-clamp-none">
                   Anticipatory bail, Section 482 quashing, BNS & BNSS landmark rulings.
                 </p>
               </div>
@@ -644,13 +646,15 @@ export default function PublicCaseSearchWorkspace() {
                   setSearchQuery('Section 138 NI Act presumption');
                   executeSearch('Section 138 NI Act presumption');
                 }}
-                className="p-5 rounded-2xl bg-white dark:bg-[#111622] border border-slate-200/80 dark:border-slate-800 hover:border-[#B88B2A]/60 transition-all cursor-pointer group shadow-xs space-y-2"
+                className="p-2.5 sm:p-5 rounded-xl sm:rounded-2xl bg-white dark:bg-[#111622] border border-slate-200/80 dark:border-slate-800 hover:border-[#B88B2A]/60 transition-all cursor-pointer group shadow-xs space-y-1 sm:space-y-2 flex flex-col justify-between"
               >
-                <div className="w-8 h-8 rounded-xl bg-amber-500/10 text-[#B88B2A] flex items-center justify-center group-hover:scale-105 transition-transform">
-                  <BookOpen size={16} />
+                <div>
+                  <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg sm:rounded-xl bg-amber-500/10 text-[#B88B2A] flex items-center justify-center group-hover:scale-105 transition-transform">
+                    <BookOpen size={14} className="sm:w-4 sm:h-4" />
+                  </div>
+                  <h3 className="text-[11px] sm:text-sm font-bold text-slate-900 dark:text-white mt-1 sm:mt-2 leading-tight">Commercial & NI Act</h3>
                 </div>
-                <h3 className="text-sm font-bold text-slate-900 dark:text-white">Commercial & NI Act</h3>
-                <p className="text-[11px] text-slate-500">
+                <p className="text-[9px] sm:text-[11px] text-slate-500 leading-snug line-clamp-2 sm:line-clamp-none">
                   Cheque bounce, limitation period, blank cheques, and corporate liability.
                 </p>
               </div>
@@ -660,13 +664,15 @@ export default function PublicCaseSearchWorkspace() {
                   setSearchQuery('Fundamental rights Article 21');
                   executeSearch('Fundamental rights Article 21');
                 }}
-                className="p-5 rounded-2xl bg-white dark:bg-[#111622] border border-slate-200/80 dark:border-slate-800 hover:border-[#B88B2A]/60 transition-all cursor-pointer group shadow-xs space-y-2"
+                className="p-2.5 sm:p-5 rounded-xl sm:rounded-2xl bg-white dark:bg-[#111622] border border-slate-200/80 dark:border-slate-800 hover:border-[#B88B2A]/60 transition-all cursor-pointer group shadow-xs space-y-1 sm:space-y-2 flex flex-col justify-between"
               >
-                <div className="w-8 h-8 rounded-xl bg-amber-500/10 text-[#B88B2A] flex items-center justify-center group-hover:scale-105 transition-transform">
-                  <Landmark size={16} />
+                <div>
+                  <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg sm:rounded-xl bg-amber-500/10 text-[#B88B2A] flex items-center justify-center group-hover:scale-105 transition-transform">
+                    <Landmark size={14} className="sm:w-4 sm:h-4" />
+                  </div>
+                  <h3 className="text-[11px] sm:text-sm font-bold text-slate-900 dark:text-white mt-1 sm:mt-2 leading-tight">Constitutional Law</h3>
                 </div>
-                <h3 className="text-sm font-bold text-slate-900 dark:text-white">Constitutional Law</h3>
-                <p className="text-[11px] text-slate-500">
+                <p className="text-[9px] sm:text-[11px] text-slate-500 leading-snug line-clamp-2 sm:line-clamp-none">
                   Basic structure doctrine, Article 21 privacy, natural justice & judicial review.
                 </p>
               </div>
