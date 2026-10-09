@@ -40,7 +40,7 @@ router.post('/', optionalVerifyToken, async (req, res) => {
 });
 
 // POST /api/feedback/review-gatekeeper
-// Handles In-App Rating Gatekeeper (Positive direct rating, Negative intercepted to admin@uwo24.com)
+// Handles In-App Rating Gatekeeper (Positive direct rating, Negative intercepted to ai.legal@uwo24.com)
 router.post('/review-gatekeeper', optionalVerifyToken, async (req, res) => {
     try {
         const { sentiment, rating, feedbackText, platform, userEmail, userName, metadata } = req.body;
@@ -60,7 +60,7 @@ router.post('/review-gatekeeper', optionalVerifyToken, async (req, res) => {
 
         await newFeedback.save();
 
-        // Send alert email immediately to admin@uwo24.com
+        // Send alert email immediately to ai.legal@uwo24.com
         sendReviewGatekeeperAlertEmail({
             type,
             platform: newFeedback.platform,
@@ -212,7 +212,7 @@ router.get('/store-reviews', async (req, res) => {
     }
 });
 
-// POST /api/feedback/public-query (Landing Page Query Form -> Dispatches Email to admin@uwo24.com)
+// POST /api/feedback/public-query (Landing Page Query Form -> Dispatches Email to ai.legal@uwo24.com)
 router.post('/public-query', async (req, res) => {
     try {
         const { firstName, lastName, email, contactNo, pinCode, country, description } = req.body;
@@ -229,7 +229,7 @@ router.post('/public-query', async (req, res) => {
             return res.status(400).json({ error: 'Please enter a valid email address.' });
         }
 
-        // Send email to admin@uwo24.com
+        // Send email to ai.legal@uwo24.com
         await sendPublicContactQueryEmail({
             firstName: firstName.trim(),
             lastName: lastName.trim(),
@@ -247,7 +247,7 @@ router.post('/public-query', async (req, res) => {
     } catch (error) {
         console.error('[PUBLIC QUERY ERROR] Failed to process query:', error);
         res.status(500).json({
-            error: 'Unable to send your query right now. Please try again or reach out to us at admin@uwo24.com.'
+            error: 'Unable to send your query right now. Please try again or reach out to us at ai.legal@uwo24.com.'
         });
     }
 });

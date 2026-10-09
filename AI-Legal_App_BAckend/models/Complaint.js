@@ -52,18 +52,7 @@ const complaintSchema = new mongoose.Schema({
     category: {
         type: String,
         required: true,
-        enum: [
-            'Incorrect Legal Information',
-            'Incomplete Answer',
-            'Irrelevant Response',
-            'Wrong Language',
-            'Hallucinated Information',
-            'Poor Formatting',
-            'Offensive / Inappropriate Content',
-            'AI Did Not Understand My Question',
-            'Technical Issue',
-            'Other'
-        ]
+        default: 'Other'
     },
     comment: {
         type: String,

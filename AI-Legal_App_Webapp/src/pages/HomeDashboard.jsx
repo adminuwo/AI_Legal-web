@@ -8,8 +8,8 @@ import {
   Binary, Scale, Bell, Menu
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { useRecoilValue } from 'recoil';
-import { userData, selectedRoleState } from '../userStore/userData';
+import { useRecoilValue, useRecoilState } from 'recoil';
+import { userData, selectedRoleState, getUserData } from '../userStore/userData';
 import { apiService } from '../services/apiService';
 import toast from 'react-hot-toast';
 import consultationService from '../services/consultationService';
@@ -32,8 +32,28 @@ export default function HomeDashboard() {
   const { cases: subCases, storage, features, badge, planDisplayName, triggerUpgradeModal } = useSubscription();
   const { notifications, fetchNotifications } = usePersonalization();
   const currentUser = useRecoilValue(userData);
-  const selectedRole = useRecoilValue(selectedRoleState) || 'advocate';
-  const userName = currentUser?.user?.fullName || currentUser?.user?.name || "Advocate";
+  const [selectedRoleRecoil, setSelectedRoleRecoil] = useRecoilState(selectedRoleState);
+  const userAccountType = currentUser?.user?.accountType || getUserData()?.accountType || localStorage.getItem('user_selected_role') || 'advocate';
+  const selectedRole = selectedRoleRecoil || userAccountType || 'advocate';
+
+  useEffect(() => {
+    if (userAccountType && selectedRoleRecoil !== userAccountType) {
+      setSelectedRoleRecoil(userAccountType);
+    }
+  }, [userAccountType, selectedRoleRecoil]);
+
+  useEffect(() => {
+    const handleRoleChanged = (e) => {
+      const newRole = e?.detail?.role || localStorage.getItem('user_selected_role');
+      if (newRole && newRole !== selectedRoleRecoil) {
+        setSelectedRoleRecoil(newRole);
+      }
+    };
+    window.addEventListener('user_role_changed', handleRoleChanged);
+    return () => window.removeEventListener('user_role_changed', handleRoleChanged);
+  }, [selectedRoleRecoil]);
+
+  const userName = currentUser?.user?.fullName || currentUser?.user?.name || (selectedRole === 'law_firm' ? 'Partner' : 'Advocate');
 
   const unreadNotifCount = (notifications || []).filter(n => !n.isRead).length;
 
@@ -549,7 +569,7 @@ export default function HomeDashboard() {
   if (selectedRole === 'law_firm') {
     return (
       <div className="min-h-screen bg-[#F8FAFC] dark:bg-[#0F172A] p-4 sm:p-6 lg:p-8 w-full max-w-7xl mx-auto text-[#111827] dark:text-white font-sans transition-colors">
-        <LawFirmDashboardSection user={currentUser?.user} cases={cases} workspaces={[]} onRefresh={fetchDashboardData} />
+        <LawFirmDashboardSection user={currentUser?.user} cases={cases} workspaces={firmWorkspaces} onRefresh={fetchDashboardData} />
       </div>
     );
   }

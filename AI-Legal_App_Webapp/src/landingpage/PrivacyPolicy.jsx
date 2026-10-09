@@ -329,7 +329,7 @@ const PrivacyPolicy = () => {
                         If you have questions or concerns about this Privacy Policy or our data practices, please contact us:
                     </p>
                     <div className="space-y-2 text-xs sm:text-base text-slate-600">
-                        <p><strong className="text-slate-900">Email:</strong> <a href="mailto:admin@uwo24.com" className="text-amber-600 font-semibold hover:underline">admin@uwo24.com</a></p>
+                        <p><strong className="text-slate-900">Email:</strong> <a href="mailto:ai.legal@uwo24.com" className="text-amber-600 font-semibold hover:underline">ai.legal@uwo24.com</a></p>
                         <p><strong className="text-slate-900">Phone:</strong> <a href="tel:+918359890909" className="text-amber-600 font-semibold hover:underline">+91 83589 90909</a></p>
                         <p><strong className="text-slate-900">Address:</strong> Jabalpur, Madhya Pradesh, India</p>
                     </div>

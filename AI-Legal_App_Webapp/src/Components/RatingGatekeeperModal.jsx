@@ -258,7 +258,7 @@ export default function RatingGatekeeperModal() {
               </h3>
 
               <p className="text-xs text-slate-600 dark:text-slate-400 mb-4 leading-relaxed">
-                Tell our senior leadership team what didn&apos;t meet your standards. Your report is directly sent to <span className="font-semibold text-amber-500">admin@uwo24.com</span>.
+                Tell our senior leadership team what didn&apos;t meet your standards. Your report is directly sent to <span className="font-semibold text-amber-500">ai.legal@uwo24.com</span>.
               </p>
 
               {/* Interactive Star Rating */}
@@ -336,7 +336,7 @@ export default function RatingGatekeeperModal() {
               </h3>
 
               <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed max-w-xs mx-auto">
-                Your message has been directly dispatched to <span className="text-amber-500 font-medium">admin@uwo24.com</span>. Our technical and legal teams are already investigating.
+                Your message has been directly dispatched to <span className="text-amber-500 font-medium">ai.legal@uwo24.com</span>. Our technical and legal teams are already investigating.
               </p>
             </div>
           )}

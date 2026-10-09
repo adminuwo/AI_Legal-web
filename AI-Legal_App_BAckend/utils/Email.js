@@ -75,7 +75,7 @@ export const sendFeedbackEmail = async (feedback) => {
     const isUp = feedback.type === 'thumbs_up';
     const response = await resend.emails.send({
       from: `AI LEGAL™ Feedback <${process.env.EMAIL}>`,
-      to: ['admin@uwo24.com'],
+      to: ['ai.legal@uwo24.com'],
       subject: `📢 New Feedback: ${isUp ? 'Positive' : 'Negative'}`,
       html: `
         <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 600px; margin: 20px auto; background: #FFFFFF; border: 1px solid #E2E8F0; border-top: 4px solid #C8A34D; border-radius: 16px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.06);">
@@ -122,7 +122,7 @@ export const sendReviewGatekeeperAlertEmail = async (feedbackData) => {
 
     const response = await resend.emails.send({
       from: `AI LEGAL™ Support Alert <${process.env.EMAIL}>`,
-      to: ['admin@uwo24.com'],
+      to: ['ai.legal@uwo24.com'],
       subject: isNegative 
         ? `🚨 [URGENT FEEDBACK] Negative Review Intercepted on ${platformLabel}`
         : `🌟 [User Feedback] Positive In-App Feedback on ${platformLabel}`,

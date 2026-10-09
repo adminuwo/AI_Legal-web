@@ -1,7 +1,7 @@
 /**
  * AI Legal Web - In-App Rating Gatekeeper Helper
  * Protects store reputation and customer trust by intercepting dissatisfaction internally,
- * alerting admin@uwo24.com directly, and celebrating satisfied users with Google Play review links.
+ * alerting ai.legal@uwo24.com directly, and celebrating satisfied users with Google Play review links.
  */
 
 import axios from 'axios';

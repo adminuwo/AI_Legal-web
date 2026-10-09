@@ -960,7 +960,7 @@ Brief summary of the legal matter and factual matrix.
               <img src="/logo/logo_transparent.png" alt="AI LEGAL Logo" className="w-8 h-8 object-contain" />
               <div>
                 <span className="text-base font-black tracking-tight text-[#0F172A] dark:text-white flex items-center">
-                  AI LEGAL<span className="text-[10px] text-[#B88B2A] font-extrabold ml-0.5">TM</span>
+                  AI LEGAL<span className="text-[10px] text-black dark:text-white font-extrabold ml-0.5">TM</span>
                 </span>
                 <span className="text-[9px] uppercase tracking-widest font-extrabold text-[#B88B2A] block -mt-1">
                   Editorial Publishing Studio

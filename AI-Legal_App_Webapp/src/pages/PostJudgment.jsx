@@ -182,7 +182,7 @@ export default function PostJudgment() {
               <img src="/logo/logo_transparent.png" alt="AI LEGAL Logo" className="w-9 h-9 sm:w-10 sm:h-10 object-contain relative" />
             </div>
             <span className="text-lg sm:text-xl font-black tracking-tight text-[#0F172A] dark:text-white flex items-center">
-              AI LEGAL<span className="text-[10px] text-[#B88B2A] font-extrabold ml-0.5">TM</span>
+              AI LEGAL<span className="text-[10px] text-black dark:text-white font-extrabold ml-0.5">TM</span>
             </span>
           </div>
 

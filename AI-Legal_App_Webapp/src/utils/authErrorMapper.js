@@ -31,6 +31,8 @@ export function parseAuthError(err, context, navigate, onAction) {
     errCode = err.response?.data?.code || "";
   }
 
+  const lowerMsg = (errMsg || "").toLowerCase();
+
   const logDevError = () => {
     // Log detailed errors only in development logs and analytics
     if (process.env.NODE_ENV === 'development' || !process.env.NODE_ENV) {
@@ -114,7 +116,6 @@ export function parseAuthError(err, context, navigate, onAction) {
   }
 
   // 4. Email Already Exists
-  const lowerMsg = errMsg.toLowerCase();
   if (
     lowerMsg.includes("already exists with this email") || 
     lowerMsg.includes("user already exists") ||
@@ -133,6 +134,23 @@ export function parseAuthError(err, context, navigate, onAction) {
       secondaryLabel: "Use Different Email",
       secondaryAction: () => {
         if (onAction) onAction("focusEmail");
+      }
+    };
+  }
+
+  // 4b. Phone Number Validation Error (Length/Digits)
+  if (
+    lowerMsg.includes("phone number must be") || 
+    lowerMsg.includes("invalid phone") || 
+    lowerMsg.includes("phone digits")
+  ) {
+    return {
+      title: "Invalid Phone Number",
+      description: errMsg || "Please enter a valid 10-digit mobile number.",
+      icon: "phone-off",
+      primaryLabel: "Fix Phone Number",
+      primaryAction: () => {
+        if (onAction) onAction("focusPhone");
       }
     };
   }

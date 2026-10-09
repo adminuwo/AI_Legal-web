@@ -97,13 +97,19 @@ const Signup = () => {
     }
 
     const code = selectedCountry.code;
+    let cleanPhone = localPhone.replace(/\D/g, '');
+    if ((code === 'IN' || code === 'US' || code === 'CA') && cleanPhone.startsWith('0')) {
+      cleanPhone = cleanPhone.replace(/^0+/, '');
+      setLocalPhone(cleanPhone);
+    }
+
     if (code === 'IN' || code === 'US' || code === 'CA') {
-      if (localPhone.length !== 10) {
+      if (cleanPhone.length !== 10) {
         triggerError('Phone number must be exactly 10 digits.');
         return false;
       }
     } else {
-      if (localPhone.length < 6 || localPhone.length > 14) {
+      if (cleanPhone.length < 6 || cleanPhone.length > 14) {
         triggerError(`Phone number for ${selectedCountry.name} must be between 6 and 14 digits.`);
         return false;
       }
@@ -111,7 +117,7 @@ const Signup = () => {
 
     const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
     if (!passwordRegex.test(password)) {
-      triggerError('weak password');
+      triggerError('Password must be at least 8 characters and include uppercase, lowercase, number, and special character (@$!%*?&).');
       return false;
     }
 
@@ -141,6 +147,12 @@ const Signup = () => {
         ? (stateList.find(s => s.name === selectedState)?.language || 'English') 
         : (selectedCountry.code === 'NP' ? 'Nepali' : 'English');
 
+      const code = selectedCountry.code;
+      let cleanPhone = localPhone.replace(/\D/g, '');
+      if ((code === 'IN' || code === 'US' || code === 'CA') && cleanPhone.startsWith('0')) {
+        cleanPhone = cleanPhone.replace(/^0+/, '');
+      }
+
       const payLoad = {
         name,
         fullName: name,
@@ -148,7 +160,7 @@ const Signup = () => {
         password,
         accountType,
         firmRole: 'owner',
-        phone: localPhone,
+        phone: cleanPhone,
         country: selectedCountry.name,
         countryCode: selectedCountry.code,
         dialCode: selectedCountry.dialCode,
@@ -260,7 +272,7 @@ const Signup = () => {
   });
 
   return (
-    <div className="min-h-screen w-screen flex flex-col bg-[#F4F6FA] dark:bg-[#070A12] text-[#111827] dark:text-slate-100 font-sans selection:bg-[#B88B2A]/25 selection:text-[#111111] transition-colors duration-300">
+    <div className="min-h-screen min-h-[100dvh] w-full flex flex-col bg-[#F4F6FA] dark:bg-[#070A12] text-[#111827] dark:text-slate-100 font-sans selection:bg-[#B88B2A]/25 selection:text-[#111111] transition-colors duration-300 overflow-x-hidden">
       {/* Top Header Navigation Tabs — Matching CLAW Reference & Login */}
       <header className="sticky top-0 z-50 w-full bg-white/95 dark:bg-[#0B0F19]/95 backdrop-blur-md border-b border-slate-200/80 dark:border-slate-800 transition-colors shadow-xs shrink-0">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
@@ -272,7 +284,7 @@ const Signup = () => {
               <img src="/logo/logo_transparent.png" alt="AI LEGAL Logo" className="w-9 h-9 sm:w-10 sm:h-10 object-contain relative" />
             </div>
             <span className="text-lg sm:text-xl font-black tracking-tight text-[#0F172A] dark:text-white flex items-center">
-              AI LEGAL<span className="text-[10px] text-[#B88B2A] font-extrabold ml-0.5">TM</span>
+              AI LEGAL<span className="text-[10px] text-black dark:text-white font-extrabold ml-0.5">TM</span>
             </span>
           </div>
 
@@ -403,11 +415,11 @@ const Signup = () => {
       </header>
 
       {/* Main Centered Content Area with 2-Column Card */}
-      <main className="flex-1 flex items-center justify-center p-3 sm:p-4 md:p-6">
-        <div className="max-w-4xl w-full bg-white dark:bg-[#111625] border border-slate-200/90 dark:border-zinc-800/90 shadow-2xl rounded-2xl sm:rounded-3xl overflow-hidden grid grid-cols-1 md:grid-cols-12 my-auto transition-all duration-300 max-h-[88vh] md:h-[580px]">
+      <main className="flex-1 flex items-center justify-center px-3 py-4 xs:p-4 sm:p-6 w-full">
+        <div className="max-w-md md:max-w-4xl w-full bg-white dark:bg-[#111625] border border-slate-200/90 dark:border-zinc-800/90 shadow-2xl rounded-2xl sm:rounded-3xl overflow-hidden grid grid-cols-1 md:grid-cols-12 my-auto transition-all duration-300 md:h-[600px]">
         
           {/* Left Column: Photorealistic Advocate Aarohi Legal Chamber (Matching Login) */}
-          <div className="md:col-span-5 relative hidden md:flex flex-col justify-between overflow-hidden h-full min-h-[460px] p-6 lg:p-7 text-white border-r border-slate-200/20 dark:border-zinc-800 select-none">
+          <div className="md:col-span-5 relative hidden md:flex flex-col justify-between overflow-hidden md:h-full min-h-[460px] p-6 lg:p-7 text-white border-r border-slate-200/20 dark:border-zinc-800 select-none">
             
             {/* Full-Cover Background Image */}
             <img 
@@ -455,8 +467,8 @@ const Signup = () => {
           </div>
 
           {/* Right Column: Scrollable Signup Form with Compact Height */}
-          <div className="md:col-span-7 h-full flex flex-col bg-white dark:bg-[#111625] overflow-hidden">
-            <div className="overflow-y-auto h-full p-5 sm:p-6 lg:p-7 space-y-3.5 scrollbar-thin scrollbar-thumb-[#B88B2A]/30 scrollbar-track-transparent">
+          <div className="md:col-span-7 flex flex-col bg-white dark:bg-[#111625] md:h-full md:min-h-0 md:overflow-hidden w-full">
+            <div className="p-4.5 xs:p-5 sm:p-6 lg:p-7 space-y-3.5 md:overflow-y-auto md:h-full md:min-h-0 scrollbar-thin scrollbar-thumb-[#B88B2A]/30 scrollbar-track-transparent">
               
               {/* Header Brand Emblem & Greeting */}
               <div className="flex flex-col items-center text-center mb-1">
@@ -588,7 +600,16 @@ const Signup = () => {
                       type="tel"
                       name="phone"
                       value={localPhone}
-                      onChange={(e) => setLocalPhone(e.target.value.replace(/[^0-9]/g, ''))}
+                      onChange={(e) => {
+                        let val = e.target.value.replace(/[^0-9]/g, '');
+                        if (selectedCountry.code === 'IN' && val.startsWith('0')) {
+                          val = val.replace(/^0+/, '');
+                        }
+                        if (selectedCountry.code === 'IN' || selectedCountry.code === 'US' || selectedCountry.code === 'CA') {
+                          val = val.slice(0, 10);
+                        }
+                        setLocalPhone(val);
+                      }}
                       placeholder={selectedCountry.code === 'IN' ? 'Enter 10-digit mobile number' : 'Enter phone number'}
                       className="w-full bg-transparent py-2 px-3 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-zinc-600 focus:outline-none text-xs"
                       required
@@ -601,7 +622,7 @@ const Signup = () => {
                   <label className="block text-[11px] font-bold text-slate-700 dark:text-zinc-300 uppercase tracking-wider mb-1.5">
                     I am a
                   </label>
-                  <div className="grid grid-cols-3 gap-2">
+                  <div className="grid grid-cols-3 gap-1.5 sm:gap-2">
                     {[
                       { id: 'advocate', label: 'Advocate', iconChar: '⚖' },
                       { id: 'student', label: 'Student', iconChar: '🎓' },
@@ -613,14 +634,14 @@ const Signup = () => {
                           key={role.id}
                           type="button"
                           onClick={() => setAccountType(role.id)}
-                          className={`py-2 px-2 rounded-xl flex items-center justify-center gap-1.5 text-xs font-semibold transition-all cursor-pointer ${
+                          className={`py-2 px-1 sm:px-2 rounded-xl flex items-center justify-center gap-1 sm:gap-1.5 text-[11px] sm:text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${
                             isSelected
                               ? 'border-2 border-[#B88B2A] bg-[#B88B2A]/10 text-[#966d1b] dark:text-[#E2C374] font-bold shadow-xs'
                               : 'border border-slate-200 dark:border-zinc-800 text-slate-600 dark:text-zinc-400 hover:border-slate-300 dark:hover:border-zinc-700 bg-slate-50/50 dark:bg-[#181818]'
                           }`}
                         >
-                          <span className="text-sm">{role.iconChar}</span>
-                          <span>{role.label}</span>
+                          <span className="text-xs sm:text-sm shrink-0">{role.iconChar}</span>
+                          <span className="truncate">{role.label}</span>
                         </button>
                       );
                     })}

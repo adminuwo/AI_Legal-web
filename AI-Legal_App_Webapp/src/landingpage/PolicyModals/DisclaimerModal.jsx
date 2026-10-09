@@ -140,7 +140,7 @@ const DisclaimerModal = ({ isOpen, onClose }) => {
                         {/* Contact */}
                         <div className="bg-gradient-to-r from-amber-500/5 to-primary/5 rounded-xl p-4 border border-amber-500/20 text-xs text-subtext space-y-1">
                             <p><strong className="text-maintext">UNIFIED WEB OPTIONS & SERVICES PRIVATE LIMITED</strong></p>
-                            <p>Email: <a href="mailto:admin@uwo24.com" className="text-amber-600 hover:underline">admin@uwo24.com</a> | Helpline: +91 83589 90909</p>
+                            <p>Email: <a href="mailto:ai.legal@uwo24.com" className="text-amber-600 hover:underline">ai.legal@uwo24.com</a> | Helpline: +91 83589 90909</p>
                         </div>
                     </div>
 

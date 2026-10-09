@@ -155,7 +155,7 @@ export default function CookiePolicy() {
             </div>
             <span className="text-lg sm:text-xl font-black tracking-tight text-[#0F172A] dark:text-white flex items-center">
               AI LEGAL
-              <span className="text-[10px] align-super text-[#B88B2A] font-extrabold ml-0.5">TM</span>
+              <span className="text-[10px] align-super text-black dark:text-white font-extrabold ml-0.5">TM</span>
             </span>
           </div>
 
@@ -480,8 +480,8 @@ export default function CookiePolicy() {
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2 text-xs">
               <div className="p-3.5 rounded-2xl bg-white/80 dark:bg-slate-900/80 border border-slate-200/80 dark:border-slate-800">
                 <div className="text-[10px] uppercase font-bold text-slate-400">Official Inquiries</div>
-                <a href="mailto:admin@uwo24.com" className="font-bold text-[#B88B2A] hover:underline mt-0.5 block">
-                  admin@uwo24.com
+                <a href="mailto:ai.legal@uwo24.com" className="font-bold text-[#B88B2A] hover:underline mt-0.5 block">
+                  ai.legal@uwo24.com
                 </a>
               </div>
 

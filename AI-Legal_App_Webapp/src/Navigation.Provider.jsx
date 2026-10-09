@@ -9,6 +9,7 @@ import Signup from './pages/Signup';
 import VerificationForm from './pages/VerificationForm';
 import Sidebar from './Components/SideBar/Sidebar.jsx';
 import Pricing from './landingpage/Pricing';
+import PublicFeatures from './pages/PublicFeatures';
 import CreditUpsellPopup from './Components/CreditUpsellPopup';
 import SharedChat from './pages/SharedChat';
 
@@ -19,7 +20,7 @@ import { AppRoute, apis, API } from './types';
 import { Menu, Bell, Sun, Moon, LogIn, User, Gavel, Scale } from 'lucide-react';
 import { useTheme } from './context/ThemeContext';
 import { useRecoilState, useRecoilValue, useSetRecoilState } from 'recoil';
-import { toggleState, getUserData, clearUser, activeModeData, activeLegalToolData, legalViewData, userData, setUserData } from './userStore/userData';
+import { toggleState, getUserData, clearUser, activeModeData, activeLegalToolData, legalViewData, userData, setUserData, selectedRoleState } from './userStore/userData';
 import axios from 'axios';
 import { usePersonalization } from './context/PersonalizationContext';
 import NotificationCenter from './Components/NotificationBar/NotificationCenter.jsx';
@@ -92,7 +93,6 @@ const EnterpriseAddons = lazy(() => import('./pages/Enterprise/EnterpriseAddons'
 const EnterpriseReports = lazy(() => import('./pages/Enterprise/EnterpriseReports'));
 const EnterpriseSettings = lazy(() => import('./pages/Enterprise/EnterpriseSettings'));
 
-const PublicFeatures = lazy(() => import('./pages/PublicFeatures'));
 const PublicLegalResearch = lazy(() => import('./pages/PublicLegalResearch'));
 const PublicBlog = lazy(() => import('./pages/PublicBlog'));
 const InHouseBlogPublisher = lazy(() => import('./pages/InHouseBlogPublisher'));
@@ -193,6 +193,7 @@ const DashboardLayout = () => {
   const currentMode = useRecoilValue(activeModeData);
   const selectedLegalTool = useRecoilValue(activeLegalToolData);
   const legalView = useRecoilValue(legalViewData);
+  const setSelectedRole = useSetRecoilState(selectedRoleState);
   const isMobile = window.innerWidth < 768;
   const searchParams = new URLSearchParams(location.search);
   const tool = searchParams.get("tool");
@@ -244,6 +245,14 @@ const DashboardLayout = () => {
         const current = getUserData() || {};
         const updated = setUserData({ ...current, ...freshUser });
         setUserRecoil({ user: updated });
+        const authoritativeRole = freshUser.accountType || freshUser.role;
+        if (authoritativeRole && ['advocate', 'law_firm', 'student'].includes(authoritativeRole)) {
+          const currentSaved = localStorage.getItem('user_selected_role');
+          if (!currentSaved || currentSaved !== authoritativeRole) {
+            localStorage.setItem('user_selected_role', authoritativeRole);
+            setSelectedRole(authoritativeRole);
+          }
+        }
       }
     })
     .catch((err) => {
@@ -484,11 +493,7 @@ const NavigateProvider = () => {
         <Route path="/pricing" element={<Pricing />} />
         <Route path="/legal-pricing" element={<LegalPricingPortal />} />
         <Route path="/subscription-checkout" element={<LegalPricingPortal />} />
-        <Route path="/features" element={
-          <Suspense fallback={<div className="flex items-center justify-center h-screen bg-slate-950 text-[#B88B2A] font-bold">Loading Features...</div>}>
-            <PublicFeatures />
-          </Suspense>
-        } />
+        <Route path="/features" element={<PublicFeatures />} />
         <Route path="/legal-research" element={
           <Suspense fallback={<div className="flex items-center justify-center h-screen bg-slate-950 text-[#B88B2A] font-bold">Loading Legal Research...</div>}>
             <PublicLegalResearch />

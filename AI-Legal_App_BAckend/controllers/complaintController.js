@@ -99,7 +99,7 @@ export const createComplaint = async (req, res) => {
         console.error('❌ [ComplaintController] Error creating complaint:', error);
         return res.status(500).json({
             success: false,
-            error: 'Failed to record complaint'
+            error: error.message || 'Failed to record complaint'
         });
     }
 };

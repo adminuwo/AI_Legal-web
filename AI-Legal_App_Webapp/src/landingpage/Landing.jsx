@@ -221,7 +221,7 @@ export default function Landing() {
         toast.error(data.error || 'Failed to submit query. Please try again.');
       }
     } catch (err) {
-      toast.error('Network error. Please try again or email admin@uwo24.com.');
+      toast.error('Network error. Please try again or email ai.legal@uwo24.com.');
     } finally {
       setIsSubmittingQuery(false);
     }
@@ -238,10 +238,9 @@ export default function Landing() {
   const [isScrolled, setIsScrolled] = useState(false);
 
   useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
     const handleScroll = () => {
-      const heroElement = document.getElementById('hero');
-      const threshold = heroElement ? Math.max(heroElement.offsetHeight - 90, 450) : 500;
-      setIsScrolled(window.scrollY > threshold);
+      setIsScrolled(window.scrollY > 20);
     };
     handleScroll();
     window.addEventListener('scroll', handleScroll, { passive: true });
@@ -534,10 +533,10 @@ export default function Landing() {
       {/* =========================================================================
           SECTION 3: TOP NAVIGATION (CLAW-INSPIRED ARCHITECTURE)
       ========================================================================= */}
-      <header className={`sticky top-0 z-50 w-full transition-all duration-300 ${
+      <header className={`fixed top-0 inset-x-0 z-50 w-full transition-all duration-300 ${
         isScrolled || mobileMenuOpen
           ? 'bg-white/95 dark:bg-[#0B0F19]/95 backdrop-blur-md border-b border-slate-200/80 dark:border-slate-800 shadow-xs'
-          : 'bg-transparent border-none border-b-0 shadow-none backdrop-blur-none'
+          : 'bg-transparent border-b border-transparent shadow-none'
       }`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-18 flex items-center justify-between">
           
@@ -558,7 +557,7 @@ export default function Landing() {
             </div>
             <span className="text-lg sm:text-xl font-black tracking-tight text-[#0F172A] dark:text-white flex items-center">
               AI LEGAL
-              <span className="text-[10px] align-super text-[#B88B2A] font-extrabold ml-0.5">TM</span>
+              <span className="text-[10px] align-super text-black dark:text-white font-extrabold ml-0.5">TM</span>
             </span>
           </div>
 
@@ -746,19 +745,21 @@ export default function Landing() {
       ========================================================================= */}
       <section 
         id="hero" 
-        className="relative overflow-hidden min-h-0 lg:min-h-screen lg:min-h-[100dvh] w-full max-w-full -mt-[72px] pt-[84px] sm:pt-[96px] lg:pt-[104px] pb-10 sm:pb-14 flex items-center border-b border-slate-200/80 dark:border-slate-800/80 bg-[#F8FAFC] dark:bg-[#070A12]"
+        className="relative overflow-hidden min-h-0 lg:min-h-screen lg:min-h-[100dvh] w-full max-w-full pt-[84px] sm:pt-[96px] lg:pt-[104px] pb-10 sm:pb-14 flex items-center border-b border-slate-200/80 dark:border-slate-800/80 bg-[#F5F2EB] dark:bg-[#070A12]"
       >
         {/* Desktop Background Video: Full widescreen loop on desktop screens */}
         <div className="hidden lg:block absolute inset-0 w-full h-full min-w-full min-h-full overflow-hidden pointer-events-none z-0">
           {/* Video 1: Gemini generated (Gradual Zoom In) */}
           <motion.video
             ref={video1Ref}
-            src="/video/gemini_generated_video_b4fbf4cf.mp4"
+            src="/video/gemini_generated_video_b4fbf4cf.mp4?v=clean"
+            poster="/video/home_poster.webp"
             autoPlay
             muted
             playsInline
             webkit-playsinline="true"
             preload="auto"
+            initial={false}
             onTimeUpdate={handleTimeUpdate1}
             onEnded={handleVideo1Ended}
             animate={{
@@ -782,6 +783,7 @@ export default function Landing() {
             playsInline
             webkit-playsinline="true"
             preload="auto"
+            initial={false}
             onTimeUpdate={handleTimeUpdate2}
             onEnded={handleVideo2Ended}
             animate={{
@@ -820,12 +822,14 @@ export default function Landing() {
               {/* Mobile Video 1: Gemini generated (Gradual Zoom In) */}
               <motion.video
                 ref={video1MobileRef}
-                src="/video/gemini_generated_video_b4fbf4cf.mp4"
+                src="/video/gemini_generated_video_b4fbf4cf.mp4?v=clean"
+                poster="/video/home_poster.webp"
                 autoPlay
                 muted
                 playsInline
                 webkit-playsinline="true"
                 preload="auto"
+                initial={false}
                 onTimeUpdate={handleTimeUpdate1}
                 onEnded={handleVideo1Ended}
                 animate={{
@@ -849,6 +853,7 @@ export default function Landing() {
                 playsInline
                 webkit-playsinline="true"
                 preload="auto"
+                initial={false}
                 onTimeUpdate={handleTimeUpdate2}
                 onEnded={handleVideo2Ended}
                 animate={{
@@ -1727,7 +1732,7 @@ export default function Landing() {
                 {querySubmitSuccess && (
                   <div className="mt-3 p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-700 dark:text-emerald-400 text-xs font-semibold flex items-center gap-2">
                     <CheckCircle2 size={16} className="text-emerald-600 dark:text-emerald-400 shrink-0" />
-                    <span>Your query has been sent directly to admin@uwo24.com. Our legal team will reach out soon!</span>
+                    <span>Your query has been sent directly to ai.legal@uwo24.com. Our legal team will reach out soon!</span>
                   </div>
                 )}
 

@@ -5,7 +5,7 @@ const EMAIL_CONFIG = {
     service: process.env.EMAIL_SERVICE || 'gmail',
     user: (process.env.EMAIL_HOST_USER || process.env.EMAIL || process.env.EMAIL_USER || 'admin@uwo24.com').trim(),
     password: (process.env.EMAIL_HOST_PASSWORD || process.env.EMAIL_PASSWORD || 'tasj erpk zgpx hgfn').trim(),
-    adminEmail: process.env.ADMIN_EMAIL || 'admin@uwo24.com'
+    adminEmail: process.env.ADMIN_EMAIL || 'ai.legal@uwo24.com'
 };
 
 const LOGO_URL = 'https://ailegal.aisa24.com/logo-transparent.png';
@@ -13,16 +13,6 @@ const LOGO_URL = 'https://ailegal.aisa24.com/logo-transparent.png';
 // Create transporter
 const createTransporter = () => {
     try {
-        if (process.env.EMAIL_HOST_USER && process.env.EMAIL_HOST_PASSWORD) {
-            return nodemailer.createTransport({
-                service: 'gmail',
-                auth: {
-                    user: process.env.EMAIL_HOST_USER.trim(),
-                    pass: process.env.EMAIL_HOST_PASSWORD.trim()
-                }
-            });
-        }
-
         if (process.env.RESEND_API_KEY) {
             return nodemailer.createTransport({
                 host: "smtp.resend.com",
@@ -31,6 +21,16 @@ const createTransporter = () => {
                 auth: {
                     user: "resend",
                     pass: process.env.RESEND_API_KEY.trim()
+                }
+            });
+        }
+
+        if (process.env.EMAIL_HOST_USER && process.env.EMAIL_HOST_PASSWORD) {
+            return nodemailer.createTransport({
+                service: 'gmail',
+                auth: {
+                    user: process.env.EMAIL_HOST_USER.trim(),
+                    pass: process.env.EMAIL_HOST_PASSWORD.trim()
                 }
             });
         }
@@ -64,7 +64,7 @@ export const sendAdminNotification = async (ticket) => {
     const ticketRef = ticketId.length >= 24 ? ticketId.substring(18).toUpperCase() : ticketId;
 
     const mailOptions = {
-        from: EMAIL_CONFIG.user,
+        from: `AI LEGAL™ Support <${process.env.EMAIL || 'verification@ai-mall.in'}>`,
         to: EMAIL_CONFIG.adminEmail,
         subject: `🎫 New Support Ticket [${ticketType}] - #${ticketRef}`,
         html: `
@@ -129,7 +129,7 @@ export const sendVendorReply = async (vendorEmail, vendorName, message, ticketId
     }
 
     const mailOptions = {
-        from: EMAIL_CONFIG.user,
+        from: `AI LEGAL™ Support <${process.env.EMAIL || 'verification@ai-mall.in'}>`,
         to: vendorEmail,
         subject: `✉️ Reply from AI LEGAL™ Admin - Ticket #${ticketId.substring(18).toUpperCase()}`,
         html: `
@@ -190,7 +190,7 @@ export const sendFeedbackAdminNotification = async (feedback) => {
     }
 
     const mailOptions = {
-        from: EMAIL_CONFIG.user,
+        from: `AI LEGAL™ Feedback <${process.env.EMAIL || 'verification@ai-mall.in'}>`,
         to: EMAIL_CONFIG.adminEmail,
         subject: `📢 New User Feedback - ${feedback.type === 'thumbs_up' ? 'Positive' : 'Negative'}`,
         html: `
@@ -250,11 +250,11 @@ export const sendFeedbackAdminNotification = async (feedback) => {
 };
 
 /**
- * Send AI Response Complaint notification email to admin@uwo24.com
+ * Send AI Response Complaint notification email to ai.legal@uwo24.com
  */
 export const sendComplaintEmail = async (complaint) => {
     const transporter = createTransporter();
-    const adminRecipient = 'admin@uwo24.com';
+    const adminRecipient = 'ai.legal@uwo24.com';
 
     if (!transporter) {
         console.warn('[EMAIL SERVICE] Transporter not configured, skipping complaint email');
@@ -262,7 +262,7 @@ export const sendComplaintEmail = async (complaint) => {
     }
 
     const mailOptions = {
-        from: `"AI Legal Admin" <${EMAIL_CONFIG.user}>`,
+        from: `AI LEGAL™ System <${process.env.EMAIL || 'verification@ai-mall.in'}>`,
         to: adminRecipient,
         subject: `AI Response Complaint - [${complaint.category}]`,
         html: `
@@ -321,7 +321,7 @@ export const sendComplaintEmail = async (complaint) => {
 
                 <div style="background: #F8FAFC; padding: 18px 24px; border-top: 1px solid #E2E8F0; text-align: center; color: #64748B; font-size: 12px;">
                     <p style="margin: 0; color: #B48628; font-weight: bold;">AI LEGAL™ Complaint Management System</p>
-                    <p style="margin: 4px 0 0 0; color: #94A3B8;">Sent directly to admin@uwo24.com</p>
+                    <p style="margin: 4px 0 0 0; color: #94A3B8;">Sent directly to ai.legal@uwo24.com</p>
                 </div>
             </div>
         `
@@ -504,11 +504,11 @@ export const sendShareLinkEmail = async (targetEmail, shareLink, sessionTitle, s
     }
 };
 
-// Send Public Contact Query Email to admin@uwo24.com
+// Send Public Contact Query Email to ai.legal@uwo24.com
 export const sendPublicContactQueryEmail = async (queryData) => {
     const { firstName, lastName, email, contactNo, pinCode, country, description } = queryData;
     const fullName = `${firstName || ''} ${lastName || ''}`.trim() || 'Prospective Advocate';
-    const adminEmail = process.env.ADMIN_EMAIL || 'admin@uwo24.com';
+    const adminEmail = process.env.ADMIN_EMAIL || 'ai.legal@uwo24.com';
     const emailSubject = `⚖️ New Query Received from ${fullName} (${country || 'India'})`;
 
     const htmlContent = `
@@ -566,7 +566,7 @@ export const sendPublicContactQueryEmail = async (queryData) => {
             </div>
             
             <div style="padding: 16px 24px; border-top: 1px solid #E2E8F0; text-align: center; color: #64748B; font-size: 11px; background: #F8FAFC;">
-                AI LEGAL™ Automated Dispatch • Forwarded to admin@uwo24.com
+                AI LEGAL™ Automated Dispatch • Forwarded to ai.legal@uwo24.com
             </div>
         </div>
     `;

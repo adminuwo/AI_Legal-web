@@ -290,7 +290,7 @@ const HelpSupport = () => {
             
             {/* Email card */}
             <a 
-              href="mailto:support@ai-legal.in" 
+              href="mailto:ai.legal@uwo24.com" 
               className="p-5 border border-slate-100 rounded-2xl bg-white hover:border-[#6D5DFC]/30 hover:bg-[#F9FAFB]/20 transition-all flex items-start gap-4 text-left group"
             >
               <div className="w-10 h-10 rounded-xl bg-[#6D5DFC]/10 flex items-center justify-center text-[#6D5DFC] shrink-0">
@@ -301,7 +301,7 @@ const HelpSupport = () => {
                   <h3 className="text-xs font-bold text-slate-800">Email Support</h3>
                   <ArrowUpRight className="w-3.5 h-3.5 text-slate-300 group-hover:text-[#6D5DFC] transition-colors" />
                 </div>
-                <p className="text-[10px] text-slate-400 font-semibold mt-0.5">support@ai-legal.in</p>
+                <p className="text-[10px] text-slate-400 font-semibold mt-0.5">ai.legal@uwo24.com</p>
                 <p className="text-[10px] font-bold text-slate-500 mt-2">Response: Within 24 Hours</p>
               </div>
             </a>

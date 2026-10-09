@@ -172,7 +172,7 @@ export default function PublicLegalResearch() {
           <div onClick={() => navigate('/')} className="flex items-center gap-2.5 cursor-pointer select-none">
             <img src="/logo/logo_transparent.png" alt="AI LEGAL Logo" className="w-9 h-9 object-contain" />
             <span className="text-lg font-black tracking-tight text-[#0F172A] dark:text-white flex items-center">
-              AI LEGAL<span className="text-[10px] text-[#B88B2A] font-extrabold ml-0.5">TM</span>
+              AI LEGAL<span className="text-[10px] text-black dark:text-white font-extrabold ml-0.5">TM</span>
             </span>
           </div>
 

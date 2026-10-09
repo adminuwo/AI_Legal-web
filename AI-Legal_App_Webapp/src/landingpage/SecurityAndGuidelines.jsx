@@ -37,7 +37,7 @@ const SecurityAndGuidelines = () => {
 
                         <div>
                             <h4 className="font-semibold text-maintext">1.4 User Rights</h4>
-                            <p className="text-sm text-subtext">Users retain the right to access, rectify, or request deletion of their data by contacting <a href="mailto:admin@uwo24.com" className="text-primary hover:underline">admin@uwo24.com</a>.</p>
+                            <p className="text-sm text-subtext">Users retain the right to access, rectify, or request deletion of their data by contacting <a href="mailto:ai.legal@uwo24.com" className="text-primary hover:underline">ai.legal@uwo24.com</a>.</p>
                         </div>
                     </div>
                 </div>
@@ -172,7 +172,7 @@ const SecurityAndGuidelines = () => {
             id: 11,
             title: "11. Contact Information",
             icon: <FileText className="w-5 h-5 text-primary" />,
-            content: <p className="text-subtext">For questions, concerns, or rights-related requests, contact <a href="mailto:admin@uwo24.com" className="text-primary hover:underline">admin@uwo24.com</a>.</p>
+            content: <p className="text-subtext">For questions, concerns, or rights-related requests, contact <a href="mailto:ai.legal@uwo24.com" className="text-primary hover:underline">ai.legal@uwo24.com</a>.</p>
         },
         {
             id: 12,

@@ -16,6 +16,8 @@ import { getUserData } from '../userStore/userData';
 
 export default function PublicFeatures() {
   const navigate = useNavigate();
+  const heroVideoRef = useRef(null);
+  const mobileHeroVideoRef = useRef(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const token = localStorage.getItem('token');
   const user = getUserData();
@@ -31,11 +33,22 @@ export default function PublicFeatures() {
   const [isScrolled, setIsScrolled] = useState(false);
 
   useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
     const handleScroll = () => {
-      setIsScrolled(window.scrollY > 30);
+      setIsScrolled(window.scrollY > 20);
     };
+    handleScroll();
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  useEffect(() => {
+    if (heroVideoRef.current) {
+      heroVideoRef.current.playbackRate = 0.85;
+    }
+    if (mobileHeroVideoRef.current) {
+      mobileHeroVideoRef.current.playbackRate = 0.85;
+    }
   }, []);
 
   const DEMO_DURATION = 4200; // 4.2 seconds per feature
@@ -435,7 +448,11 @@ export default function PublicFeatures() {
   return (
     <div className="min-h-screen w-full max-w-full overflow-x-hidden bg-white dark:bg-[#0B0F19] text-[#0F172A] dark:text-slate-100 font-sans selection:bg-[#B88B2A]/25 selection:text-[#111111]">
       {/* Top Header Navbar */}
-      <header className="sticky top-0 z-50 w-full bg-white/95 dark:bg-[#0B0F19]/95 backdrop-blur-md border-b border-slate-200/80 dark:border-slate-800/80 shadow-xs transition-colors">
+      <header className={`fixed top-0 inset-x-0 z-50 w-full transition-all duration-300 ${
+        (isScrolled || mobileMenuOpen)
+          ? 'bg-white/95 dark:bg-[#0B0F19]/95 backdrop-blur-md border-b border-slate-200/80 dark:border-slate-800/80 shadow-xs'
+          : 'bg-transparent border-b border-transparent shadow-none'
+      }`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-18 flex items-center justify-between">
           <div onClick={() => navigate('/')} className="flex items-center gap-2.5 cursor-pointer select-none group">
             <div className="relative flex items-center justify-center">
@@ -443,7 +460,7 @@ export default function PublicFeatures() {
               <img src="/logo/logo_transparent.png" alt="AI LEGAL Logo" className="w-9 h-9 sm:w-10 sm:h-10 object-contain relative" />
             </div>
             <span className="text-lg sm:text-xl font-black tracking-tight text-[#0F172A] dark:text-white flex items-center">
-              AI LEGAL<span className="text-[10px] text-[#B88B2A] font-extrabold ml-0.5">TM</span>
+              AI LEGAL<span className="text-[10px] text-black dark:text-white font-extrabold ml-0.5">TM</span>
             </span>
           </div>
 
@@ -590,72 +607,112 @@ export default function PublicFeatures() {
       </header>
 
       {/* =========================================================================
-          SECTION 1: HERO SECTION (CENTERED LAYOUT, NO VIDEO, LUXURY BRAND STYLE)
-      ========================================================================= */}
-      {/* =========================================================================
-          SECTION 1: HERO SECTION (CENTERED LAYOUT, NO VIDEO, LUXURY BRAND STYLE)
+          SECTION 1: HERO SECTION (FULL SCREEN HEIGHT, VIDEO BACKGROUND, TEXT LEFT, PHONE RIGHT)
       ========================================================================= */}
       <section 
         id="hero" 
-        className="relative overflow-hidden pt-12 sm:pt-20 lg:pt-24 pb-14 sm:pb-20 lg:pb-24 border-b border-slate-200/80 dark:border-slate-800/80 bg-[#F8FAFC] dark:bg-[#070A12]"
+        className="relative overflow-hidden w-full min-h-0 lg:h-[100dvh] lg:max-h-[100dvh] pt-[72px] sm:pt-[80px] lg:pt-[72px] pb-8 sm:pb-12 lg:pb-0 border-b border-slate-200/80 dark:border-slate-800/80 bg-[#F5F2EB] dark:bg-[#070A12] flex items-center"
       >
-        {/* Crisp dot grid pattern with smooth radial vignette mask so it fades gently */}
+        {/* Crisp dot grid pattern with smooth radial vignette mask */}
         <div 
           className="absolute inset-0 pointer-events-none bg-[radial-gradient(#CBD5E1_1px,transparent_1px)] dark:bg-[radial-gradient(rgba(184,139,42,0.18)_1px,transparent_1px)] bg-[size:20px_20px] sm:bg-[size:24px_24px] opacity-75 dark:opacity-85 [mask-image:radial-gradient(ellipse_80%_65%_at_50%_45%,black_35%,transparent_90%)]" 
         />
 
-        {/* Seamless ambient center radial glow — pure CSS radial-gradient (no hard bounding box or clipping) */}
-        <div 
-          className="absolute inset-0 pointer-events-none bg-[radial-gradient(ellipse_70%_55%_at_50%_45%,rgba(184,139,42,0.08)_0%,rgba(184,139,42,0.02)_50%,transparent_100%)] dark:bg-[radial-gradient(ellipse_70%_55%_at_50%_45%,rgba(184,139,42,0.18)_0%,rgba(184,139,42,0.04)_50%,transparent_100%)]" 
-        />
-
-        {/* Subtle top golden light wash */}
-        <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-amber-500/[0.03] via-transparent to-transparent" />
-
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center flex flex-col items-center space-y-4 sm:space-y-6">
-          {/* Eyebrow Label — Centered */}
-          <div className="inline-flex items-center justify-center gap-1.5 sm:gap-2 text-[10px] sm:text-xs font-mono font-bold tracking-wider sm:tracking-widest uppercase text-[#B38628] dark:text-amber-400">
-            <span className="w-3 sm:w-4 h-[1.5px] sm:h-[2px] bg-[#B88B2A] inline-block" />
-            <span>THE AI LEGAL™ LITIGATION SUITE</span>
-            <span className="w-3 sm:w-4 h-[1.5px] sm:h-[2px] bg-[#B88B2A] inline-block" />
+        {/* Desktop Background Video: Cleanly sized phone showcase that never clips in the navbar */}
+        <div className="hidden lg:block absolute inset-0 w-full h-full min-w-full min-h-full overflow-hidden pointer-events-none z-0">
+          <div className="absolute right-0 top-0 bottom-0 w-[62vw] xl:w-[56vw] 2xl:w-[50vw] h-full flex items-center justify-end">
+            <video
+              ref={heroVideoRef}
+              src="/video/features_suite_showcase.mp4?v=clean2"
+              poster="/video/features_poster.webp"
+              autoPlay
+              loop
+              muted
+              playsInline
+              webkit-playsinline="true"
+              preload="auto"
+              onLoadedMetadata={(e) => {
+                e.currentTarget.playbackRate = 0.85;
+              }}
+              style={{ objectPosition: '84% 20%' }}
+              className="w-full h-full object-cover"
+            />
           </div>
+          {/* Soft gradient wash on the left to ensure headline & text are 100% crisp & readable */}
+          <div className="absolute inset-0 bg-gradient-to-r from-[#F5F2EB] via-[#F5F2EB]/85 to-transparent via-50% dark:from-[#070A12] dark:via-[#070A12]/85 dark:to-transparent pointer-events-none" />
+          {/* Top smooth blend for seamless navbar integration */}
+          <div className="absolute top-0 inset-x-0 h-16 bg-gradient-to-b from-[#F5F2EB]/60 to-transparent dark:from-[#070A12]/70 dark:to-transparent pointer-events-none" />
+          {/* Bottom vignette */}
+          <div className="absolute bottom-0 inset-x-0 h-20 bg-gradient-to-t from-[#F5F2EB]/80 dark:from-[#070A12] to-transparent pointer-events-none" />
+        </div>
 
-          {/* Main Centered Headline */}
-          <h1 className="text-[26px] xs:text-[28px] sm:text-4xl md:text-5xl lg:text-6xl font-black text-[#0F172A] dark:text-white tracking-tight leading-[1.18] sm:leading-[1.14] max-w-3xl mx-auto">
-            All Your Legal Work,<br />
-            <span className="text-[#B38628] dark:text-amber-400">In One Intelligent Platform.</span>
-          </h1>
-
-          {/* Subtitle Paragraph — Centered */}
-          <p className="text-xs sm:text-base lg:text-lg text-slate-600 dark:text-slate-300 leading-relaxed font-normal max-w-2xl mx-auto px-1 sm:px-0">
-            From case research and judgment analysis to court drafting and argument practice — everything Indian advocates need in one seamless workspace. Explore each feature below with interactive live demos.
-          </p>
-
-          {/* Value & Trust Badges — Centered */}
-          <div className="flex flex-wrap items-center justify-center gap-1.5 sm:gap-2.5 pt-1 max-w-xl mx-auto">
-            <div className="px-2.5 sm:px-3.5 py-1.5 rounded-lg bg-white dark:bg-[#0B1120] border border-slate-200/80 dark:border-slate-800 text-[11px] sm:text-xs font-semibold text-slate-700 dark:text-slate-300 shadow-2xs flex items-center gap-1.5">
-              <Scale size={13} className="text-[#B38628] shrink-0" />
-              <span>Supreme Court & High Courts</span>
+        {/* Content Container: Aligned Left with Phone on the Right */}
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full relative z-10">
+          <div className="w-full lg:max-w-2xl text-left flex flex-col items-start space-y-3.5 sm:space-y-4 lg:space-y-4 xl:space-y-5">
+            
+            {/* Eyebrow Label — Left Aligned */}
+            <div className="inline-flex items-center justify-start gap-1.5 sm:gap-2 text-[10px] sm:text-xs font-mono font-bold tracking-wider sm:tracking-widest uppercase text-[#B38628] dark:text-amber-400">
+              <span className="w-3 sm:w-4 h-[1.5px] sm:h-[2px] bg-[#B88B2A] inline-block" />
+              <span>THE AI LEGAL™ LITIGATION SUITE</span>
+              <span className="w-3 sm:w-4 h-[1.5px] sm:h-[2px] bg-[#B88B2A] inline-block" />
             </div>
-            <div className="px-2.5 sm:px-3.5 py-1.5 rounded-lg bg-white dark:bg-[#0B1120] border border-slate-200/80 dark:border-slate-800 text-[11px] sm:text-xs font-semibold text-slate-700 dark:text-slate-300 shadow-2xs flex items-center gap-1.5">
-              <Sparkles size={13} className="text-[#B38628] shrink-0" />
-              <span>3.8 Cr+ Verified Judgments</span>
-            </div>
-            <div className="px-2.5 sm:px-3.5 py-1.5 rounded-lg bg-white dark:bg-[#0B1120] border border-slate-200/80 dark:border-slate-800 text-[11px] sm:text-xs font-semibold text-slate-700 dark:text-slate-300 shadow-2xs flex items-center gap-1.5">
-              <ShieldCheck size={13} className="text-emerald-600 dark:text-emerald-400 shrink-0" />
-              <span>BNS / BNSS / BSA Native Grounding</span>
-            </div>
-          </div>
 
-          {/* Hero CTA Button — Centered */}
-          <div className="pt-2 flex flex-wrap items-center justify-center gap-3 w-full sm:w-auto">
-            <button
-              onClick={() => handleCta('/signup')}
-              className="gold-shimmer-btn w-full max-w-[280px] sm:w-auto px-7 sm:px-8 py-3 sm:py-3.5 rounded-xl text-xs sm:text-base font-black text-[#111111] bg-gradient-to-b from-[#D4AF37] to-[#B88B2A] hover:brightness-105 active:scale-98 transition-all cursor-pointer shadow-md shadow-[#B88B2A]/25 flex items-center justify-center gap-2 hover:-translate-y-0.5"
-            >
-              <span>Start your free trial</span>
-              <ChevronRight size={18} />
-            </button>
+            {/* Main Headline — Left Aligned */}
+            <h1 className="text-[28px] xs:text-[32px] sm:text-4xl md:text-5xl lg:text-[46px] xl:text-[54px] font-black text-[#0F172A] dark:text-white tracking-tight leading-[1.12]">
+              All Your Legal Work,<br />
+              <span className="text-[#B38628] dark:text-amber-400">In One Intelligent Platform.</span>
+            </h1>
+
+            {/* Subtitle Paragraph — Left Aligned */}
+            <p className="text-xs sm:text-base lg:text-base xl:text-lg text-slate-600 dark:text-slate-300 leading-relaxed font-normal max-w-xl">
+              From case research and judgment analysis to court drafting and argument practice — everything Indian advocates need in one seamless workspace. Explore each feature below with interactive live demos.
+            </p>
+
+            {/* Mobile Video Card: Dedicated compact view for screens < lg */}
+            <div className="block lg:hidden relative w-full aspect-[16/10] sm:aspect-[16/9] rounded-2xl overflow-hidden shadow-xl border border-slate-200/80 dark:border-slate-800/80 bg-[#F4F1EA] dark:bg-[#070A12] my-2">
+              <video
+                ref={mobileHeroVideoRef}
+                src="/video/features_suite_showcase.mp4?v=clean2"
+                poster="/video/features_poster.webp"
+                autoPlay
+                loop
+                muted
+                playsInline
+                webkit-playsinline="true"
+                preload="auto"
+                onLoadedMetadata={(e) => {
+                  e.currentTarget.playbackRate = 0.85;
+                }}
+                className="w-full h-full object-cover object-[74%_center]"
+              />
+            </div>
+
+            {/* Value & Trust Badges — Left Aligned */}
+            <div className="flex flex-wrap items-center justify-start gap-1.5 sm:gap-2 pt-1 max-w-xl">
+              <div className="px-2.5 sm:px-3 py-1.5 rounded-lg bg-white/90 dark:bg-[#0B1120]/90 backdrop-blur-xs border border-slate-200/80 dark:border-slate-800 text-[11px] sm:text-xs font-semibold text-slate-700 dark:text-slate-300 shadow-2xs flex items-center gap-1.5">
+                <Scale size={13} className="text-[#B38628] shrink-0" />
+                <span>Supreme Court & High Courts</span>
+              </div>
+              <div className="px-2.5 sm:px-3 py-1.5 rounded-lg bg-white/90 dark:bg-[#0B1120]/90 backdrop-blur-xs border border-slate-200/80 dark:border-slate-800 text-[11px] sm:text-xs font-semibold text-slate-700 dark:text-slate-300 shadow-2xs flex items-center gap-1.5">
+                <Sparkles size={13} className="text-[#B38628] shrink-0" />
+                <span>3.8 Cr+ Verified Judgments</span>
+              </div>
+              <div className="px-2.5 sm:px-3 py-1.5 rounded-lg bg-white/90 dark:bg-[#0B1120]/90 backdrop-blur-xs border border-slate-200/80 dark:border-slate-800 text-[11px] sm:text-xs font-semibold text-slate-700 dark:text-slate-300 shadow-2xs flex items-center gap-1.5">
+                <ShieldCheck size={13} className="text-emerald-600 dark:text-emerald-400 shrink-0" />
+                <span>BNS / BNSS / BSA Native Grounding</span>
+              </div>
+            </div>
+
+            {/* Hero CTA Button — Left Aligned */}
+            <div className="pt-1.5 sm:pt-2 flex flex-wrap items-center justify-start gap-3 w-full sm:w-auto">
+              <button
+                onClick={() => handleCta('/signup')}
+                className="gold-shimmer-btn w-full max-w-[280px] sm:w-auto px-7 sm:px-8 py-3 sm:py-3.5 rounded-xl text-xs sm:text-base font-black text-[#111111] bg-gradient-to-b from-[#D4AF37] to-[#B88B2A] hover:brightness-105 active:scale-98 transition-all cursor-pointer shadow-md shadow-[#B88B2A]/25 flex items-center justify-center gap-2 hover:-translate-y-0.5"
+              >
+                <span>Start your free trial</span>
+                <ChevronRight size={18} />
+              </button>
+            </div>
           </div>
         </div>
       </section>

@@ -69,7 +69,7 @@ const ResetPassword = () => {
     };
 
     return (
-        <div className="min-h-screen w-screen flex items-center justify-center bg-[#F9FAFB] dark:bg-[#0B0F19] p-4 sm:p-6 md:p-8 relative transition-colors duration-300">
+        <div className="min-h-screen min-h-[100dvh] w-full flex items-center justify-center bg-[#F9FAFB] dark:bg-[#0B0F19] p-4 sm:p-6 md:p-8 relative transition-colors duration-300 overflow-x-hidden">
             {/* Top Header Controls */}
             <div className="absolute top-6 right-6 flex items-center gap-4">
                 <ThemeToggle />

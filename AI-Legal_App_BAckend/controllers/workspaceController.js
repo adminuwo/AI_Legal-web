@@ -107,7 +107,7 @@ export const getWorkspaces = async (req, res) => {
             }
         }
 
-        if (!existingFirmWs && (activeRoleHeader === 'law_firm' || userDoc?.role === 'law_firm' || userDoc?.role === 'admin' || req.query?.type === 'law_firm')) {
+        if (!existingFirmWs && (activeRoleHeader === 'law_firm' || userDoc?.accountType === 'law_firm' || userDoc?.role === 'law_firm' || userDoc?.role === 'admin' || req.query?.type === 'law_firm')) {
             const firmName = userDoc?.lawFirmName || (userDoc?.fullName ? `${userDoc.fullName}'s Law Firm` : 'Firm Workspace');
             const newFirm = await Workspace.create({
                 name: firmName,

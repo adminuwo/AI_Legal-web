@@ -4,9 +4,9 @@ import { ArrowLeft, AlertCircle, Pencil, ArrowRight } from 'lucide-react';
 import axios from 'axios';
 import { AppRoute, apis } from '../types';
 import AuthErrorDialog from '../Components/AuthErrorDialog';
-import { parseAuthError } from '../utils/authErrorMapper';
 import ThemeToggle from '../Components/ThemeToggle';
-import { getUserData, setUserData, userData as userDataAtom } from '../userStore/userData';
+import { parseAuthError } from '../utils/authErrorMapper';
+import { getUserData, setUserData, userData as userDataAtom, selectedRoleState } from '../userStore/userData';
 import { useSetRecoilState } from 'recoil';
 import toast from 'react-hot-toast';
 import { useLanguage } from '../context/LanguageContext';
@@ -18,6 +18,7 @@ export default function VerificationForm() {
   const location = useLocation();
   const { t } = useLanguage();
   const setUserRecoil = useSetRecoilState(userDataAtom);
+  const setSelectedRole = useSetRecoilState(selectedRoleState);
 
   const [verificationCode, setVerificationCode] = useState('');
   const [loading, setLoading] = useState(false);
@@ -73,6 +74,16 @@ export default function VerificationForm() {
       const userRole = res.data?.accountType || location.state?.accountType || localStorage.getItem('pendingAccountType') || 'advocate';
       localStorage.setItem('user_selected_role', userRole);
       localStorage.removeItem('pendingAccountType');
+      setSelectedRole(userRole);
+
+      if (userRole === 'law_firm') {
+        const lastWs = localStorage.getItem('AI_LEGAL_LAST_ACTIVE_WORKSPACE_ID');
+        if (!lastWs || lastWs === 'personal_practice') {
+          localStorage.setItem('AI_LEGAL_LAST_ACTIVE_WORKSPACE_ID', 'firm_default');
+        }
+        window.dispatchEvent(new CustomEvent('workspace_changed', { detail: { role: 'law_firm' } }));
+      }
+
       window.dispatchEvent(new CustomEvent('user_role_changed', { detail: { role: userRole } }));
 
       const finalData = setUserData({ ...res.data, accountType: userRole });
@@ -93,7 +104,7 @@ export default function VerificationForm() {
         : userRole === 'law_firm' 
           ? '/firm/dashboard' 
           : '/advocate/dashboard';
-      const destination = location.state?.from || targetDashboard;
+      const destination = (location.state?.from && location.state.from !== '/dashboard') ? location.state.from : targetDashboard;
       navigate(destination, { replace: true });
     } catch (err) {
       console.error("Verification Error:", err);
@@ -120,7 +131,7 @@ export default function VerificationForm() {
   };
 
   return (
-    <div className="min-h-screen w-screen flex items-center justify-center bg-[#F9FAFB] dark:bg-[#0B0F19] p-4 sm:p-6 md:p-8 relative transition-colors duration-300">
+    <div className="min-h-screen min-h-[100dvh] w-full flex items-center justify-center bg-[#F9FAFB] dark:bg-[#0B0F19] p-4 sm:p-6 md:p-8 relative transition-colors duration-300 overflow-x-hidden">
       {/* Top Header Controls */}
       <div className="absolute top-6 right-6 flex items-center gap-4">
         <ThemeToggle />

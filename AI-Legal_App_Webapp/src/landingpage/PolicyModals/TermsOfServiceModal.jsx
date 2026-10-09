@@ -168,7 +168,7 @@ export const TermsOfServiceContent = () => {
             <div className="bg-gradient-to-r from-primary/5 to-blue-500/5 rounded-xl p-5 border border-primary/20">
                 <h3 className="text-lg font-bold text-maintext mb-3">{t('tos_questions_title_terms')}</h3>
                 <div className="space-y-1.5 text-sm text-subtext">
-                    <p><strong className="text-maintext">Email:</strong> <a href="mailto:admin@uwo24.com" className="text-primary hover:underline">admin@uwo24.com</a></p>
+                    <p><strong className="text-maintext">Email:</strong> <a href="mailto:ai.legal@uwo24.com" className="text-primary hover:underline">ai.legal@uwo24.com</a></p>
                     <p><strong className="text-maintext">Phone:</strong> <a href="tel:+918358990909" className="text-primary hover:underline">+91 83589 90909</a></p>
                 </div>
             </div>

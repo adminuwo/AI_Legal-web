@@ -2,12 +2,11 @@ import express from 'express';
 import SupportTicket from '../models/SupportTicket.js';
 import { verifyAdmin } from '../middleware/adminAuth.js';
 import { sendAdminNotification } from '../services/emailService.js';
+import { optionalVerifyToken } from '../middleware/authorization.js';
 
 const router = express.Router();
 
-import { verifyToken } from '../middleware/authorization.js';
-
-router.post('/', verifyToken, async (req, res) => {
+router.post('/', optionalVerifyToken, async (req, res) => {
     try {
         const {
             name,

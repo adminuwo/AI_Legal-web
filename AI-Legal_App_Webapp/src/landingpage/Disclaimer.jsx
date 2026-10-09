@@ -271,7 +271,7 @@ export default function Disclaimer() {
             </div>
             <div className="p-3 bg-slate-50 rounded-xl border border-slate-200/60">
               <span className="font-bold block text-slate-900 text-xs uppercase tracking-wider mb-1">Contact Details</span>
-              <p><strong>Email:</strong> <a href="mailto:admin@uwo24.com" className="text-amber-600 hover:underline">admin@uwo24.com</a></p>
+              <p><strong>Email:</strong> <a href="mailto:ai.legal@uwo24.com" className="text-amber-600 hover:underline">ai.legal@uwo24.com</a></p>
               <p className="mt-0.5"><strong>Helpline:</strong> <a href="tel:+918359890909" className="text-amber-600 hover:underline">+91 83589 90909</a></p>
             </div>
           </div>
