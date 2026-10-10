@@ -15,6 +15,7 @@ import { apiService } from '../services/apiService';
 import { API } from '../types';
 
 import { CATEGORIES, ALL_91_TEMPLATES, getFieldsForTemplate } from '../constants/templatesData';
+import { generateStructuredDraft } from '../constants/draftTemplatesEngine';
 import { useSubscription } from '../context/SubscriptionContext';
 import { ratingReviewWebHelper } from '../utils/ratingReviewHelper';
 
@@ -330,53 +331,25 @@ export default function DraftMakerWorkspace() {
   };
 
   const buildDefaultLegalDraftText = (isNepal = false, state = '') => {
-    const caseName = selectedCase?.name || manualFields.petitionerName || manualFields.sender || manualFields.lessorName || 'PETITIONER';
-    const opponentName = selectedCase?.opponentName || manualFields.respondentName || manualFields.recipient || manualFields.lesseeName || 'RESPONDENT';
-    const court = selectedCase?.courtName || manualFields.courtName || (isNepal ? 'IN THE HON\'BLE DISTRICT COURT / HIGH COURT' : 'IN THE HIGH COURT OF JUDICATURE');
-    const caseNo = selectedCase?.caseNumber || manualFields.caseNumber || (isNepal ? 'CASE NO. _____ OF 2081/82' : 'SUIT NO. _____ OF 2026');
-    const place = isNepal ? (state || 'Kathmandu') : (state || 'New Delhi');
+    const userStr = localStorage.getItem('user');
+    let countryCode = isNepal ? 'NP' : 'IN';
+    let activeState = state || '';
+    try {
+      const u = JSON.parse(userStr || '{}');
+      if (u.legalJurisdiction?.countryCode) {
+        countryCode = u.legalJurisdiction.countryCode;
+      } else if (u.legalJurisdiction?.country) {
+        countryCode = u.legalJurisdiction.country;
+      }
+      if (!activeState) activeState = u.legalJurisdiction?.state || u.state || '';
+    } catch(e) {}
 
-    return `IN THE ${court.toUpperCase()}
-${caseNo ? caseNo.toUpperCase() : ''}
-
-IN THE MATTER OF:
-${caseName.toUpperCase()}
-...PETITIONER / PLAINTIFF
-
-VERSUS
-
-${opponentName.toUpperCase()}
-...RESPONDENT / DEFENDANT
-
-PETITION / DRAFT UNDER LAW FOR ${selectedTemplate.title.toUpperCase()}
-
-MOST RESPECTFULLY SHOWETH:
-
-1. That the Petitioner is a law-abiding citizen and competent to institute the present legal proceeding before this Hon'ble Court.
-
-2. That the Respondent entered into a legal transaction / contract with the Petitioner. ${manualFields.facts || manualFields.statementsOfFact || selectedCase?.summary || 'The parties agreed upon explicit terms and conditions.'}
-
-3. That despite repeated oral requests and written communications, the Respondent failed and neglected to fulfill legal obligations.
-
-4. That the cause of action accrued in favor of the Petitioner and against the Respondent within the territorial jurisdiction of this Hon'ble Court.
-
-PRAYER
-
-In view of the facts and circumstances stated above, it is most respectfully prayed that this Hon'ble Court may graciously be pleased to:
-
-a) ${manualFields.relief || manualFields.prayer || 'Pass an appropriate decree/order in favor of the Petitioner.'}
-b) Award costs of the present proceedings in favor of the Petitioner.
-c) Pass any such further order(s) as this Hon'ble Court deems fit in the interest of justice.
-
-
-VERIFICATION
-
-Verified at ${place} on this day of 2026 that the contents of paragraphs 1 to 4 above are true and correct to my knowledge and legal advice. Nothing material has been concealed therefrom.
-
-
-_______________________
-DEPONENT / PETITIONER
-THROUGH ADVOCATE`;
+    return generateStructuredDraft(
+      selectedTemplate,
+      { countryCode, state: activeState },
+      manualFields,
+      selectedCase
+    );
   };
 
   // Editor Actions

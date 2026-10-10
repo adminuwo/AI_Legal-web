@@ -1,7 +1,9 @@
-// High-Fidelity Indian Landmark Judgments & Precedents Database
-// Comprehensive, deep jurisprudence across Constitutional, Criminal, Commercial & Procedural Law
+import { NEPAL_LANDMARK_JUDGMENTS } from './nepalJudgmentsData.js';
+import { US_LANDMARK_JUDGMENTS } from './usJudgmentsData.js';
+import { UK_LANDMARK_JUDGMENTS } from './ukJudgmentsData.js';
+import { INTERNATIONAL_LANDMARK_JUDGMENTS } from './internationalJudgmentsData.js';
 
-export const LANDMARK_JUDGMENTS_DATABASE = [
+export const INDIAN_LANDMARK_JUDGMENTS = [
   {
     id: 'danial-latifi',
     slug: 'danial-latifi',
@@ -2203,3 +2205,33 @@ MATHEW, J.:
 2. The right to privacy is not explicitly mentioned in our Constitution, but it has to be inferred from the concept of ordered liberty in Article 21. Any invasion of privacy must satisfy the test of compelling state interest and narrow tailoring.`
   }
 ];
+
+export const LANDMARK_JUDGMENTS_DATABASE = [
+  ...INDIAN_LANDMARK_JUDGMENTS.map(j => ({ ...j, jurisdiction: j.jurisdiction || 'IN' })),
+  ...NEPAL_LANDMARK_JUDGMENTS,
+  ...US_LANDMARK_JUDGMENTS,
+  ...UK_LANDMARK_JUDGMENTS,
+  ...INTERNATIONAL_LANDMARK_JUDGMENTS
+];
+
+/**
+ * Authoritative Jurisdiction-Specific Judgments Resolver
+ * Guarantees zero leakage across all jurisdictions.
+ */
+export const getJudgmentsForJurisdiction = (countryCode = 'IN') => {
+  const norm = String(countryCode || 'IN').toUpperCase().trim();
+  if (norm === 'NP' || norm === 'NEPAL') {
+    return NEPAL_LANDMARK_JUDGMENTS;
+  }
+  if (norm === 'US' || norm === 'USA') {
+    return US_LANDMARK_JUDGMENTS;
+  }
+  if (norm === 'GB' || norm === 'UK') {
+    return UK_LANDMARK_JUDGMENTS;
+  }
+  if (norm === 'GLOBAL' || norm === 'INTERNATIONAL') {
+    return INTERNATIONAL_LANDMARK_JUDGMENTS;
+  }
+  return INDIAN_LANDMARK_JUDGMENTS.map(j => ({ ...j, jurisdiction: 'IN' }));
+};
+

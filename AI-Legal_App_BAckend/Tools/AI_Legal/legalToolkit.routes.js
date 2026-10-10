@@ -326,12 +326,13 @@ ${message}
                 .replace(/^(?:Below is the (?:requested|generated) draft.*?\n+)/gi, '')
                 .replace(/\n+(?:Let me know if you (?:need|would like).*?$)/gi, '')
                 .replace(/\n+(?:I hope this (?:helps|draft|document).*?$)/gi, '')
-                .replace(/\[\s*(?:Insert|Fill|Specify|Enter|Select)?\s*[^\]]+\]/gi, (match) => {
-                    if (/date/i.test(match)) return new Date().toLocaleDateString(resolvedJurisdiction.isNepal ? 'en-NP' : 'en-IN');
-                    if (/court/i.test(match)) return resolvedJurisdiction.isNepal ? 'Hon\'ble District Court / High Court' : 'Hon\'ble Court';
-                    if (/place|city|location/i.test(match)) return resolvedJurisdiction.isNepal ? (resolvedJurisdiction.state || 'Kathmandu') : (resolvedJurisdiction.state || 'New Delhi');
-                    if (/amount|rs|fee|sum/i.test(match)) return resolvedJurisdiction.isNepal ? 'NPR 50,000/-' : '₹50,000/-';
-                    return '';
+                .replace(/\[\s*(?:Insert|Fill|Specify|Enter|Select)?\s*([^\]]+)\]/gi, (match, inner) => {
+                    if (/date/i.test(inner)) return new Date().toLocaleDateString(resolvedJurisdiction.isNepal ? 'en-NP' : 'en-IN');
+                    if (/court/i.test(inner)) return resolvedJurisdiction.isNepal ? 'Hon\'ble District Court / High Court' : 'Hon\'ble Court';
+                    if (/place|city|location/i.test(inner)) return resolvedJurisdiction.isNepal ? (resolvedJurisdiction.state || 'Kathmandu') : (resolvedJurisdiction.state || 'New Delhi');
+                    if (/amount|rs|fee|sum/i.test(inner)) return resolvedJurisdiction.isNepal ? 'NPR 50,000/-' : '₹50,000/-';
+                    // Preserve the label clearly for user customization instead of stripping it away
+                    return `[${inner.trim()}]`;
                 })
                 .replace(/\[\s*__+\s*\]/g, '_____________')
                 .trim();

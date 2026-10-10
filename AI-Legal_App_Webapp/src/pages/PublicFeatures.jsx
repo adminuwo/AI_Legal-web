@@ -501,12 +501,21 @@ export default function PublicFeatures() {
             </button>
 
             {isAuthenticated && (
-              <button
-                onClick={() => navigate('/dashboard')}
-                className="px-4 py-1.5 rounded-full text-xs font-bold text-white bg-gradient-to-r from-[#B88B2A] to-[#B38628] hover:opacity-95 transition-all cursor-pointer shadow-md shadow-[#B88B2A]/30"
-              >
-                Dashboard →
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => navigate('/dashboard')}
+                  className="px-4 py-1.5 rounded-full text-xs font-bold text-white bg-gradient-to-r from-[#B88B2A] to-[#B38628] hover:opacity-95 transition-all cursor-pointer shadow-md shadow-[#B88B2A]/30"
+                >
+                  Dashboard →
+                </button>
+                <div 
+                  onClick={() => navigate('/dashboard/settings')}
+                  className="w-7.5 h-7.5 rounded-full bg-slate-100 dark:bg-slate-800 border border-[#B88B2A]/40 text-[#B38628] dark:text-amber-400 font-bold text-xs flex items-center justify-center cursor-pointer hover:scale-105 transition-transform"
+                  title={user?.name || 'Profile'}
+                >
+                  {user?.name ? user.name.charAt(0).toUpperCase() : 'A'}
+                </div>
+              </div>
             )}
           </div>
 
@@ -706,10 +715,10 @@ export default function PublicFeatures() {
             {/* Hero CTA Button — Left Aligned */}
             <div className="pt-1.5 sm:pt-2 flex flex-wrap items-center justify-start gap-3 w-full sm:w-auto">
               <button
-                onClick={() => handleCta('/signup')}
+                onClick={() => navigate(isAuthenticated ? '/dashboard' : '/signup')}
                 className="gold-shimmer-btn w-full max-w-[280px] sm:w-auto px-7 sm:px-8 py-3 sm:py-3.5 rounded-xl text-xs sm:text-base font-black text-[#111111] bg-gradient-to-b from-[#D4AF37] to-[#B88B2A] hover:brightness-105 active:scale-98 transition-all cursor-pointer shadow-md shadow-[#B88B2A]/25 flex items-center justify-center gap-2 hover:-translate-y-0.5"
               >
-                <span>Start your free trial</span>
+                <span>{isAuthenticated ? 'Go to Dashboard' : 'Start your free trial'}</span>
                 <ChevronRight size={18} />
               </button>
             </div>
@@ -1049,10 +1058,11 @@ export default function PublicFeatures() {
 
           <div className="pt-2">
             <button
-              onClick={() => handleCta('/signup')}
-              className="gold-shimmer-btn w-full max-w-[280px] sm:w-auto px-7 sm:px-8 py-3.5 sm:py-4 rounded-xl text-xs sm:text-sm font-black text-[#111111] bg-gradient-to-b from-[#D4AF37] to-[#B88B2A] hover:brightness-105 active:scale-98 transition-all cursor-pointer shadow-lg shadow-[#B88B2A]/25 hover:-translate-y-0.5"
+              onClick={() => navigate(isAuthenticated ? '/dashboard' : '/signup')}
+              className="gold-shimmer-btn w-full max-w-[280px] sm:w-auto px-7 sm:px-8 py-3.5 sm:py-4 rounded-xl text-xs sm:text-sm font-black text-[#111111] bg-gradient-to-b from-[#D4AF37] to-[#B88B2A] hover:brightness-105 active:scale-98 transition-all cursor-pointer shadow-lg shadow-[#B88B2A]/25 hover:-translate-y-0.5 flex items-center justify-center gap-2 mx-auto"
             >
-              Start Your Free Trial Today
+              <span>{isAuthenticated ? 'Go to Dashboard' : 'Start Your Free Trial Today'}</span>
+              <ChevronRight size={16} />
             </button>
           </div>
 

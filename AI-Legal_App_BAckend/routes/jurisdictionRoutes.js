@@ -4,6 +4,7 @@ import User from '../models/User.js';
 import { runJurisdictionSandboxTest } from '../services/jurisdictionSandboxService.js';
 import { getStatesForCountry, INDIAN_STATES_LIST, NEPAL_PROVINCES } from '../constants/jurisdictionConstants.js';
 import { jurisdictionManager } from '../services/jurisdictionManager.js';
+import { jurisdictionContentService } from '../services/jurisdictionContentService.js';
 import logger from '../utils/logger.js';
 
 const router = express.Router();
@@ -182,6 +183,49 @@ router.put('/my-jurisdiction', verifyToken, async (req, res) => {
     } catch (err) {
         logger.error(`[JurisdictionRoutes] Save jurisdiction failed: ${err.message}`);
         return res.status(500).json({ success: false, message: 'Failed to save legal jurisdiction.' });
+    }
+});
+
+/**
+ * @route   GET /api/jurisdictions/content/articles
+ * @desc    Get articles and guides strictly isolated by jurisdiction
+ * @query   countryCode, country, subject, search
+ */
+router.get('/content/articles', (req, res) => {
+    try {
+        const { countryCode, country, subject, search } = req.query;
+        const targetCode = countryCode || (country && country.toLowerCase() === 'nepal' ? 'NP' : 'IN');
+        const result = jurisdictionContentService.getArticles({
+            countryCode: targetCode,
+            subject,
+            search
+        });
+        return res.json(result);
+    } catch (err) {
+        logger.error(`[JurisdictionRoutes] Get content articles failed: ${err.message}`);
+        return res.status(500).json({ success: false, message: 'Failed to retrieve jurisdiction articles.' });
+    }
+});
+
+/**
+ * @route   GET /api/jurisdictions/content/articles/:id
+ * @desc    Get single article with strict cross-jurisdiction access validation
+ * @query   countryCode
+ */
+router.get('/content/articles/:id', (req, res) => {
+    try {
+        const { id } = req.params;
+        const { countryCode, country } = req.query;
+        const targetCode = countryCode || (country && country.toLowerCase() === 'nepal' ? 'NP' : 'IN');
+        
+        const result = jurisdictionContentService.getArticleById(id, targetCode);
+        if (!result.success) {
+            return res.status(result.status || 400).json(result);
+        }
+        return res.json(result);
+    } catch (err) {
+        logger.error(`[JurisdictionRoutes] Get article detail failed: ${err.message}`);
+        return res.status(500).json({ success: false, message: 'Failed to retrieve article details.' });
     }
 });
 

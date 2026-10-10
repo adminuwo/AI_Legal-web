@@ -1142,11 +1142,146 @@ export const ALL_91_TEMPLATES = [
   }
 ];
 
+export const TEMPLATE_SPECIFIC_FIELDS = {
+  chequeBounceNotice: [
+    { key: 'payeeName', label: 'Complainant / Payee Name', required: true, placeholder: 'e.g. Ramesh Kumar' },
+    { key: 'payeeAddress', label: 'Complainant Address', required: true, placeholder: 'e.g. 501, Nehru Place, Delhi' },
+    { key: 'drawerName', label: 'Accused / Drawer Name', required: true, placeholder: 'e.g. Vijay Verma' },
+    { key: 'drawerAddress', label: 'Drawer Address', required: true, placeholder: 'e.g. Plot 12, Phase 3, Noida' },
+    { key: 'chequeNumber', label: 'Cheque Number', required: true, placeholder: 'e.g. 045129' },
+    { key: 'chequeDate', label: 'Cheque Date', required: true, placeholder: 'YYYY-MM-DD' },
+    { key: 'chequeAmount', label: 'Cheque Amount (INR/Local)', required: true, placeholder: 'e.g. 500000' },
+    { key: 'bankName', label: 'Drawee Bank & Branch', required: true, placeholder: 'e.g. State Bank of India, Saket' },
+    { key: 'returnMemoDate', label: 'Bank Return Memo Date', required: true, placeholder: 'YYYY-MM-DD' },
+    { key: 'returnReason', label: 'Return Reason on Memo', required: true, placeholder: 'Funds Insufficient' },
+  ],
+  bailApplication: [
+    { key: 'applicantName', label: 'Applicant / Accused Full Name', required: true, placeholder: 'e.g. Suresh Prasad' },
+    { key: 'guardianName', label: "Father's / Spouse's Name", required: true, placeholder: 'e.g. Mohan Prasad' },
+    { key: 'applicantAddress', label: 'Applicant Permanent Address', required: true, placeholder: 'e.g. B-40, Saket, Delhi' },
+    { key: 'policeStation', label: 'Police Station & District', required: true, placeholder: 'e.g. PS Saket, South Delhi' },
+    { key: 'firNumber', label: 'FIR / Crime Number', required: true, placeholder: 'e.g. FIR No. 142/2026' },
+    { key: 'firDate', label: 'Date of Registration of FIR', required: true, placeholder: 'YYYY-MM-DD' },
+    { key: 'offencesCharged', label: 'Sections Charged (BNS / IPC / Penal)', required: true, placeholder: 'e.g. Section 115, 303 BNS' },
+    { key: 'arrestDate', label: 'Date of Arrest / Custody', required: true, placeholder: 'YYYY-MM-DD' },
+    { key: 'groundsForBail', label: 'Grounds for Bail & Defence Pleadings', type: 'multiline', required: true, placeholder: 'State clean antecedents, false implication, absence of custodial interrogation need...' },
+    { key: 'suretyDetails', label: 'Surety Readiness Undertaking', required: true, placeholder: 'Two solvent local sureties ready to furnish bail bonds' },
+  ],
+  anticipatoryBail: [
+    { key: 'applicantName', label: 'Applicant Full Name', required: true, placeholder: 'e.g. Suresh Prasad' },
+    { key: 'guardianName', label: "Father's / Spouse's Name", required: true, placeholder: 'e.g. Mohan Prasad' },
+    { key: 'applicantAddress', label: 'Applicant Permanent Address', required: true, placeholder: 'e.g. B-40, Saket, Delhi' },
+    { key: 'policeStation', label: 'Concerned Police Station', required: true, placeholder: 'e.g. PS Saket, South Delhi' },
+    { key: 'firNumber', label: 'FIR No. / Complaint Details', required: true, placeholder: 'e.g. FIR No. 142/2026 or Apprehended Complaint' },
+    { key: 'offencesCharged', label: 'Anticipated Offences / Sections', required: true, placeholder: 'e.g. Section 318, 316 BNS' },
+    { key: 'apprehensionReasons', label: 'Reasons for Apprehending Arrest', type: 'multiline', required: true, placeholder: 'Describe police visits, false accusations, commercial dispute converted to criminal...' },
+    { key: 'groundsForBail', label: 'Substantive Grounds for Pre-Arrest Protection', type: 'multiline', required: true, placeholder: 'Cooperation undertaking, documentary nature of evidence, deep roots in society...' },
+  ],
+  will: [
+    { key: 'testatorName', label: 'Testator / Maker Full Name', required: true, placeholder: 'e.g. Rajendra Prasad Sharma' },
+    { key: 'guardianName', label: "Father's / Spouse's Name", required: true, placeholder: 'e.g. Late K.L. Sharma' },
+    { key: 'testatorAddress', label: 'Residential Address', required: true, placeholder: 'e.g. Flat 301, Sector 15, Rohini, Delhi' },
+    { key: 'executorName', label: 'Appointed Executor Name', required: true, placeholder: 'e.g. Amit Sharma (Son)' },
+    { key: 'executorAddress', label: 'Executor Address', required: true, placeholder: 'e.g. Same as testator / New Delhi' },
+    { key: 'beneficiaryDetails', label: 'Beneficiaries & Allocation Shares', type: 'multiline', required: true, placeholder: '1. Flat 301 to wife Priya Sharma absolutely\n2. Bank accounts equally to son and daughter...' },
+    { key: 'propertySchedule', label: 'Schedule of Movable & Immovable Assets', type: 'multiline', required: true, placeholder: 'List all properties, bank accounts, lockers, shares...' },
+    { key: 'witness1Details', label: 'Attesting Witness 1 Name & Address', required: true, placeholder: 'e.g. Dr. V.K. Verma, Rohini' },
+    { key: 'witness2Details', label: 'Attesting Witness 2 Name & Address', required: true, placeholder: 'e.g. S.K. Gupta, Advocate, Rohini' },
+  ],
+  rtiApplication: [
+    { key: 'applicantName', label: 'Applicant Full Name', required: true, placeholder: 'e.g. Nitin Gupta' },
+    { key: 'applicantAddress', label: 'Address for Correspondence', required: true, placeholder: 'e.g. 104, Civil Lines, Jaipur' },
+    { key: 'publicAuthority', label: 'Public Authority / Department Name', required: true, placeholder: 'e.g. Municipal Corporation of Delhi' },
+    { key: 'pioAddress', label: 'Public Information Officer (PIO) Address', required: true, placeholder: 'e.g. Civic Centre, Minto Road, New Delhi' },
+    { key: 'infoSubject', label: 'Subject Matter of Information', required: true, placeholder: 'e.g. Information regarding road construction tender...' },
+    { key: 'infoPeriod', label: 'Period to which Information Relates', required: true, placeholder: 'e.g. 01 April 2024 to 31 March 2026' },
+    { key: 'specificQueries', label: 'Specific Questions / Certified Copies Sought', type: 'multiline', required: true, placeholder: '1. Certified copy of work order...\n2. Total funds disbursed...\n3. Inspection of site records...' },
+    { key: 'feeDetails', label: 'Application Fee Mode & Receipt No.', required: true, placeholder: 'e.g. Postal Order No. 45G 102930 of INR 10' },
+  ],
+  mutualDivorce: [
+    { key: 'firstPetitionerName', label: 'First Petitioner (Husband / Spouse)', required: true, placeholder: 'e.g. Rohit Mehra' },
+    { key: 'secondPetitionerName', label: 'Second Petitioner (Wife / Spouse)', required: true, placeholder: 'e.g. Anjali Mehra' },
+    { key: 'marriageDate', label: 'Date of Marriage', required: true, placeholder: 'YYYY-MM-DD' },
+    { key: 'marriagePlace', label: 'Place of Marriage Solemnization', required: true, placeholder: 'e.g. Arya Samaj Mandir, Delhi' },
+    { key: 'separationDate', label: 'Date Since Living Separately', required: true, placeholder: 'YYYY-MM-DD (Minimum 1 year)' },
+    { key: 'alimonyAgreed', label: 'Permanent Alimony & Maintenance Settled', required: true, placeholder: 'e.g. Lump sum INR 15,00,000 paid in full settlement' },
+    { key: 'custodyAgreed', label: 'Child Custody & Visitation Terms', required: true, placeholder: 'e.g. No issues born / Custody with mother with weekend visitation to father' },
+    { key: 'stridhanSettled', label: 'Stridhan & Belongings Exchange Confirmation', required: true, placeholder: 'All jewelry, household goods, and claims fully settled' },
+    { key: 'courtName', label: 'Hon\'ble Family Court Jurisdiction', required: true, placeholder: 'e.g. Family Court, Saket, New Delhi' },
+  ],
+  evictionNotice: [
+    { key: 'landlordName', label: 'Landlord / Property Owner Name', required: true, placeholder: 'e.g. Ramesh Kumar' },
+    { key: 'landlordAddress', label: 'Landlord Address', required: true, placeholder: 'e.g. Flat 101, Greater Kailash, Delhi' },
+    { key: 'tenantName', label: 'Tenant Full Name', required: true, placeholder: 'e.g. Deepak Joshi' },
+    { key: 'tenantAddress', label: 'Tenanted Premises Address', required: true, placeholder: 'e.g. Shop No. 4, Main Market, Lajpat Nagar, Delhi' },
+    { key: 'leaseDate', label: 'Tenancy Agreement Date & Expiry', required: true, placeholder: 'Lease dated 01 Jan 2024 expired on 30 Nov 2025' },
+    { key: 'rentArrears', label: 'Arrears of Rent & Dues (INR/Local)', required: true, placeholder: 'e.g. 1,20,000 for 4 months default' },
+    { key: 'vacateDeadlineDays', label: 'Time Granted to Vacate (Days)', required: true, placeholder: '15 Days / 30 Days' },
+  ],
+  nda: [
+    { key: 'disclosingParty', label: 'Disclosing Party Name', required: true, placeholder: 'e.g. TechCorp Innovations Pvt Ltd' },
+    { key: 'receivingParty', label: 'Receiving Party Name', required: true, placeholder: 'e.g. CloudScale Solutions LLP' },
+    { key: 'purpose', label: 'Business Evaluation Purpose', type: 'multiline', required: true, placeholder: 'Evaluating potential joint venture for AI healthcare software development...' },
+    { key: 'confidentialInfoDefinition', label: 'Scope of Proprietary Data', type: 'multiline', required: true, placeholder: 'Source code, API architecture, proprietary algorithms, pricing sheets, client lists...' },
+    { key: 'durationYears', label: 'Confidentiality Survival Period', required: true, placeholder: 'e.g. 3 Years from execution date' },
+    { key: 'governingLaw', label: 'Governing Law & Courts', required: true, placeholder: 'e.g. Courts of New Delhi, India' },
+  ],
+  boardResolution: [
+    { key: 'companyName', label: 'Company Legal Name', required: true, placeholder: 'e.g. Apex Global Technologies Private Limited' },
+    { key: 'registeredAddress', label: 'Registered Office Address', required: true, placeholder: 'e.g. 402, Barakhamba Road, Connaught Place, New Delhi' },
+    { key: 'meetingDate', label: 'Board Meeting Date', required: true, placeholder: 'YYYY-MM-DD' },
+    { key: 'chairpersonName', label: 'Chairperson / Presiding Director', required: true, placeholder: 'e.g. Vikramaditya Singhania' },
+    { key: 'authorizedDirector', label: 'Authorized Director / Officer Appointed', required: true, placeholder: 'e.g. Rahul Sharma, Director (DIN: 08472910)' },
+    { key: 'subjectMatter', label: 'Subject Matter / Purpose of Resolution', required: true, placeholder: 'e.g. Authorization to institute legal proceedings and sign agreements' },
+    { key: 'resolutionText', label: 'Specific Powers Delegated', type: 'multiline', required: true, placeholder: 'Power to sign plaints, engage advocates, execute affidavits, and represent before tribunals...' },
+  ],
+  employmentAgreement: [
+    { key: 'employerName', label: 'Employer / Company Name', required: true, placeholder: 'e.g. Quantum Infotech Private Limited' },
+    { key: 'employerAddress', label: 'Registered Office Address', required: true, placeholder: 'e.g. Cyber City, Gurugram, Haryana' },
+    { key: 'employeeName', label: 'Employee Full Name', required: true, placeholder: 'e.g. Sneha Roy' },
+    { key: 'employeeAddress', label: 'Employee Residential Address', required: true, placeholder: 'e.g. H-24, Sector 56, Gurugram' },
+    { key: 'designation', label: 'Job Role / Designation', required: true, placeholder: 'e.g. Lead Legal Counsel / Senior Software Engineer' },
+    { key: 'joiningDate', label: 'Effective Date of Employment', required: true, placeholder: 'YYYY-MM-DD' },
+    { key: 'ctcSalary', label: 'Annual Compensation / CTC', required: true, placeholder: 'e.g. 18,00,000 per annum' },
+    { key: 'probationPeriod', label: 'Probation Duration', required: true, placeholder: '3 Months' },
+    { key: 'noticePeriod', label: 'Notice Period for Separation', required: true, placeholder: '60 Days or salary in lieu thereof' },
+  ],
+  saleDeed: [
+    { key: 'vendorName', label: 'Vendor / Seller Full Name', required: true, placeholder: 'e.g. Harish Chandra Verma' },
+    { key: 'vendorAddress', label: 'Vendor Residential Address', required: true, placeholder: 'e.g. 12, Mall Road, Kanpur' },
+    { key: 'purchaserName', label: 'Purchaser / Buyer Full Name', required: true, placeholder: 'e.g. Rajesh Kumar Agarwal' },
+    { key: 'purchaserAddress', label: 'Purchaser Address', required: true, placeholder: 'e.g. 45, Civil Lines, Kanpur' },
+    { key: 'propertyDetails', label: 'Complete Property Schedule & Boundaries', type: 'multiline', required: true, placeholder: 'Plot No. 42, Block B, Scheme 10, measuring 250 sq yards bounded by Road on North...' },
+    { key: 'considerationAmount', label: 'Total Agreed Sale Price', required: true, placeholder: 'e.g. 85,00,000' },
+    { key: 'priorTitleDeed', label: 'Prior Title Deed Registration Particulars', required: true, placeholder: 'Registered Sale Deed No. 1204 dated 15 May 2012 at Sub-Registrar I' },
+    { key: 'possessionStatus', label: 'Handover of Physical Possession', required: true, placeholder: 'Delivered vacant and peaceful on date of execution' },
+  ],
+  maintenancePetition: [
+    { key: 'petitionerName', label: 'Petitioner / Spouse Name', required: true, placeholder: 'e.g. Sunita Devi' },
+    { key: 'respondentName', label: 'Respondent / Husband Name', required: true, placeholder: 'e.g. Ramesh Chandra' },
+    { key: 'petitionerAddress', label: 'Current Residence of Petitioner', required: true, placeholder: 'e.g. C/o Shri Ram Lal, Sector 12, Noida' },
+    { key: 'respondentAddress', label: 'Respondent Residential / Office Address', required: true, placeholder: 'e.g. 14, Ring Road, Lajpat Nagar, New Delhi' },
+    { key: 'marriageDate', label: 'Date of Marriage', required: true, placeholder: 'YYYY-MM-DD' },
+    { key: 'minorChildren', label: 'Details of Minor Children in Custody', required: true, placeholder: 'e.g. Master Aarav, aged 5 years' },
+    { key: 'respondentIncome', label: 'Estimated Monthly Income of Respondent', required: true, placeholder: 'e.g. INR 1,20,000 per month from business' },
+    { key: 'maintenanceDemanded', label: 'Monthly Maintenance Demanded', required: true, placeholder: 'e.g. INR 35,000 per month plus litigation expenses' },
+  ]
+};
+
 export function getFieldsForTemplate(template) {
   if (!template) return {};
   if (template.fields && template.fields.length > 0) {
     const fieldsObj = {};
     template.fields.forEach(f => {
+      fieldsObj[f.key] = '';
+    });
+    return fieldsObj;
+  }
+
+  // Check if specialized schema exists for this template
+  if (TEMPLATE_SPECIFIC_FIELDS[template.id]) {
+    const fieldsObj = {};
+    TEMPLATE_SPECIFIC_FIELDS[template.id].forEach(f => {
       fieldsObj[f.key] = '';
     });
     return fieldsObj;

@@ -1,0 +1,548 @@
+[
+  {
+    "index": 1,
+    "id": "legalNotice",
+    "title": "Legal Notice",
+    "category": "Miscellaneous"
+  },
+  {
+    "index": 2,
+    "id": "demandNotice",
+    "title": "Demand Notice",
+    "category": "Banking"
+  },
+  {
+    "index": 3,
+    "id": "recoveryNotice",
+    "title": "Recovery Notice",
+    "category": "Banking"
+  },
+  {
+    "index": 4,
+    "id": "showCauseNotice",
+    "title": "Show Cause Notice",
+    "category": "Miscellaneous"
+  },
+  {
+    "index": 5,
+    "id": "evictionNotice",
+    "title": "Eviction Notice",
+    "category": "Property"
+  },
+  {
+    "index": 6,
+    "id": "breachOfContractNotice",
+    "title": "Breach of Contract Notice",
+    "category": "Contracts"
+  },
+  {
+    "index": 7,
+    "id": "defamationNotice",
+    "title": "Defamation Notice",
+    "category": "Civil"
+  },
+  {
+    "index": 8,
+    "id": "copyrightNotice",
+    "title": "Copyright Notice",
+    "category": "Corporate"
+  },
+  {
+    "index": 9,
+    "id": "trademarkInfringementNotice",
+    "title": "Trademark Infringement Notice",
+    "category": "Corporate"
+  },
+  {
+    "index": 10,
+    "id": "chequeBounceNotice",
+    "title": "Cheque Bounce Notice (Section 138 NI Act)",
+    "category": "Banking"
+  },
+  {
+    "index": 11,
+    "id": "consumerLegalNotice",
+    "title": "Consumer Legal Notice",
+    "category": "Consumer"
+  },
+  {
+    "index": 12,
+    "id": "employmentTerminationNotice",
+    "title": "Employment Termination Notice",
+    "category": "Employment"
+  },
+  {
+    "index": 13,
+    "id": "rentDefaultNotice",
+    "title": "Rent Default Notice",
+    "category": "Property"
+  },
+  {
+    "index": 14,
+    "id": "rentAgreement",
+    "title": "Rent Agreement",
+    "category": "Contracts"
+  },
+  {
+    "index": 15,
+    "id": "leaseAgreement",
+    "title": "Lease Agreement",
+    "category": "Contracts"
+  },
+  {
+    "index": 16,
+    "id": "saleAgreement",
+    "title": "Sale Agreement",
+    "category": "Contracts"
+  },
+  {
+    "index": 17,
+    "id": "employmentAgreement",
+    "title": "Employment Agreement",
+    "category": "Employment"
+  },
+  {
+    "index": 18,
+    "id": "serviceAgreement",
+    "title": "Service Agreement",
+    "category": "Contracts"
+  },
+  {
+    "index": 19,
+    "id": "consultancyAgreement",
+    "title": "Consultancy Agreement",
+    "category": "Contracts"
+  },
+  {
+    "index": 20,
+    "id": "vendorAgreement",
+    "title": "Vendor Agreement",
+    "category": "Contracts"
+  },
+  {
+    "index": 21,
+    "id": "partnershipDeed",
+    "title": "Partnership Deed",
+    "category": "Corporate"
+  },
+  {
+    "index": 22,
+    "id": "nda",
+    "title": "NDA (Non-Disclosure Agreement)",
+    "category": "Contracts"
+  },
+  {
+    "index": 23,
+    "id": "mou",
+    "title": "MoU (Memorandum of Understanding)",
+    "category": "Contracts"
+  },
+  {
+    "index": 24,
+    "id": "franchiseAgreement",
+    "title": "Franchise Agreement",
+    "category": "Contracts"
+  },
+  {
+    "index": 25,
+    "id": "loanAgreement",
+    "title": "Loan Agreement",
+    "category": "Banking"
+  },
+  {
+    "index": 26,
+    "id": "giftDeed",
+    "title": "Gift Deed",
+    "category": "Property"
+  },
+  {
+    "index": 27,
+    "id": "mortgageAgreement",
+    "title": "Mortgage Agreement",
+    "category": "Banking"
+  },
+  {
+    "index": 28,
+    "id": "powerPurchaseAgreement",
+    "title": "Power Purchase Agreement (PPA)",
+    "category": "Contracts"
+  },
+  {
+    "index": 29,
+    "id": "plaint",
+    "title": "Plaint",
+    "category": "Court Pleadings"
+  },
+  {
+    "index": 30,
+    "id": "writtenStatement",
+    "title": "Written Statement",
+    "category": "Court Pleadings"
+  },
+  {
+    "index": 31,
+    "id": "counterClaim",
+    "title": "Counter Claim",
+    "category": "Court Pleadings"
+  },
+  {
+    "index": 32,
+    "id": "replication",
+    "title": "Replication",
+    "category": "Court Pleadings"
+  },
+  {
+    "index": 33,
+    "id": "civilAppeal",
+    "title": "Civil Appeal",
+    "category": "Court Pleadings"
+  },
+  {
+    "index": 34,
+    "id": "criminalAppeal",
+    "title": "Criminal Appeal",
+    "category": "Court Pleadings"
+  },
+  {
+    "index": 35,
+    "id": "revisionPetition",
+    "title": "Revision Petition",
+    "category": "Court Pleadings"
+  },
+  {
+    "index": 36,
+    "id": "reviewPetition",
+    "title": "Review Petition",
+    "category": "Court Pleadings"
+  },
+  {
+    "index": 37,
+    "id": "specialLeavePetition",
+    "title": "Special Leave Petition (SLP)",
+    "category": "Court Pleadings"
+  },
+  {
+    "index": 38,
+    "id": "transferPetition",
+    "title": "Transfer Petition",
+    "category": "Court Pleadings"
+  },
+  {
+    "index": 39,
+    "id": "caveatPetition",
+    "title": "Caveat Petition",
+    "category": "Court Pleadings"
+  },
+  {
+    "index": 40,
+    "id": "executionPetition",
+    "title": "Execution Petition",
+    "category": "Court Pleadings"
+  },
+  {
+    "index": 41,
+    "id": "interimApplication",
+    "title": "Interim Application",
+    "category": "Court Pleadings"
+  },
+  {
+    "index": 42,
+    "id": "stayApplication",
+    "title": "Stay Application",
+    "category": "Court Pleadings"
+  },
+  {
+    "index": 43,
+    "id": "delayCondonationApplication",
+    "title": "Delay Condonation Application",
+    "category": "Court Pleadings"
+  },
+  {
+    "index": 44,
+    "id": "fir",
+    "title": "First Information Report (FIR)",
+    "category": "Criminal"
+  },
+  {
+    "index": 45,
+    "id": "criminalComplaint",
+    "title": "Criminal Complaint",
+    "category": "Criminal"
+  },
+  {
+    "index": 46,
+    "id": "bailApplication",
+    "title": "Bail Application",
+    "category": "Criminal"
+  },
+  {
+    "index": 47,
+    "id": "anticipatoryBail",
+    "title": "Anticipatory Bail",
+    "category": "Criminal"
+  },
+  {
+    "index": 48,
+    "id": "quashingPetition",
+    "title": "Quashing Petition",
+    "category": "Criminal"
+  },
+  {
+    "index": 49,
+    "id": "protestPetition",
+    "title": "Protest Petition",
+    "category": "Criminal"
+  },
+  {
+    "index": 50,
+    "id": "dischargeApplication",
+    "title": "Discharge Application",
+    "category": "Criminal"
+  },
+  {
+    "index": 51,
+    "id": "compoundingPetition",
+    "title": "Compounding Petition",
+    "category": "Criminal"
+  },
+  {
+    "index": 52,
+    "id": "affidavit",
+    "title": "General Affidavit",
+    "category": "Affidavits"
+  },
+  {
+    "index": 53,
+    "id": "nameChangeAffidavit",
+    "title": "Name Change Affidavit",
+    "category": "Affidavits"
+  },
+  {
+    "index": 54,
+    "id": "addressProofAffidavit",
+    "title": "Address Proof Affidavit",
+    "category": "Affidavits"
+  },
+  {
+    "index": 55,
+    "id": "incomeAffidavit",
+    "title": "Income Affidavit",
+    "category": "Affidavits"
+  },
+  {
+    "index": 56,
+    "id": "marriageAffidavit",
+    "title": "Marriage Affidavit",
+    "category": "Affidavits"
+  },
+  {
+    "index": 57,
+    "id": "affidavitOfEvidence",
+    "title": "Affidavit of Evidence",
+    "category": "Affidavits"
+  },
+  {
+    "index": 58,
+    "id": "saleDeed",
+    "title": "Sale Deed",
+    "category": "Property"
+  },
+  {
+    "index": 59,
+    "id": "giftDeedProperty",
+    "title": "Gift Deed (Property)",
+    "category": "Property"
+  },
+  {
+    "index": 60,
+    "id": "partitionDeed",
+    "title": "Partition Deed",
+    "category": "Property"
+  },
+  {
+    "index": 61,
+    "id": "relinquishmentDeed",
+    "title": "Relinquishment Deed",
+    "category": "Property"
+  },
+  {
+    "index": 62,
+    "id": "will",
+    "title": "Will",
+    "category": "Property"
+  },
+  {
+    "index": 63,
+    "id": "rectificationDeed",
+    "title": "Rectification Deed",
+    "category": "Property"
+  },
+  {
+    "index": 64,
+    "id": "possessionLetter",
+    "title": "Possession Letter",
+    "category": "Property"
+  },
+  {
+    "index": 65,
+    "id": "propertyDeclaration",
+    "title": "Property Declaration",
+    "category": "Property"
+  },
+  {
+    "index": 66,
+    "id": "divorcePetition",
+    "title": "Divorce Petition",
+    "category": "Family"
+  },
+  {
+    "index": 67,
+    "id": "mutualDivorce",
+    "title": "Mutual Consent Divorce Petition",
+    "category": "Family"
+  },
+  {
+    "index": 68,
+    "id": "childCustodyPetition",
+    "title": "Child Custody Petition",
+    "category": "Family"
+  },
+  {
+    "index": 69,
+    "id": "maintenancePetition",
+    "title": "Maintenance Petition",
+    "category": "Family"
+  },
+  {
+    "index": 70,
+    "id": "domesticViolenceComplaint",
+    "title": "Domestic Violence Complaint",
+    "category": "Family"
+  },
+  {
+    "index": 71,
+    "id": "restitutionConjugalRights",
+    "title": "Restitution of Conjugal Rights",
+    "category": "Family"
+  },
+  {
+    "index": 72,
+    "id": "consumerComplaint",
+    "title": "Consumer Complaint",
+    "category": "Consumer"
+  },
+  {
+    "index": 73,
+    "id": "appealStateCommission",
+    "title": "Appeal before State Commission",
+    "category": "Consumer"
+  },
+  {
+    "index": 74,
+    "id": "complaintNationalCommission",
+    "title": "Complaint before National Commission",
+    "category": "Consumer"
+  },
+  {
+    "index": 75,
+    "id": "boardResolution",
+    "title": "Board Resolution",
+    "category": "Corporate"
+  },
+  {
+    "index": 76,
+    "id": "shareholderResolution",
+    "title": "Shareholder Resolution",
+    "category": "Corporate"
+  },
+  {
+    "index": 77,
+    "id": "partnershipDissolution",
+    "title": "Partnership Dissolution",
+    "category": "Corporate"
+  },
+  {
+    "index": 78,
+    "id": "companyNotice",
+    "title": "Company Notice",
+    "category": "Corporate"
+  },
+  {
+    "index": 79,
+    "id": "rocApplication",
+    "title": "ROC Application",
+    "category": "Corporate"
+  },
+  {
+    "index": 80,
+    "id": "rtiApplication",
+    "title": "RTI Application",
+    "category": "Miscellaneous"
+  },
+  {
+    "index": 81,
+    "id": "arbitrationPetition",
+    "title": "Arbitration Petition",
+    "category": "Miscellaneous"
+  },
+  {
+    "index": 82,
+    "id": "arbitrationNotice",
+    "title": "Arbitration Notice",
+    "category": "Miscellaneous"
+  },
+  {
+    "index": 83,
+    "id": "legalOpinion",
+    "title": "Legal Opinion",
+    "category": "Miscellaneous"
+  },
+  {
+    "index": 84,
+    "id": "caseSummary",
+    "title": "Case Summary",
+    "category": "Miscellaneous"
+  },
+  {
+    "index": 85,
+    "id": "writtenSubmission",
+    "title": "Written Submission",
+    "category": "Miscellaneous"
+  },
+  {
+    "index": 86,
+    "id": "synopsis",
+    "title": "Synopsis",
+    "category": "Miscellaneous"
+  },
+  {
+    "index": 87,
+    "id": "chronology",
+    "title": "Chronology",
+    "category": "Miscellaneous"
+  },
+  {
+    "index": 88,
+    "id": "vakalatnama",
+    "title": "Vakalatnama",
+    "category": "Miscellaneous"
+  },
+  {
+    "index": 89,
+    "id": "memoOfAppearance",
+    "title": "Memo of Appearance",
+    "category": "Miscellaneous"
+  },
+  {
+    "index": 90,
+    "id": "powerOfAttorney",
+    "title": "Power of Attorney",
+    "category": "Miscellaneous"
+  },
+  {
+    "index": 91,
+    "id": "customDraft",
+    "title": "Custom Legal Document",
+    "category": "Miscellaneous"
+  }
+]
